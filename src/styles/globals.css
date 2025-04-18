@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-cosmic-bg text-cosmic-text font-sans;
+}
+
+h1,
+h2,
+h3 {
+  @apply font-display;
+}
+
+/* Enlaces del Navbar */
+.nav-link {
+  @apply relative font-display tracking-wide transition-colors duration-300;
+}
+
+.nav-link::after {
+  content: "";
+  @apply absolute bottom-0 left-0 h-[1px] w-0 bg-cosmic-gold transition-all duration-300;
+}
+
+.nav-link:hover::after {
+  @apply w-full;
+}
+
+/* KEYFRAMES NAVBAR */
+@keyframes fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-down {
+  animation: fade-down 0.3s ease-out;
+}
+
+/* KEYFRAMES HERO */
+@keyframes bounce-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+.animate-bounce-slow {
+  animation: bounce-slow 2s infinite;
+}
+
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes glow-soft {
+  0%,
+  100% {
+    box-shadow: 0 0 0px rgba(209, 184, 127, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(209, 184, 127, 0.6);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-glow-soft {
+  animation: glow-soft 4s ease-in-out infinite;
+}
