@@ -66,29 +66,29 @@ export default function Footer() {
           <p className="mb-2 text-cosmic-silver">
             Contact:{" "}
             <a
-              href="mailto:hello@cosmococktails.nl"
+              href="mailto:cosmococktails2024@gmail.com"
               className="hover:text-cosmic-gold transition"
             >
-              hello@cosmococktails.nl
+              cosmococktails2024@gmail.com
             </a>
           </p>
           <div className="flex justify-center md:justify-end gap-4 mt-2">
             <a
-              href="https://instagram.com"
+              href="https://www.instagram.com/cosmococktails_2024/"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-cosmic-gold transition"
             >
               <FaInstagram />
             </a>
-            <a
+            {/* <a
               href="https://linkedin.com"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-cosmic-gold transition"
             >
               <FaLinkedinIn />
-            </a>
+            </a> */}
           </div>
         </div>
       </div>

@@ -14,7 +14,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const showBg = scrolled || hovered;
-  const navLinks = ["shop", "about", "services", "events", "contact"];
+  const navLinks = ["shop", "events", "about", "contact"];
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -51,21 +51,21 @@ export default function Navbar() {
           {/* Socials */}
           <div className="hidden md:flex items-center gap-4 text-sm">
             <a
-              href="https://instagram.com"
+              href="https://www.instagram.com/cosmococktails_2024/"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-cosmic-gold transition"
             >
               <FaInstagram />
             </a>
-            <a
+            {/* <a
               href="https://linkedin.com"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-cosmic-gold transition"
             >
               <FaLinkedinIn />
-            </a>
+            </a> */}
           </div>
 
           {/* Navigation */}

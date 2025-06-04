@@ -8,3 +8,13 @@ export interface Product {
   alcoholFree?: boolean;
   tags?: string[];
 }
+
+export type CocktailWithPrice = {
+  id: string;
+  name: string;
+  description: string | null;
+  image_url: string | null;
+  min_price: number | null;
+  alcohol_percentage: number;
+  has_non_alcoholic_version: boolean;
+};
