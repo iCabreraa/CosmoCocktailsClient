@@ -4,9 +4,9 @@ const nextConfig = {
   images: {
     domains: ["qpztyzhosqbmzptazlnx.supabase.co"],
   },
-  experimental: {
-    appDir: true,
-  },
+  // experimental: {
+  //   appDir: true,
+  // },
 };
 
 module.exports = nextConfig;

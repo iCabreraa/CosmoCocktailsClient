@@ -28,7 +28,7 @@ export default function CocktailRow({ title, cocktails }: CocktailRowProps) {
             >
               <div className="relative w-full h-48 rounded-lg overflow-hidden mb-4">
                 <Image
-                  src={cocktail.image_url}
+                  src={cocktail.image_url ?? "/images/default-cocktail.webp"}
                   alt={cocktail.name}
                   fill
                   className="object-cover"
