@@ -22,7 +22,9 @@ export type CocktailWithPrice = {
 
 export interface CocktailSize {
   id: string;
-  label: string | null;
-  volume_ml: number | null;
   price: number;
+  sizes: {
+    name: string | null;
+    volume_ml: number | null;
+  } | null;
 }
