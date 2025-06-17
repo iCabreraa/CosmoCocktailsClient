@@ -15,6 +15,7 @@ export type CocktailWithPrice = {
   description: string | null;
   image_url: string | null;
   min_price: number | null;
+  min_size_id: string | null;
   alcohol_percentage: number;
   has_non_alcoholic_version: boolean;
 };

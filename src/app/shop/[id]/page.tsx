@@ -1,6 +1,7 @@
 import Image from "next/image";
 import AddToCartButton from "@/components/cart/AddToCartButton";
 import { supabase } from "@/lib/supabaseClient";
+import { cocktailFlavorMap, FlavorProfile } from "@/data/cocktailInfo";
 
 interface CocktailSize {
   id: string;
@@ -16,7 +17,7 @@ export default async function CocktailDetailPage({
 }) {
   const { data: cocktail, error } = await supabase
     .from("cocktails")
-    .select(`id, name, description, image_url`)
+    .select(`id, name, description, image_url, alcohol_percentage`)
     .eq("id", params.id)
     .single();
 
@@ -33,6 +34,8 @@ export default async function CocktailDetailPage({
     .select("id, label, volume_ml, price, available")
     .eq("cocktail_id", params.id)
     .eq("available", true);
+
+  const flavor: FlavorProfile | undefined = cocktailFlavorMap[cocktail.id];
 
   return (
     <section className="py-24 px-6">
@@ -52,6 +55,37 @@ export default async function CocktailDetailPage({
           </h1>
           {cocktail.description && (
             <p className="text-cosmic-silver">{cocktail.description}</p>
+          )}
+
+          {/* Alcohol strength bar */}
+          <div>
+            <p className="text-sm text-cosmic-silver mb-1">Alcohol strength</p>
+            <div className="w-full bg-cosmic-sky/40 h-3 rounded">
+              <div
+                className="h-3 bg-cosmic-gold rounded"
+                style={{ width: `${cocktail.alcohol_percentage}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Flavor profile */}
+          {flavor && (
+            <div className="space-y-2">
+              <p className="text-sm text-cosmic-silver">Flavor profile</p>
+              {Object.entries(flavor).map(([key, value]) => (
+                <div key={key} className="flex items-center gap-2">
+                  <span className="w-20 capitalize text-sm text-cosmic-fog">
+                    {key}
+                  </span>
+                  <div className="flex-1 bg-cosmic-sky/40 h-2 rounded">
+                    <div
+                      className="h-2 bg-cosmic-gold rounded"
+                      style={{ width: `${value}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
 
           {sizes && sizes.length > 0 && (
