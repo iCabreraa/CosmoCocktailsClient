@@ -8,9 +8,11 @@ import { supabase } from "@/lib/supabaseClient";
 
 interface CocktailSize {
   id: string;
-  label: string | null;
-  volume_ml: number | null;
   price: number;
+  sizes: {
+    name: string | null;
+    volume_ml: number | null;
+  } | null;
 }
 
 export default function AddToCartButton({ product }: { product: Product }) {
@@ -23,7 +25,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
     setLoading(true);
     const { data, error } = await supabase
       .from("cocktail_sizes")
-      .select("id, label, volume_ml, price")
+      .select(`id, price, sizes ( name, volume_ml )`)
       .eq("cocktail_id", product.slug)
       .eq("available", true);
     if (!error && data) setSizes(data);
@@ -38,7 +40,9 @@ export default function AddToCartButton({ product }: { product: Product }) {
   function handleSelect(size: CocktailSize) {
     addToCart({
       id: size.id,
-      name: `${product.name} (${size.label ?? `${size.volume_ml}ml`})`,
+      name: `${product.name} (${
+        size.sizes?.name ?? `${size.sizes?.volume_ml ?? 0}ml`
+      })`,
       slug: product.slug,
       image: product.image,
       description: product.description,
@@ -83,7 +87,9 @@ export default function AddToCartButton({ product }: { product: Product }) {
                   onClick={() => handleSelect(size)}
                   className="w-full flex justify-between items-center border border-cosmic-gold rounded px-4 py-2 text-cosmic-text hover:bg-cosmic-gold/20"
                 >
-                  <span>{size.label ?? `${size.volume_ml}ml`}</span>
+                  <span>
+                    {size.sizes?.name ?? `${size.sizes?.volume_ml ?? 0}ml`}
+                  </span>
                   <span>€{size.price.toFixed(2)}</span>
                 </button>
               ))}

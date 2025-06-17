@@ -5,9 +5,11 @@ import { cocktailFlavorMap, FlavorProfile } from "@/data/cocktailInfo";
 
 interface CocktailSize {
   id: string;
-  label: string | null;
-  volume_ml: number | null;
   price: number;
+  sizes: {
+    name: string | null;
+    volume_ml: number | null;
+  } | null;
 }
 
 export default async function CocktailDetailPage({
@@ -33,7 +35,7 @@ export default async function CocktailDetailPage({
 
   const { data: sizes } = await supabase
     .from("cocktail_sizes")
-    .select("id, label, volume_ml, price, available")
+    .select(`id, price, available, sizes ( name, volume_ml )`)
     .eq("cocktail_id", params.id)
     .eq("available", true);
 
@@ -110,7 +112,7 @@ export default async function CocktailDetailPage({
                 >
                   <div>
                     <p className="font-[--font-josefin]">
-                      {size.label ?? `${size.volume_ml}ml`}
+                      {size.sizes?.name ?? `${size.sizes?.volume_ml ?? 0}ml`}
                     </p>
                     <p className="text-sm text-cosmic-fog">
                       €{size.price.toFixed(2)}
@@ -120,7 +122,7 @@ export default async function CocktailDetailPage({
                     product={{
                       id: size.id,
                       name: `${cocktail.name} (${
-                        size.label ?? `${size.volume_ml}ml`
+                        size.sizes?.name ?? `${size.sizes?.volume_ml ?? 0}ml`
                       })`,
                       slug: cocktail.id,
                       image: cocktail.image_url ?? "/images/placeholder.webp",
