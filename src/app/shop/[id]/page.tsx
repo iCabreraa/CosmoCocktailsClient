@@ -1,6 +1,7 @@
 import Image from "next/image";
-import AddToCartButton from "@/components/cart/AddToCartButton";
+import AddToCartWithQuantity from "@/components/cart/AddToCartWithQuantity";
 import { supabase } from "@/lib/supabaseClient";
+import { cocktailFlavorMap, FlavorProfile } from "@/data/cocktailInfo";
 
 interface CocktailSize {
   id: string;
@@ -16,7 +17,9 @@ export default async function CocktailDetailPage({
 }) {
   const { data: cocktail, error } = await supabase
     .from("cocktails")
-    .select(`id, name, description, image_url`)
+    .select(
+      `id, name, description, image_url, alcohol_percentage, has_non_alcoholic_version`
+    )
     .eq("id", params.id)
     .single();
 
@@ -33,6 +36,8 @@ export default async function CocktailDetailPage({
     .select("id, label, volume_ml, price, available")
     .eq("cocktail_id", params.id)
     .eq("available", true);
+
+  const flavor: FlavorProfile | undefined = cocktailFlavorMap[cocktail.id];
 
   return (
     <section className="py-24 px-6">
@@ -53,9 +58,51 @@ export default async function CocktailDetailPage({
           {cocktail.description && (
             <p className="text-cosmic-silver">{cocktail.description}</p>
           )}
+          {cocktail.has_non_alcoholic_version && (
+            <p className="text-sm text-cosmic-gold">
+              Non-alcoholic option available
+            </p>
+          )}
+
+          {/* Alcohol strength bar */}
+          <div>
+            <p className="text-sm text-cosmic-silver mb-1">Alcohol strength</p>
+            <div className="w-full bg-cosmic-sky/40 h-3 rounded">
+              <div
+                className="h-3 bg-cosmic-gold rounded"
+                style={{ width: `${cocktail.alcohol_percentage}%` }}
+              />
+            </div>
+            <p className="text-xs text-cosmic-fog mt-1">
+              ABV: {cocktail.alcohol_percentage}%
+            </p>
+          </div>
+
+          {/* Flavor profile */}
+          {flavor && (
+            <div className="space-y-2">
+              <p className="text-sm text-cosmic-silver">Flavor profile</p>
+              {Object.entries(flavor).map(([key, value]) => (
+                <div key={key} className="flex items-center gap-2">
+                  <span className="w-20 capitalize text-sm text-cosmic-fog">
+                    {key}
+                  </span>
+                  <div className="flex-1 bg-cosmic-sky/40 h-2 rounded">
+                    <div
+                      className="h-2 bg-cosmic-gold rounded"
+                      style={{ width: `${value}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {sizes && sizes.length > 0 && (
             <div className="space-y-4">
+              <h2 className="text-lg font-[--font-unica] text-cosmic-gold mb-2">
+                Available Sizes
+              </h2>
               {sizes.map((size: CocktailSize) => (
                 <div
                   key={size.id}
@@ -69,7 +116,7 @@ export default async function CocktailDetailPage({
                       €{size.price.toFixed(2)}
                     </p>
                   </div>
-                  <AddToCartButton
+                  <AddToCartWithQuantity
                     product={{
                       id: size.id,
                       name: `${cocktail.name} (${

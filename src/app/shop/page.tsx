@@ -40,7 +40,7 @@ export default function ShopPage() {
         cocktails.map(async (cocktail) => {
           const { data: sizes, error: sizeError } = await supabase
             .from("cocktail_sizes")
-            .select("price")
+            .select("id, price")
             .eq("cocktail_id", cocktail.id)
             .eq("available", true);
 
@@ -51,12 +51,20 @@ export default function ShopPage() {
               ? Math.min(...sizes.map((s) => s.price))
               : null;
 
+          const minSizeId =
+            sizes && sizes.length > 0
+              ? sizes.reduce((prev, curr) =>
+                  curr.price < prev.price ? curr : prev
+                ).id
+              : null;
+
           return {
             id: cocktail.id,
             name: cocktail.name,
             description: cocktail.description,
             image_url: cocktail.image_url,
             min_price: minPrice,
+            min_size_id: minSizeId,
             alcohol_percentage: cocktail.alcohol_percentage,
             has_non_alcoholic_version: cocktail.has_non_alcoholic_version,
           };
