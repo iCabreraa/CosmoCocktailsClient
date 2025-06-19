@@ -103,7 +103,7 @@ export default function ShopPage() {
 
         <CocktailRow
           title="Non-Alcoholic Magic"
-          cocktails={cocktails.filter((c) => c.has_non_alcoholic_version)}
+          cocktails={cocktails.filter((c) => c.alcohol_percentage === 0)}
         />
 
         <CocktailRow
@@ -113,7 +113,9 @@ export default function ShopPage() {
 
         <CocktailRow
           title="Light & Fresh"
-          cocktails={cocktails.filter((c) => c.alcohol_percentage <= 14)}
+          cocktails={cocktails.filter(
+            (c) => c.alcohol_percentage > 0 && c.alcohol_percentage <= 14
+          )}
         />
 
         <CocktailRow

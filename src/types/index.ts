@@ -23,7 +23,8 @@ export type CocktailWithPrice = {
 export interface CocktailSize {
   id: string;
   price: number;
-  sizes: {
+  available: boolean;
+  size_id: {
     name: string | null;
     volume_ml: number | null;
   } | null;

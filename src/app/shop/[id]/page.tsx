@@ -6,7 +6,9 @@ import { cocktailFlavorMap, FlavorProfile } from "@/data/cocktailInfo";
 interface CocktailSize {
   id: string;
   price: number;
-  sizes: {
+  available: boolean;
+  sizes_id: string;
+  size: {
     name: string | null;
     volume_ml: number | null;
   } | null;
@@ -17,6 +19,7 @@ export default async function CocktailDetailPage({
 }: {
   params: { id: string };
 }) {
+  // Cocktail principal
   const { data: cocktail, error } = await supabase
     .from("cocktails")
     .select(
@@ -33,11 +36,30 @@ export default async function CocktailDetailPage({
     );
   }
 
-  const { data: sizes } = await supabase
+  // Cocktail_sizes sin join
+  const { data: rawSizes } = await supabase
     .from("cocktail_sizes")
-    .select(`id, price, available, sizes ( name, volume_ml )`)
+    .select("id, price, available, sizes_id")
     .eq("cocktail_id", params.id)
     .eq("available", true);
+
+  const sizeIds = rawSizes?.map((s) => s.sizes_id).filter(Boolean) ?? [];
+
+  // Info de tamaños desde la tabla sizes
+  const { data: sizeDetails } = await supabase
+    .from("sizes")
+    .select("id, name, volume_ml")
+    .in("id", sizeIds);
+
+  // Unión manual
+  const sizes: CocktailSize[] =
+    rawSizes?.map((s) => ({
+      id: s.id,
+      price: s.price,
+      available: s.available,
+      sizes_id: s.sizes_id,
+      size: sizeDetails?.find((d) => d.id === s.sizes_id) ?? null,
+    })) ?? [];
 
   const flavor: FlavorProfile | undefined = cocktailFlavorMap[cocktail.id];
 
@@ -57,16 +79,18 @@ export default async function CocktailDetailPage({
           <h1 className="text-3xl md:text-4xl font-[--font-unica] text-cosmic-gold">
             {cocktail.name}
           </h1>
+
           {cocktail.description && (
             <p className="text-cosmic-silver">{cocktail.description}</p>
           )}
+
           {cocktail.has_non_alcoholic_version && (
             <p className="text-sm text-cosmic-gold">
               Non-alcoholic option available
             </p>
           )}
 
-          {/* Alcohol strength bar */}
+          {/* Alcohol strength */}
           <div>
             <p className="text-sm text-cosmic-silver mb-1">Alcohol strength</p>
             <div className="w-full bg-cosmic-sky/40 h-3 rounded">
@@ -100,29 +124,35 @@ export default async function CocktailDetailPage({
             </div>
           )}
 
-          {sizes && sizes.length > 0 && (
+          {/* Sizes */}
+          {sizes.length > 0 && (
             <div className="space-y-4">
               <h2 className="text-lg font-[--font-unica] text-cosmic-gold mb-2">
                 Available Sizes
               </h2>
-              {sizes.map((size: CocktailSize) => (
+
+              {sizes.map((size) => (
                 <div
                   key={size.id}
                   className="flex justify-between items-center border-b border-cosmic-gold/20 pb-2"
                 >
                   <div>
                     <p className="font-[--font-josefin]">
-                      {size.sizes?.name ?? `${size.sizes?.volume_ml ?? 0}ml`}
+                      {size.size?.name}
+                      {size.size?.volume_ml
+                        ? ` (${size.size.volume_ml}ml)`
+                        : ""}
                     </p>
                     <p className="text-sm text-cosmic-fog">
                       €{size.price.toFixed(2)}
                     </p>
                   </div>
+
                   <AddToCartWithQuantity
                     product={{
                       id: size.id,
                       name: `${cocktail.name} (${
-                        size.sizes?.name ?? `${size.sizes?.volume_ml ?? 0}ml`
+                        size.size?.name ?? `${size.size?.volume_ml ?? 0}ml`
                       })`,
                       slug: cocktail.id,
                       image: cocktail.image_url ?? "/images/placeholder.webp",
