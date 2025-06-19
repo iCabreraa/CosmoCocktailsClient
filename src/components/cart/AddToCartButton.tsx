@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useCart } from "@/store/cart";
-
-import { Product, CocktailSize } from "@/types";
+import { CocktailSize, Product } from "@/types";
 import { ShoppingCart, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -16,38 +15,45 @@ export default function AddToCartButton({ product }: { product: Product }) {
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setOpen(false);
-      }
+      if (e.key === "Escape") setOpen(false);
     }
-    if (open) {
-      window.addEventListener("keydown", onKeyDown);
-    }
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
+    if (open) window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
   async function fetchSizes() {
     setLoading(true);
-    const { data, error } = await supabase
+
+    const { data: rawSizes, error: sizeErr } = await supabase
       .from("cocktail_sizes")
-      .select(`id, price, sizes ( name, volume_ml )`)
+      .select("id, price, available, sizes_id")
       .eq("cocktail_id", product.slug)
       .eq("available", true);
-    if (error) {
+
+    if (sizeErr || !rawSizes) {
       setError("Failed to load sizes");
-    } else if (data) {
-      setSizes(data);
-      setError(null);
+      setLoading(false);
+      return;
     }
+
+    const sizeIds = rawSizes.map((s) => s.sizes_id).filter(Boolean);
+    const { data: sizeDetails } = await supabase
+      .from("sizes")
+      .select("id, name, volume_ml")
+      .in("id", sizeIds);
+
+    const finalSizes: CocktailSize[] = rawSizes.map((s) => ({
+      ...s,
+      size: sizeDetails?.find((d) => d.id === s.sizes_id) ?? null,
+    }));
+
+    setSizes(finalSizes);
+    setError(null);
     setLoading(false);
   }
 
   function handleOpen() {
-    if (sizes.length === 0) {
-      fetchSizes();
-    }
+    if (sizes.length === 0) fetchSizes();
     setOpen(true);
   }
 
@@ -55,7 +61,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
     addToCart({
       id: size.id,
       name: `${product.name} (${
-        size.sizes?.name ?? `${size.sizes?.volume_ml ?? 0}ml`
+        size.size?.name ?? `${size.size?.volume_ml ?? 0}ml`
       })`,
       slug: product.slug,
       image: product.image,
@@ -94,11 +100,13 @@ export default function AddToCartButton({ product }: { product: Product }) {
             <h2 className="text-lg font-[--font-unica] text-cosmic-gold mb-4">
               Choose a size
             </h2>
+
             {loading && <p className="text-cosmic-fog">Loading...</p>}
             {error && <p className="text-red-500 text-sm">{error}</p>}
             {!loading && sizes.length === 0 && (
               <p className="text-cosmic-fog">No sizes available.</p>
             )}
+
             <div className="space-y-2">
               {sizes.map((size) => (
                 <button
@@ -107,8 +115,8 @@ export default function AddToCartButton({ product }: { product: Product }) {
                   className="w-full flex justify-between items-center border border-cosmic-gold rounded px-4 py-2 text-cosmic-text hover:bg-cosmic-gold/20"
                 >
                   <span>
-                    {size.sizes?.name ?? `${size.sizes?.volume_ml ?? 0}ml`}
-                  </span>{" "}
+                    {size.size?.name ?? `${size.size?.volume_ml ?? 0}ml`}
+                  </span>
                   <span>€{size.price.toFixed(2)}</span>
                 </button>
               ))}

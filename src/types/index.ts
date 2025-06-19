@@ -24,7 +24,8 @@ export interface CocktailSize {
   id: string;
   price: number;
   available: boolean;
-  size_id: {
+  sizes_id: string;
+  size: {
     name: string | null;
     volume_ml: number | null;
   } | null;
