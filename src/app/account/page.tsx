@@ -104,17 +104,42 @@ function LoginForm() {
 function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
     });
-    setError(error?.message || null);
+    if (signUpError) {
+      setError(signUpError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (data.user) {
+      const { error: insertError } = await supabase.from("users").insert({
+        id: data.user.id,
+        email,
+        full_name: fullName,
+        phone,
+        avatar_url: avatarUrl,
+      });
+
+      if (insertError) {
+        setError(insertError.message);
+        setLoading(false);
+        return;
+      }
+    }
+
+    setError(null);
     setLoading(false);
   }
 
@@ -122,12 +147,34 @@ function SignupForm() {
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       {error && <p className="text-red-500 text-sm">{error}</p>}
       <input
+        type="text"
+        placeholder="Full Name"
+        className="bg-transparent border border-cosmic-fog rounded-md p-3 text-cosmic-text placeholder-cosmic-fog focus:outline-none"
+        value={fullName}
+        onChange={(e) => setFullName(e.target.value)}
+        required
+      />
+      <input
         type="email"
         placeholder="Email"
         className="bg-transparent border border-cosmic-fog rounded-md p-3 text-cosmic-text placeholder-cosmic-fog focus:outline-none"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
+      />
+      <input
+        type="tel"
+        placeholder="Phone Number"
+        className="bg-transparent border border-cosmic-fog rounded-md p-3 text-cosmic-text placeholder-cosmic-fog focus:outline-none"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Avatar URL"
+        className="bg-transparent border border-cosmic-fog rounded-md p-3 text-cosmic-text placeholder-cosmic-fog focus:outline-none"
+        value={avatarUrl}
+        onChange={(e) => setAvatarUrl(e.target.value)}
       />
       <input
         type="password"
@@ -152,8 +199,7 @@ function AccountDetails({ session }: { session: Session }) {
   const user = session.user;
   const adminUrl =
     process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.cosmococktails.com";
-  const isAdmin =
-    user.app_metadata?.role === "admin" || user.user_metadata?.is_admin;
+  const isAdmin = user.app_metadata?.role === "admin";
 
   async function handleLogout() {
     await supabase.auth.signOut();
