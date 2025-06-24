@@ -1,26 +1,22 @@
 "use client";
 
-import { supabase } from "@/lib/supabaseClient";
 import { useEffect, useState } from "react";
-import type { Session } from "@supabase/supabase-js";
 import Link from "next/link";
 
+import type { User } from "./types";
+
 export default function AccountPage() {
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLogin, setIsLogin] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-    });
-    return () => subscription.unsubscribe();
+    fetch("/api/me")
+      .then((res) => res.json())
+      .then((data) => {
+        setUser(data.user);
+        setLoading(false);
+      });
   }, []);
 
   if (loading) {
@@ -31,7 +27,7 @@ export default function AccountPage() {
     );
   }
 
-  if (!session) {
+  if (!user) {
     return (
       <main className="py-20 px-6 max-w-md mx-auto space-y-6">
         <h1 className="text-center text-3xl font-[--font-unica] text-cosmic-gold">
@@ -51,7 +47,7 @@ export default function AccountPage() {
     );
   }
 
-  return <AccountDetails session={session} />;
+  return <AccountDetails user={user} />;
 }
 
 function LoginForm() {
@@ -63,11 +59,18 @@ function LoginForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
     });
-    setError(error?.message || null);
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || "Login failed");
+    } else {
+      setError(null);
+      window.location.reload();
+    }
     setLoading(false);
   }
 
@@ -113,33 +116,18 @@ function SignupForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
+    const res = await fetch("/api/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
     });
-    if (signUpError) {
-      setError(signUpError.message);
-      setLoading(false);
-      return;
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || "Signup failed");
+    } else {
+      setError(null);
+      window.location.reload();
     }
-
-    if (data.user) {
-      const { error: insertError } = await supabase.from("users").insert({
-        id: data.user.id,
-        email,
-        full_name: fullName,
-        phone,
-        avatar_url: avatarUrl,
-      });
-
-      if (insertError) {
-        setError(insertError.message);
-        setLoading(false);
-        return;
-      }
-    }
-
-    setError(null);
     setLoading(false);
   }
 
@@ -195,14 +183,14 @@ function SignupForm() {
   );
 }
 
-function AccountDetails({ session }: { session: Session }) {
-  const user = session.user;
+function AccountDetails({ user }: { user: User }) {
   const adminUrl =
     process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.cosmococktails.com";
-  const isAdmin = user.app_metadata?.role === "admin";
+  const isAdmin = user.role === "admin" || (user as any).is_admin;
 
   async function handleLogout() {
-    await supabase.auth.signOut();
+    await fetch("/api/logout", { method: "POST" });
+    window.location.reload();
   }
 
   return (
