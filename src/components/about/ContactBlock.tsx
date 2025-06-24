@@ -24,7 +24,7 @@ export default function ContactBlock() {
           viewport={{ once: true }}
           className="text-cosmic-silver text-base md:text-lg font-[--font-josefin]"
         >
-          Have questions or want to book us for an event? Drop us a line!
+          Have questions or want to book us for an event? Drop us a message!
         </motion.p>
         <motion.div
           initial={{ opacity: 0 }}

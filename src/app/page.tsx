@@ -12,7 +12,7 @@ export default function Home() {
     <main className="relative flex flex-col space-y-40 px-4 md:px-8">
       <HeroSection />
       <HowItWorks />
-      <FeaturedCocktails />
+      {/* <FeaturedCocktails /> */}
       <ExperienceBlock />
       {/*<Testimonials />*/}
       <FinalCTA />

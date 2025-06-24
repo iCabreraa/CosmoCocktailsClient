@@ -18,7 +18,7 @@ export default function HowItWorks() {
     },
     {
       icon: FaCocktail,
-      title: "You pour & enjoy",
+      title: "Shake & enjoy",
       description: "Serve effortlessly. Impress endlessly.",
     },
   ];

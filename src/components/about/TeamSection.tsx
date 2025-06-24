@@ -7,17 +7,17 @@ const team = [
   {
     name: "Alex",
     role: "Founder & Head Mixologist",
-    img: "",
+    // img: "",
   },
   {
     name: "Mickey",
     role: "Co-founder & Head Mixologist",
-    img: "",
+    // img: "",
   },
   {
     name: "Ivan",
     role: "Mixologist & Web Developer",
-    img: "",
+    // img: "",
   },
 ];
 
@@ -43,14 +43,14 @@ export default function TeamSection() {
         >
           {team.map((member) => (
             <div key={member.name} className="flex flex-col items-center gap-3">
-              <div className="w-32 h-32 relative rounded-full overflow-hidden">
+              {/* <div className="w-32 h-32 relative rounded-full overflow-hidden">
                 <Image
                   src={member.img}
                   alt={member.name}
                   fill
                   className="object-cover"
                 />
-              </div>
+              </div> */}
               <p className="font-[--font-josefin] text-cosmic-silver text-lg">
                 {member.name}
               </p>

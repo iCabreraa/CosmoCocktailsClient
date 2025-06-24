@@ -24,8 +24,16 @@ export default function EventsSection() {
           className="text-cosmic-silver text-base md:text-lg font-[--font-josefin] leading-relaxed"
         >
           From corporate gatherings to private celebrations, our team creates
-          tailored cocktail experiences. Workshops, tastings and full-service
-          bars — we make your event memorable.
+          tailored cocktail experiences — we make your event memorable.
+        </motion.p>
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.8 }}
+          viewport={{ once: true }}
+          className="text-cosmic-silver text-base md:text-lg font-[--font-josefin] leading-relaxed"
+        >
+          For more information contact us
         </motion.p>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}

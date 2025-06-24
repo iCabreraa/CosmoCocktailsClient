@@ -22,20 +22,20 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/about"
+                  href="/events"
                   className="hover:text-cosmic-gold transition"
                 >
-                  About Us
+                  Events
                 </Link>
               </li>
             </ul>
             <ul className="space-y-1">
               <li>
                 <Link
-                  href="/services"
+                  href="/about"
                   className="hover:text-cosmic-gold transition"
                 >
-                  Services
+                  About
                 </Link>
               </li>
               <li>

@@ -15,7 +15,7 @@ export default function FinalCTA() {
           viewport={{ once: true }}
           className="text-4xl md:text-5xl font-[--font-unica] text-[#D8DAE3] leading-snug"
         >
-          Ready to impress your guests?
+          Ready for a <i className="text-cosmic-gold">new journey</i>?
         </motion.h2>
 
         {/* Botones CTA */}
@@ -30,7 +30,7 @@ export default function FinalCTA() {
             href="/shop"
             className="inline-block px-8 py-4 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black font-[--font-josefin] tracking-wide text-base md:text-lg shadow-md hover:shadow-lg hover:shadow-cosmic-gold/30 hover:scale-105 transition-all duration-300 ease-in-out"
           >
-            Start your order
+            Start your Order
           </Link>
 
           <Link

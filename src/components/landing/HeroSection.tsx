@@ -56,23 +56,23 @@ export default function HeroSection() {
         </motion.p>
 
         {/* Botón + Glow pulsante */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1, duration: 0.6 }}
           className="mt-8 relative flex items-center justify-center"
-        >
-          {/* Glow pulsante detrás del botón */}
-          <div className="absolute w-48 h-48 rounded-full bg-cosmic-gold/20 blur-2xl animate-pulse-slow z-[-1]" />
+        > */}
+        {/* Glow pulsante detrás del botón */}
+        {/* <div className="absolute w-48 h-48 rounded-full bg-cosmic-gold/20 blur-2xl animate-pulse-slow z-[-1]" /> */}
 
-          {/* Botón con efecto pulsante adicional */}
-          <Link
+        {/* Botón con efecto pulsante adicional */}
+        {/* <Link
             href="/shop"
             className="inline-block px-8 py-4 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-all font-[--font-josefin] tracking-wide text-base md:text-lg shadow-md hover:shadow-lg hover:shadow-cosmic-gold/30 hover:scale-110 duration-300 ease-in-out animate-glow-soft"
           >
             Start your journey
           </Link>
-        </motion.div>
+        </motion.div> */}
       </div>
 
       {/* Icono flecha scroll */}
