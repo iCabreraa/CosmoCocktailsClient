@@ -26,3 +26,27 @@ export async function GET() {
     return NextResponse.json({ user: null });
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    const token = cookies().get("token")?.value;
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const decoded = jwt.verify(token, secret) as { id: string };
+    const updates = await request.json();
+    const { data: user, error } = await supabase
+      .from("users")
+      .update(updates)
+      .eq("id", decoded.id)
+      .select("*")
+      .single();
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    const { password, ...safeUser } = user as any;
+    return NextResponse.json({ user: safeUser });
+  } catch {
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}

@@ -47,7 +47,7 @@ export default function AccountPage() {
     );
   }
 
-  return <AccountDetails user={user} />;
+  return <AccountDetails user={user} onUserUpdate={setUser} />;
 }
 
 function LoginForm() {
@@ -189,10 +189,59 @@ function SignupForm() {
   );
 }
 
-function AccountDetails({ user }: { user: User }) {
+function AccountDetails({
+  user,
+  onUserUpdate,
+}: {
+  user: User;
+  onUserUpdate: (u: User) => void;
+}) {
   const adminUrl =
     process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.cosmococktails.com";
   const isAdmin = user.role === "admin" || (user as any).is_admin;
+
+  const [editing, setEditing] = useState<
+    null | "personal" | "contact" | "payment"
+  >(null);
+  const [form, setForm] = useState<Partial<User>>({});
+
+  useEffect(() => {
+    setForm(user);
+  }, [user]);
+
+  function handleChange(field: keyof User, value: any) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function save(section: "personal" | "contact" | "payment") {
+    const payload: Partial<User> = {};
+    if (section === "personal") {
+      payload.full_name = form.full_name;
+      payload.avatar_url = form.avatar_url;
+      payload.email = form.email;
+      payload.phone = form.phone;
+    } else if (section === "contact") {
+      payload.address_line1 = form.address_line1;
+      payload.address_line2 = form.address_line2;
+      payload.city = form.city;
+      payload.state = form.state;
+      payload.zip = form.zip;
+      payload.country = form.country;
+      payload.phone = form.phone;
+    } else if (section === "payment") {
+      payload.payment_method = form.payment_method;
+    }
+    const res = await fetch("/api/me", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      onUserUpdate(data.user);
+    }
+    setEditing(null);
+  }
 
   async function handleLogout() {
     await fetch("/api/logout", { method: "POST" });
@@ -204,24 +253,248 @@ function AccountDetails({ user }: { user: User }) {
       <h1 className="text-center text-3xl font-[--font-unica] text-cosmic-gold">
         My Account
       </h1>
+      {/* Personal Info */}
+
       <section className="space-y-2">
         <h2 className="text-xl font-[--font-josefin] text-cosmic-text">
           Personal Information
         </h2>
-        <p>Email: {user.email}</p>
-        {/* Otros datos personales podrían ir aquí */}
+        {editing === "personal" ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              save("personal");
+            }}
+            className="space-y-3"
+          >
+            <input
+              type="text"
+              className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
+              value={form.full_name || ""}
+              onChange={(e) => handleChange("full_name", e.target.value)}
+              placeholder="Full name"
+              required
+            />
+            <input
+              type="email"
+              className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
+              value={form.email || ""}
+              onChange={(e) => handleChange("email", e.target.value)}
+              placeholder="Email"
+              required
+            />
+            <input
+              type="tel"
+              className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
+              value={form.phone || ""}
+              onChange={(e) => handleChange("phone", e.target.value)}
+              placeholder="Phone"
+            />
+            <input
+              type="text"
+              className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
+              value={form.avatar_url || ""}
+              onChange={(e) => handleChange("avatar_url", e.target.value)}
+              placeholder="Avatar URL"
+            />
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-md border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setForm(user);
+                  setEditing(null);
+                }}
+                className="px-4 py-2 rounded-md border border-cosmic-fog text-cosmic-fog hover:bg-cosmic-fog hover:text-black"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="space-y-1">
+            {user.avatar_url && (
+              <img
+                src={user.avatar_url}
+                alt="avatar"
+                className="w-24 h-24 rounded-full object-cover"
+              />
+            )}
+            <p>Name: {user.full_name}</p>
+            <p>Email: {user.email}</p>
+            {user.phone && <p>Phone: {user.phone}</p>}
+            <button
+              onClick={() => setEditing("personal")}
+              className="underline text-cosmic-gold"
+            >
+              Edit
+            </button>
+          </div>
+        )}
       </section>
+      {/* Contact & Address */}
       <section className="space-y-2">
         <h2 className="text-xl font-[--font-josefin] text-cosmic-text">
           Contact & Address
         </h2>
-        <p className="text-cosmic-fog">Coming soon...</p>
+        {editing === "contact" ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              save("contact");
+            }}
+            className="space-y-3"
+          >
+            <input
+              type="text"
+              placeholder="Address line 1"
+              className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
+              value={form.address_line1 || ""}
+              onChange={(e) => handleChange("address_line1", e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="Address line 2"
+              className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
+              value={form.address_line2 || ""}
+              onChange={(e) => handleChange("address_line2", e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="City"
+              className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
+              value={form.city || ""}
+              onChange={(e) => handleChange("city", e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="State"
+              className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
+              value={form.state || ""}
+              onChange={(e) => handleChange("state", e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="ZIP"
+              className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
+              value={form.zip || ""}
+              onChange={(e) => handleChange("zip", e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="Country"
+              className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
+              value={form.country || ""}
+              onChange={(e) => handleChange("country", e.target.value)}
+            />
+            <input
+              type="tel"
+              placeholder="Phone"
+              className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
+              value={form.phone || ""}
+              onChange={(e) => handleChange("phone", e.target.value)}
+            />
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-md border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setForm(user);
+                  setEditing(null);
+                }}
+                className="px-4 py-2 rounded-md border border-cosmic-fog text-cosmic-fog hover:bg-cosmic-fog hover:text-black"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="space-y-1">
+            {user.address_line1 && <p>{user.address_line1}</p>}
+            {user.address_line2 && <p>{user.address_line2}</p>}
+            {user.city && (
+              <p>
+                {user.city}
+                {user.state ? `, ${user.state}` : ""}
+              </p>
+            )}
+            {user.zip && <p>{user.zip}</p>}
+            {user.country && <p>{user.country}</p>}
+            {user.phone && <p>Phone: {user.phone}</p>}
+            <button
+              onClick={() => setEditing("contact")}
+              className="underline text-cosmic-gold"
+            >
+              Edit
+            </button>
+          </div>
+        )}
       </section>
+
+      {/* Payment Methods */}
       <section className="space-y-2">
         <h2 className="text-xl font-[--font-josefin] text-cosmic-text">
           Payment Methods
         </h2>
-        <p className="text-cosmic-fog">Coming soon...</p>
+        {editing === "payment" ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              save("payment");
+            }}
+            className="space-y-3"
+          >
+            <input
+              type="text"
+              placeholder="Payment method"
+              className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
+              value={form.payment_method || ""}
+              onChange={(e) => handleChange("payment_method", e.target.value)}
+            />
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-md border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setForm(user);
+                  setEditing(null);
+                }}
+                className="px-4 py-2 rounded-md border border-cosmic-fog text-cosmic-fog hover:bg-cosmic-fog hover:text-black"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="space-y-1">
+            {user.payment_method ? (
+              <p>{user.payment_method}</p>
+            ) : (
+              <p className="text-cosmic-fog">No payment method</p>
+            )}
+            <button
+              onClick={() => setEditing("payment")}
+              className="underline text-cosmic-gold"
+            >
+              Edit
+            </button>
+          </div>
+        )}{" "}
       </section>
       <section className="space-y-2">
         <h2 className="text-xl font-[--font-josefin] text-cosmic-text">
