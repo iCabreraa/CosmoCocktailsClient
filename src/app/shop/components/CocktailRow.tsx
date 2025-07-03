@@ -11,7 +11,7 @@ type CocktailRowProps = {
 };
 
 export default function CocktailRow({ title, cocktails }: CocktailRowProps) {
-  if (cocktails.length === 0) return null;
+  if (cocktails.length < 2) return null;
 
   return (
     <section className="py-12">
@@ -20,11 +20,11 @@ export default function CocktailRow({ title, cocktails }: CocktailRowProps) {
           {title}
         </h2>
 
-        <div className="flex overflow-x-auto gap-6 pb-2">
+        <div className="flex overflow-x-auto gap-6 pb-2 snap-x snap-mandatory scrollbar-hide">
           {cocktails.map((cocktail) => (
             <div
               key={cocktail.id}
-              className="min-w-[220px] flex-shrink-0 rounded-lg bg-white/5 backdrop-blur-sm p-4 border border-cosmic-gold/10 hover:border-cosmic-gold/30 hover:scale-105 transition-transform duration-300"
+              className="min-w-[220px] flex-shrink-0 snap-start rounded-lg bg-white/5 backdrop-blur-sm p-4 border border-cosmic-gold/10 hover:border-cosmic-gold/30 hover:scale-105 transition-transform duration-300"
             >
               <Link href={`/shop/${cocktail.id}`}>
                 <div className="relative w-full h-48 rounded-lg overflow-hidden mb-4">

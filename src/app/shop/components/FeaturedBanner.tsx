@@ -30,7 +30,8 @@ const featuredCocktails = [
 
 export default function FeaturedBanner() {
   return (
-    <div className="relative w-full rounded-xl overflow-hidden shadow-lg">
+    <div className="relative w-full rounded-xl overflow-hidden shadow-lg bg-[url('/images/hero-bg.webp')] bg-cover bg-center border border-cosmic-gold/20">
+      {" "}
       <Swiper
         modules={[Autoplay, Pagination]}
         autoplay={{ delay: 5000, disableOnInteraction: false }}
@@ -57,7 +58,7 @@ export default function FeaturedBanner() {
                 </p>
                 <Link
                   href={cocktail.href}
-                  className="px-6 py-3 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-all duration-300 font-[--font-josefin]"
+                  className="px-6 py-3 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black focus:outline-none focus:ring-2 focus:ring-cosmic-gold transition-all duration-300 font-[--font-josefin]"
                 >
                   Explore now
                 </Link>

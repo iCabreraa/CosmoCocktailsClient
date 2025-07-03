@@ -27,7 +27,7 @@ export default function AddToCartWithQuantity({
         <button
           type="button"
           onClick={decrease}
-          className="px-2 py-1 hover:bg-cosmic-gold hover:text-black transition"
+          className="px-2 py-1 hover:bg-cosmic-gold hover:text-black focus:outline-none focus:ring-2 focus:ring-cosmic-gold transition"
           aria-label="Decrease quantity"
         >
           <Minus size={12} />
@@ -36,7 +36,7 @@ export default function AddToCartWithQuantity({
         <button
           type="button"
           onClick={increase}
-          className="px-2 py-1 hover:bg-cosmic-gold hover:text-black transition"
+          className="px-2 py-1 hover:bg-cosmic-gold hover:text-black focus:outline-none focus:ring-2 focus:ring-cosmic-gold transition"
           aria-label="Increase quantity"
         >
           <Plus size={12} />
@@ -44,7 +44,7 @@ export default function AddToCartWithQuantity({
       </div>
       <button
         onClick={() => addToCart(product, qty)}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-all text-sm"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black focus:outline-none focus:ring-2 focus:ring-cosmic-gold transition-all text-sm"
       >
         <ShoppingCart className="w-4 h-4" />
         Add to Cart

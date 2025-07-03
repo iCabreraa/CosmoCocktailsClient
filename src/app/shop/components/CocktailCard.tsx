@@ -17,14 +17,33 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
         className="flex flex-col items-center bg-cosmic-bg/50 border border-cosmic-gold/20 hover:border-cosmic-gold/50 rounded-2xl overflow-hidden shadow-md hover:shadow-cosmic-gold/30 transition-all duration-300 cursor-pointer p-6"
       >
-        {/* Imagen del cóctel */}
-        <div className="relative w-full h-64 rounded-xl overflow-hidden mb-6">
+        {/* Imagen del cóctel con efecto cortina */}
+        <div className="relative w-full h-64 rounded-xl overflow-hidden mb-6 group">
           <Image
-            src={cocktail.image_url || "/images/placeholder.webp"}
-            alt={cocktail.name}
+            src="/images/hero-bg.webp"
+            alt=""
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className="object-cover"
           />
+          <div className="absolute inset-0 flex">
+            <div
+              className="w-1/2 h-full bg-cover bg-center origin-right transition-transform duration-500 group-hover:-translate-x-full"
+              style={{
+                backgroundImage: `url(${
+                  cocktail.image_url || "/images/placeholder.webp"
+                })`,
+              }}
+            />
+            <div
+              className="w-1/2 h-full bg-cover bg-center origin-left transition-transform duration-500 group-hover:translate-x-full"
+              style={{
+                // backgroundImage: `url(${
+                //   cocktail.image_url || "/images/placeholder.webp"
+                // })`,
+                backgroundImage: `/Users/devica/Work/CosmicCocktails/cosmococktails-ecommerce/public/images/cocktailsImages/daiquiri.webp`,
+              }}
+            />
+          </div>
         </div>
 
         {/* Información */}

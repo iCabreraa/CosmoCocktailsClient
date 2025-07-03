@@ -75,7 +75,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
     <>
       <button
         onClick={handleOpen}
-        className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-all text-sm"
+        className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black focus:outline-none focus:ring-2 focus:ring-cosmic-gold transition-all text-sm"
       >
         <ShoppingCart className="w-4 h-4" />
         Add to Cart
@@ -92,7 +92,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
           >
             <button
               onClick={() => setOpen(false)}
-              className="absolute right-3 top-3 text-cosmic-fog hover:text-white"
+              className="absolute right-3 top-3 text-cosmic-fog hover:text-white focus:outline-none focus:ring-2 focus:ring-cosmic-gold"
               aria-label="Close"
             >
               <X size={18} />
