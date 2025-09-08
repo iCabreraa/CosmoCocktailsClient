@@ -143,8 +143,8 @@ export default function AccountPage() {
                   >
                     Nombre Completo
                   </label>
-            <input
-              type="text"
+                  <input
+                    type="text"
                     id="full_name"
                     required={!isLogin}
                     value={formData.full_name}
@@ -162,8 +162,8 @@ export default function AccountPage() {
                   >
                     Teléfono
                   </label>
-            <input
-              type="tel"
+                  <input
+                    type="tel"
                     id="phone"
                     value={formData.phone}
                     onChange={e =>
@@ -240,12 +240,12 @@ export default function AccountPage() {
           </div>
 
           <div className="mt-4 text-center">
-          <Link
+            <Link
               href="/"
               className="text-gray-600 hover:text-gray-500 text-sm"
-          >
+            >
               ← Volver al inicio
-          </Link>
+            </Link>
           </div>
         </div>
       </div>

@@ -34,8 +34,8 @@ export async function updateSession(request: NextRequest) {
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
-  // Solo verificar autenticación para rutas protegidas
-  const protectedPaths = ["/account", "/admin", "/dashboard"];
+  // Solo verificar autenticación para rutas protegidas (excluyendo /account para evitar bucle)
+  const protectedPaths = ["/admin", "/dashboard"];
   const isProtectedPath = protectedPaths.some(path =>
     request.nextUrl.pathname.startsWith(path)
   );
