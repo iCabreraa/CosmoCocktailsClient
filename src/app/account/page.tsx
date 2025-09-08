@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuthRefresh } from "@/hooks/useAuthRefresh";
 import { useRouter } from "next/navigation";
+import { ErrorNotification, useNotifications } from "@/components/ErrorNotification";
 
 export default function AccountPage() {
-  const { user, loading, login, signup, logout, isAuthenticated } = useAuth();
+  const { user, loading, login, signup, logout, isAuthenticated, error: authError } = useAuth();
+  const { refreshError, clearRefreshError } = useAuthRefresh();
+  const { notifications, addNotification, removeNotification } = useNotifications();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: "",
@@ -18,6 +22,31 @@ export default function AccountPage() {
   const [loadingAction, setLoadingAction] = useState(false);
   const router = useRouter();
 
+  // Mostrar notificaciones de errores de autenticación
+  useEffect(() => {
+    if (authError) {
+      addNotification({
+        type: "error",
+        title: "Error de autenticación",
+        message: authError,
+        duration: 5000,
+      });
+    }
+  }, [authError, addNotification]);
+
+  // Mostrar notificaciones de errores de refresh
+  useEffect(() => {
+    if (refreshError) {
+      addNotification({
+        type: "warning",
+        title: "Sesión expirada",
+        message: "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.",
+        duration: 7000,
+      });
+      clearRefreshError();
+    }
+  }, [refreshError, addNotification, clearRefreshError]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -28,7 +57,19 @@ export default function AccountPage() {
         const { error } = await login(formData.email, formData.password);
         if (error) {
           setError(error.message);
+          addNotification({
+            type: "error",
+            title: "Error de inicio de sesión",
+            message: error.message,
+            duration: 5000,
+          });
         } else {
+          addNotification({
+            type: "success",
+            title: "Sesión iniciada",
+            message: "Has iniciado sesión correctamente.",
+            duration: 3000,
+          });
           router.push("/");
         }
       } else {
@@ -38,12 +79,32 @@ export default function AccountPage() {
         });
         if (error) {
           setError(error.message);
+          addNotification({
+            type: "error",
+            title: "Error de registro",
+            message: error.message,
+            duration: 5000,
+          });
         } else {
-          setError("Revisa tu email para confirmar tu cuenta");
+          addNotification({
+            type: "success",
+            title: "Cuenta creada",
+            message: "Revisa tu email para confirmar tu cuenta.",
+            duration: 5000,
+          });
+          setIsLogin(true);
+          setFormData({ email: "", password: "", full_name: "", phone: "" });
         }
       }
     } catch (err) {
-      setError("Error inesperado");
+      const errorMessage = "Ocurrió un error inesperado";
+      setError(errorMessage);
+      addNotification({
+        type: "error",
+        title: "Error inesperado",
+        message: errorMessage,
+        duration: 5000,
+      });
     } finally {
       setLoadingAction(false);
     }
@@ -143,8 +204,8 @@ export default function AccountPage() {
                   >
                     Nombre Completo
                   </label>
-                  <input
-                    type="text"
+            <input
+              type="text"
                     id="full_name"
                     required={!isLogin}
                     value={formData.full_name}
@@ -162,8 +223,8 @@ export default function AccountPage() {
                   >
                     Teléfono
                   </label>
-                  <input
-                    type="tel"
+            <input
+              type="tel"
                     id="phone"
                     value={formData.phone}
                     onChange={e =>
@@ -240,15 +301,24 @@ export default function AccountPage() {
           </div>
 
           <div className="mt-4 text-center">
-            <Link
+          <Link
               href="/"
               className="text-gray-600 hover:text-gray-500 text-sm"
-            >
+          >
               ← Volver al inicio
-            </Link>
+          </Link>
           </div>
         </div>
       </div>
+
+      {/* Notificaciones */}
+      {notifications.map((notification) => (
+        <ErrorNotification
+          key={notification.id}
+          {...notification}
+          onClose={() => removeNotification(notification.id!)}
+        />
+      ))}
     </div>
   );
 }
