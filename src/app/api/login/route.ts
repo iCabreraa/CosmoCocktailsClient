@@ -20,15 +20,17 @@ export async function POST(request: Request) {
     const rateLimit = checkRateLimit(email);
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { 
+        {
           error: "Too many login attempts. Please try again later.",
-          resetTime: rateLimit.resetTime 
+          resetTime: rateLimit.resetTime,
         },
-        { 
+        {
           status: 429,
           headers: {
-            'Retry-After': Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString()
-          }
+            "Retry-After": Math.ceil(
+              (rateLimit.resetTime - Date.now()) / 1000
+            ).toString(),
+          },
         }
       );
     }

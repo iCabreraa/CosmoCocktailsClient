@@ -1,16 +1,18 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { getSecurityHeaders } from './lib/security';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { getSecurityHeaders } from "./lib/security";
+import { updateSession } from "./lib/supabase/middleware";
 
-export function middleware(request: NextRequest) {
-  const response = NextResponse.next();
-  
-  // Aplicar headers de seguridad
+export async function middleware(request: NextRequest) {
+  // Primero manejar autenticación con Supabase
+  const supabaseResponse = await updateSession(request);
+
+  // Luego aplicar headers de seguridad
   Object.entries(getSecurityHeaders()).forEach(([key, value]) => {
-    response.headers.set(key, value);
+    supabaseResponse.headers.set(key, value);
   });
 
-  return response;
+  return supabaseResponse;
 }
 
 export const config = {
@@ -22,6 +24,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
 };

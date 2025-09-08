@@ -6,7 +6,9 @@ const envSchema = z.object({
     .string()
     .min(1, "Supabase anon key is required"),
   JWT_SECRET: z.string().min(32, "JWT secret must be at least 32 characters"),
-  JWT_REFRESH_SECRET: z.string().min(32, "JWT refresh secret must be at least 32 characters"),
+  JWT_REFRESH_SECRET: z
+    .string()
+    .min(32, "JWT refresh secret must be at least 32 characters"),
   NEXT_PUBLIC_ADMIN_URL: z.string().url().optional(),
   NODE_ENV: z
     .enum(["development", "production", "test"])

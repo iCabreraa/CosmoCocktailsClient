@@ -7,12 +7,19 @@ const RATE_LIMIT = {
   blockDurationMs: 30 * 60 * 1000, // Bloquear 30 minutos después de exceder límite
 };
 
-export function checkRateLimit(identifier: string): { allowed: boolean; remaining: number; resetTime: number } {
+export function checkRateLimit(identifier: string): {
+  allowed: boolean;
+  remaining: number;
+  resetTime: number;
+} {
   const now = Date.now();
   const userAttempts = attempts.get(identifier);
 
   if (!userAttempts) {
-    attempts.set(identifier, { count: 1, resetTime: now + RATE_LIMIT.windowMs });
+    attempts.set(identifier, {
+      count: 1,
+      resetTime: now + RATE_LIMIT.windowMs,
+    });
     return {
       allowed: true,
       remaining: RATE_LIMIT.maxAttempts - 1,
@@ -22,7 +29,10 @@ export function checkRateLimit(identifier: string): { allowed: boolean; remainin
 
   // Si el tiempo de ventana ha expirado, resetear
   if (now > userAttempts.resetTime) {
-    attempts.set(identifier, { count: 1, resetTime: now + RATE_LIMIT.windowMs });
+    attempts.set(identifier, {
+      count: 1,
+      resetTime: now + RATE_LIMIT.windowMs,
+    });
     return {
       allowed: true,
       remaining: RATE_LIMIT.maxAttempts - 1,
