@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 
 export default function AccountPage() {
-  const { user, loading, signIn, signUp, signOut, isAuthenticated } = useAuth();
+  const { user, loading, login, signup, logout, isAuthenticated } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: "",
@@ -25,14 +25,14 @@ export default function AccountPage() {
 
     try {
       if (isLogin) {
-        const { error } = await signIn(formData.email, formData.password);
+        const { error } = await login(formData.email, formData.password);
         if (error) {
           setError(error.message);
         } else {
           router.push("/");
         }
       } else {
-        const { error } = await signUp(formData.email, formData.password, {
+        const { error } = await signup(formData.email, formData.password, {
           full_name: formData.full_name,
           phone: formData.phone,
         });
@@ -50,7 +50,7 @@ export default function AccountPage() {
   };
 
   const handleLogout = async () => {
-    await signOut();
+    await logout();
     router.push("/");
   };
 
@@ -143,8 +143,8 @@ export default function AccountPage() {
                   >
                     Nombre Completo
                   </label>
-                  <input
-                    type="text"
+            <input
+              type="text"
                     id="full_name"
                     required={!isLogin}
                     value={formData.full_name}
@@ -162,8 +162,8 @@ export default function AccountPage() {
                   >
                     Teléfono
                   </label>
-                  <input
-                    type="tel"
+            <input
+              type="tel"
                     id="phone"
                     value={formData.phone}
                     onChange={e =>
@@ -240,12 +240,12 @@ export default function AccountPage() {
           </div>
 
           <div className="mt-4 text-center">
-            <Link
+          <Link
               href="/"
               className="text-gray-600 hover:text-gray-500 text-sm"
-            >
+          >
               ← Volver al inicio
-            </Link>
+          </Link>
           </div>
         </div>
       </div>

@@ -36,7 +36,7 @@ export async function updateSession(request: NextRequest) {
 
   // Solo verificar autenticación para rutas protegidas
   const protectedPaths = ["/account", "/admin", "/dashboard"];
-  const isProtectedPath = protectedPaths.some(path => 
+  const isProtectedPath = protectedPaths.some(path =>
     request.nextUrl.pathname.startsWith(path)
   );
 
