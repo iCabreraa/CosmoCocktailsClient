@@ -41,7 +41,8 @@ export default function ShopPage() {
           {
             id: "1",
             name: "Cosmic Martini",
-            description: "A stellar blend of premium vodka, dry vermouth, and a touch of cosmic magic.",
+            description:
+              "A stellar blend of premium vodka, dry vermouth, and a touch of cosmic magic.",
             image_url: "/images/cocktailsImages/martini.webp",
             min_price: 12.99,
             min_size_id: "1",
@@ -49,9 +50,10 @@ export default function ShopPage() {
             has_non_alcoholic_version: true,
           },
           {
-            id: "2", 
+            id: "2",
             name: "Nebula Negroni",
-            description: "An interstellar twist on the classic Italian cocktail with gin, campari, and sweet vermouth.",
+            description:
+              "An interstellar twist on the classic Italian cocktail with gin, campari, and sweet vermouth.",
             image_url: "/images/cocktailsImages/negroni.webp",
             min_price: 14.99,
             min_size_id: "2",
@@ -61,7 +63,8 @@ export default function ShopPage() {
           {
             id: "3",
             name: "Galaxy Gimlet",
-            description: "A refreshing gin-based cocktail with lime and a hint of elderflower for cosmic elegance.",
+            description:
+              "A refreshing gin-based cocktail with lime and a hint of elderflower for cosmic elegance.",
             image_url: "/images/cocktailsImages/gimlet.webp",
             min_price: 11.99,
             min_size_id: "3",
@@ -71,7 +74,8 @@ export default function ShopPage() {
           {
             id: "4",
             name: "Stellar Sour",
-            description: "A perfectly balanced whiskey sour with a cosmic twist and egg white foam.",
+            description:
+              "A perfectly balanced whiskey sour with a cosmic twist and egg white foam.",
             image_url: "/images/cocktailsImages/sour.webp",
             min_price: 13.99,
             min_size_id: "4",
@@ -127,7 +131,8 @@ export default function ShopPage() {
         {
           id: "1",
           name: "Cosmic Martini",
-          description: "A stellar blend of premium vodka, dry vermouth, and a touch of cosmic magic.",
+          description:
+            "A stellar blend of premium vodka, dry vermouth, and a touch of cosmic magic.",
           image_url: "/images/cocktailsImages/martini.webp",
           min_price: 12.99,
           min_size_id: "1",
@@ -135,9 +140,10 @@ export default function ShopPage() {
           has_non_alcoholic_version: true,
         },
         {
-          id: "2", 
+          id: "2",
           name: "Nebula Negroni",
-          description: "An interstellar twist on the classic Italian cocktail with gin, campari, and sweet vermouth.",
+          description:
+            "An interstellar twist on the classic Italian cocktail with gin, campari, and sweet vermouth.",
           image_url: "/images/cocktailsImages/negroni.webp",
           min_price: 14.99,
           min_size_id: "2",
@@ -147,7 +153,8 @@ export default function ShopPage() {
         {
           id: "3",
           name: "Galaxy Gimlet",
-          description: "A refreshing gin-based cocktail with lime and a hint of elderflower for cosmic elegance.",
+          description:
+            "A refreshing gin-based cocktail with lime and a hint of elderflower for cosmic elegance.",
           image_url: "/images/cocktailsImages/gimlet.webp",
           min_price: 11.99,
           min_size_id: "3",
@@ -157,7 +164,8 @@ export default function ShopPage() {
         {
           id: "4",
           name: "Stellar Sour",
-          description: "A perfectly balanced whiskey sour with a cosmic twist and egg white foam.",
+          description:
+            "A perfectly balanced whiskey sour with a cosmic twist and egg white foam.",
           image_url: "/images/cocktailsImages/sour.webp",
           min_price: 13.99,
           min_size_id: "4",
