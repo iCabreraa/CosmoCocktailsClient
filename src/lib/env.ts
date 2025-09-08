@@ -20,16 +20,16 @@ function validateEnv() {
   try {
     return envSchema.parse(process.env);
   } catch (error) {
-    console.error("❌ Error de validación de variables de entorno:");
-    if (error instanceof z.ZodError) {
-      error.issues.forEach(err => {
-        console.error(`  - ${err.path.join(".")}: ${err.message}`);
-      });
-    }
-
-    // En desarrollo, usar valores por defecto para continuar
+    // Log validation errors in development
     if (process.env.NODE_ENV === "development") {
+      console.error("❌ Error de validación de variables de entorno:");
+      if (error instanceof z.ZodError) {
+        error.issues.forEach(err => {
+          console.error(`  - ${err.path.join(".")}: ${err.message}`);
+        });
+      }
       console.warn("⚠️ Usando valores por defecto para desarrollo...");
+    }
       return {
         NEXT_PUBLIC_SUPABASE_URL:
           process.env.NEXT_PUBLIC_SUPABASE_URL ||

@@ -5,12 +5,24 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthRefresh } from "@/hooks/useAuthRefresh";
 import { useRouter } from "next/navigation";
-import { ErrorNotification, useNotifications } from "@/components/ErrorNotification";
+import {
+  ErrorNotification,
+  useNotifications,
+} from "@/components/ErrorNotification";
 
 export default function AccountPage() {
-  const { user, loading, login, signup, logout, isAuthenticated, error: authError } = useAuth();
+  const {
+    user,
+    loading,
+    login,
+    signup,
+    logout,
+    isAuthenticated,
+    error: authError,
+  } = useAuth();
   const { refreshError, clearRefreshError } = useAuthRefresh();
-  const { notifications, addNotification, removeNotification } = useNotifications();
+  const { notifications, addNotification, removeNotification } =
+    useNotifications();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: "",
@@ -96,8 +108,8 @@ export default function AccountPage() {
           setFormData({ email: "", password: "", full_name: "", phone: "" });
         }
       }
-    } catch (err) {
-      const errorMessage = "Ocurrió un error inesperado";
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado";
       setError(errorMessage);
       addNotification({
         type: "error",
@@ -312,7 +324,7 @@ export default function AccountPage() {
       </div>
 
       {/* Notificaciones */}
-      {notifications.map((notification) => (
+      {notifications.map(notification => (
         <ErrorNotification
           key={notification.id}
           {...notification}

@@ -15,26 +15,32 @@ export async function middleware(request: NextRequest) {
     });
 
     // 3. Headers adicionales para rendimiento y seguridad
-    supabaseResponse.headers.set('X-DNS-Prefetch-Control', 'on');
-    supabaseResponse.headers.set('X-XSS-Protection', '1; mode=block');
-    supabaseResponse.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-    
+    supabaseResponse.headers.set("X-DNS-Prefetch-Control", "on");
+    supabaseResponse.headers.set("X-XSS-Protection", "1; mode=block");
+    supabaseResponse.headers.set(
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains"
+    );
+
     // 4. Cache control para assets estáticos
-    if (request.nextUrl.pathname.startsWith('/_next/static/')) {
-      supabaseResponse.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+    if (request.nextUrl.pathname.startsWith("/_next/static/")) {
+      supabaseResponse.headers.set(
+        "Cache-Control",
+        "public, max-age=31536000, immutable"
+      );
     }
 
     return supabaseResponse;
   } catch (error) {
-    console.error('Middleware error:', error);
-    
+    console.error("Middleware error:", error);
+
     // En caso de error, devolver respuesta básica con headers de seguridad
     const response = NextResponse.next();
     const securityHeaders = getSecurityHeaders();
     Object.entries(securityHeaders).forEach(([key, value]) => {
       response.headers.set(key, value);
     });
-    
+
     return response;
   }
 }

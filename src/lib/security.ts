@@ -5,33 +5,36 @@ interface SecurityConfig {
 }
 
 export function getSecurityHeaders(config?: Partial<SecurityConfig>) {
-  const isDev = config?.isDevelopment ?? process.env.NODE_ENV === 'development';
-  const supabaseUrl = config?.supabaseUrl ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
-  
+  const isDev = config?.isDevelopment ?? process.env.NODE_ENV === "development";
+  const supabaseUrl =
+    config?.supabaseUrl ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+
   // CSP más estricto para producción
-  const cspDirectives = isDev ? [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https:",
-    "font-src 'self' data:",
-    "connect-src 'self' https: wss:",
-    "frame-ancestors 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-  ] : [
-    "default-src 'self'",
-    "script-src 'self'",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https:",
-    "font-src 'self'",
-    "connect-src 'self' https:",
-    "frame-ancestors 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "object-src 'none'",
-    "upgrade-insecure-requests",
-  ];
+  const cspDirectives = isDev
+    ? [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: blob: https:",
+        "font-src 'self' data:",
+        "connect-src 'self' https: wss:",
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+      ]
+    : [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: https:",
+        "font-src 'self'",
+        "connect-src 'self' https:",
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "object-src 'none'",
+        "upgrade-insecure-requests",
+      ];
 
   return {
     // Headers de seguridad básicos
@@ -39,10 +42,10 @@ export function getSecurityHeaders(config?: Partial<SecurityConfig>) {
     "X-Content-Type-Options": "nosniff",
     "X-DNS-Prefetch-Control": "on",
     "X-XSS-Protection": "1; mode=block",
-    
+
     // Referrer Policy
     "Referrer-Policy": "strict-origin-when-cross-origin",
-    
+
     // Permissions Policy
     "Permissions-Policy": [
       "camera=()",
@@ -55,15 +58,18 @@ export function getSecurityHeaders(config?: Partial<SecurityConfig>) {
       "gyroscope=()",
       "accelerometer=()",
     ].join(", "),
-    
+
     // Content Security Policy
     "Content-Security-Policy": cspDirectives.join("; "),
-    
+
     // Strict Transport Security (solo en producción)
-    ...(isDev ? {} : {
-      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload"
-    }),
-    
+    ...(isDev
+      ? {}
+      : {
+          "Strict-Transport-Security":
+            "max-age=31536000; includeSubDomains; preload",
+        }),
+
     // Cross-Origin Policies
     "Cross-Origin-Embedder-Policy": "require-corp",
     "Cross-Origin-Opener-Policy": "same-origin",
@@ -77,8 +83,8 @@ export function getApiSecurityHeaders() {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "Cache-Control": "no-store, no-cache, must-revalidate",
-    "Pragma": "no-cache",
-    "Expires": "0",
+    Pragma: "no-cache",
+    Expires: "0",
   };
 }
 

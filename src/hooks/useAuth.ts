@@ -104,15 +104,15 @@ export function useAuth() {
         // Log logout before signing out
         await securityAuditor.logLogout(user.id);
       }
-      
+
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) {
         setError(error.message);
       } else {
         setError(null);
       }
-      
+
       return { error };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";

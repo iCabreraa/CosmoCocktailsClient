@@ -11,76 +11,77 @@ export function useAuthRefresh() {
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const supabase = createClient();
 
-  const refreshSession = useCallback(async (silent = false) => {
-    if (isRefreshing) return false;
-    
-    try {
-      setIsRefreshing(true);
-      setRefreshError(null);
-      
-      const { data, error } = await supabase.auth.refreshSession();
-      
-      if (error) {
-        console.error("Error refreshing session:", error);
-        
-        // Log refresh failure
-        if (user) {
-          await securityAuditor.logSuspiciousActivity(
-            "Session refresh failed",
-            { 
-              userId: user.id, 
-              error: error.message,
-              silent 
-            }
-          );
+  const refreshSession = useCallback(
+    async (silent = false) => {
+      if (isRefreshing) return false;
+
+      try {
+        setIsRefreshing(true);
+        setRefreshError(null);
+
+        const { data, error } = await supabase.auth.refreshSession();
+
+        if (error) {
+          console.error("Error refreshing session:", error);
+
+          // Log refresh failure
+          if (user) {
+            await securityAuditor.logSuspiciousActivity(
+              "Session refresh failed",
+              {
+                userId: user.id,
+                error: error.message,
+                silent,
+              }
+            );
+          }
+
+          setRefreshError(error.message);
+
+          // If refresh fails and it's not silent, logout user
+          if (!silent) {
+            await logout();
+          }
+
+          return false;
         }
-        
-        setRefreshError(error.message);
-        
-        // If refresh fails and it's not silent, logout user
-        if (!silent) {
-          await logout();
+
+        if (data.session) {
+          // Log successful refresh
+          if (user) {
+            await securityAuditor.logEvent({
+              user_id: user.id,
+              event_type: "login",
+              description: "Session refreshed successfully",
+              metadata: { refresh: true, silent },
+            });
+          }
+
+          return true;
         }
-        
+
         return false;
-      }
-      
-      if (data.session) {
-        // Log successful refresh
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        console.error("Error refreshing session:", error);
+        setRefreshError(errorMessage);
+
         if (user) {
-          await securityAuditor.logEvent({
-            user_id: user.id,
-            event_type: "login",
-            description: "Session refreshed successfully",
-            metadata: { refresh: true, silent }
+          await securityAuditor.logSuspiciousActivity("Session refresh error", {
+            userId: user.id,
+            error: errorMessage,
+            silent,
           });
         }
-        
-        return true;
+
+        return false;
+      } finally {
+        setIsRefreshing(false);
       }
-      
-      return false;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      console.error("Error refreshing session:", error);
-      setRefreshError(errorMessage);
-      
-      if (user) {
-        await securityAuditor.logSuspiciousActivity(
-          "Session refresh error",
-          { 
-            userId: user.id, 
-            error: errorMessage,
-            silent 
-          }
-        );
-      }
-      
-      return false;
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [supabase, user, logout, isRefreshing]);
+    },
+    [supabase, user, logout, isRefreshing]
+  );
 
   useEffect(() => {
     if (!user || loading) return;
@@ -126,10 +127,10 @@ export function useAuthRefresh() {
     };
   }, [user, loading, refreshSession]);
 
-  return { 
-    refreshSession, 
-    isRefreshing, 
+  return {
+    refreshSession,
+    isRefreshing,
     refreshError,
-    clearRefreshError: () => setRefreshError(null)
+    clearRefreshError: () => setRefreshError(null),
   };
 }

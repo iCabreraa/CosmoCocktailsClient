@@ -99,13 +99,9 @@ export function ErrorNotification({
         `}
       >
         <div className="flex items-start">
-          <div className="flex-shrink-0">
-            {getIcon()}
-          </div>
+          <div className="flex-shrink-0">{getIcon()}</div>
           <div className="ml-3 flex-1">
-            <h3 className={`text-sm font-medium ${getTextColor()}`}>
-              {title}
-            </h3>
+            <h3 className={`text-sm font-medium ${getTextColor()}`}>{title}</h3>
             <p className={`mt-1 text-sm ${getTextColor()} opacity-90`}>
               {message}
             </p>
@@ -134,9 +130,9 @@ export function useNotifications() {
   const addNotification = (notification: Omit<NotificationProps, "id">) => {
     const id = Math.random().toString(36).substr(2, 9);
     const newNotification = { ...notification, id };
-    
+
     setNotifications(prev => [...prev, newNotification]);
-    
+
     return id;
   };
 
