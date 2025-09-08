@@ -68,29 +68,37 @@ export default function AccountPage() {
         <div className="max-w-md mx-auto">
           <div className="bg-white shadow rounded-lg p-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">Mi Cuenta</h1>
-            
+
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Email
+                </label>
                 <p className="mt-1 text-sm text-gray-900">{user.email}</p>
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700">Nombre</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Nombre
+                </label>
                 <p className="mt-1 text-sm text-gray-900">
                   {user.user_metadata?.full_name || "No especificado"}
                 </p>
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700">Teléfono</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Teléfono
+                </label>
                 <p className="mt-1 text-sm text-gray-900">
                   {user.user_metadata?.phone || "No especificado"}
                 </p>
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700">Rol</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Rol
+                </label>
                 <p className="mt-1 text-sm text-gray-900">
                   {user.user_metadata?.role || "cliente"}
                 </p>
@@ -129,7 +137,10 @@ export default function AccountPage() {
             {!isLogin && (
               <>
                 <div>
-                  <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="full_name"
+                    className="block text-sm font-medium text-gray-700"
+                  >
                     Nombre Completo
                   </label>
                   <input
@@ -137,20 +148,27 @@ export default function AccountPage() {
                     id="full_name"
                     required={!isLogin}
                     value={formData.full_name}
-                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                    onChange={e =>
+                      setFormData({ ...formData, full_name: e.target.value })
+                    }
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-gray-700"
+                  >
                     Teléfono
                   </label>
                   <input
                     type="tel"
                     id="phone"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={e =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                   />
                 </div>
@@ -158,7 +176,10 @@ export default function AccountPage() {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email
               </label>
               <input
@@ -166,13 +187,18 @@ export default function AccountPage() {
                 id="email"
                 required
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={e =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Contraseña
               </label>
               <input
@@ -180,21 +206,25 @@ export default function AccountPage() {
                 id="password"
                 required
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={e =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
 
-            {error && (
-              <div className="text-red-600 text-sm">{error}</div>
-            )}
+            {error && <div className="text-red-600 text-sm">{error}</div>}
 
             <button
               type="submit"
               disabled={loadingAction}
               className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loadingAction ? "Procesando..." : (isLogin ? "Iniciar Sesión" : "Crear Cuenta")}
+              {loadingAction
+                ? "Procesando..."
+                : isLogin
+                  ? "Iniciar Sesión"
+                  : "Crear Cuenta"}
             </button>
           </form>
 
@@ -203,12 +233,17 @@ export default function AccountPage() {
               onClick={() => setIsLogin(!isLogin)}
               className="text-indigo-600 hover:text-indigo-500 text-sm"
             >
-              {isLogin ? "¿No tienes cuenta? Crear una" : "¿Ya tienes cuenta? Iniciar sesión"}
+              {isLogin
+                ? "¿No tienes cuenta? Crear una"
+                : "¿Ya tienes cuenta? Iniciar sesión"}
             </button>
           </div>
 
           <div className="mt-4 text-center">
-            <Link href="/" className="text-gray-600 hover:text-gray-500 text-sm">
+            <Link
+              href="/"
+              className="text-gray-600 hover:text-gray-500 text-sm"
+            >
               ← Volver al inicio
             </Link>
           </div>
