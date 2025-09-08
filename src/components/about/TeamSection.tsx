@@ -41,7 +41,7 @@ export default function TeamSection() {
           viewport={{ once: true }}
           className="grid grid-cols-1 sm:grid-cols-3 gap-8"
         >
-          {team.map((member) => (
+          {team.map(member => (
             <div key={member.name} className="flex flex-col items-center gap-3">
               {/* <div className="w-32 h-32 relative rounded-full overflow-hidden">
                 <Image

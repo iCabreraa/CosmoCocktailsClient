@@ -12,8 +12,8 @@ export default function AccountPage() {
 
   useEffect(() => {
     fetch("/api/me")
-      .then((res) => res.json())
-      .then((data) => {
+      .then(res => res.json())
+      .then(data => {
         setUser(data.user);
         setLoading(false);
       });
@@ -82,7 +82,7 @@ function LoginForm() {
         placeholder="Email"
         className="bg-transparent border border-cosmic-fog rounded-md p-3 text-cosmic-text placeholder-cosmic-fog focus:outline-none"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={e => setEmail(e.target.value)}
         required
       />
       <input
@@ -90,7 +90,7 @@ function LoginForm() {
         placeholder="Password"
         className="bg-transparent border border-cosmic-fog rounded-md p-3 text-cosmic-text placeholder-cosmic-fog focus:outline-none"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={e => setPassword(e.target.value)}
         required
       />
       <button
@@ -145,7 +145,7 @@ function SignupForm() {
         placeholder="Full Name"
         className="bg-transparent border border-cosmic-fog rounded-md p-3 text-cosmic-text placeholder-cosmic-fog focus:outline-none"
         value={fullName}
-        onChange={(e) => setFullName(e.target.value)}
+        onChange={e => setFullName(e.target.value)}
         required
       />
       <input
@@ -153,7 +153,7 @@ function SignupForm() {
         placeholder="Email"
         className="bg-transparent border border-cosmic-fog rounded-md p-3 text-cosmic-text placeholder-cosmic-fog focus:outline-none"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={e => setEmail(e.target.value)}
         required
       />
       <input
@@ -161,21 +161,21 @@ function SignupForm() {
         placeholder="Phone Number"
         className="bg-transparent border border-cosmic-fog rounded-md p-3 text-cosmic-text placeholder-cosmic-fog focus:outline-none"
         value={phone}
-        onChange={(e) => setPhone(e.target.value)}
+        onChange={e => setPhone(e.target.value)}
       />
       <input
         type="text"
         placeholder="Avatar URL"
         className="bg-transparent border border-cosmic-fog rounded-md p-3 text-cosmic-text placeholder-cosmic-fog focus:outline-none"
         value={avatarUrl}
-        onChange={(e) => setAvatarUrl(e.target.value)}
+        onChange={e => setAvatarUrl(e.target.value)}
       />
       <input
         type="password"
         placeholder="Password"
         className="bg-transparent border border-cosmic-fog rounded-md p-3 text-cosmic-text placeholder-cosmic-fog focus:outline-none"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={e => setPassword(e.target.value)}
         required
       />
       <button
@@ -210,7 +210,7 @@ function AccountDetails({
   }, [user]);
 
   function handleChange(field: keyof User, value: any) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm(prev => ({ ...prev, [field]: value }));
   }
 
   async function save(section: "personal" | "contact" | "payment") {
@@ -261,7 +261,7 @@ function AccountDetails({
         </h2>
         {editing === "personal" ? (
           <form
-            onSubmit={(e) => {
+            onSubmit={e => {
               e.preventDefault();
               save("personal");
             }}
@@ -271,7 +271,7 @@ function AccountDetails({
               type="text"
               className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
               value={form.full_name || ""}
-              onChange={(e) => handleChange("full_name", e.target.value)}
+              onChange={e => handleChange("full_name", e.target.value)}
               placeholder="Full name"
               required
             />
@@ -279,7 +279,7 @@ function AccountDetails({
               type="email"
               className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
               value={form.email || ""}
-              onChange={(e) => handleChange("email", e.target.value)}
+              onChange={e => handleChange("email", e.target.value)}
               placeholder="Email"
               required
             />
@@ -287,14 +287,14 @@ function AccountDetails({
               type="tel"
               className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
               value={form.phone || ""}
-              onChange={(e) => handleChange("phone", e.target.value)}
+              onChange={e => handleChange("phone", e.target.value)}
               placeholder="Phone"
             />
             <input
               type="text"
               className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
               value={form.avatar_url || ""}
-              onChange={(e) => handleChange("avatar_url", e.target.value)}
+              onChange={e => handleChange("avatar_url", e.target.value)}
               placeholder="Avatar URL"
             />
             <div className="flex gap-3 pt-2">
@@ -344,7 +344,7 @@ function AccountDetails({
         </h2>
         {editing === "contact" ? (
           <form
-            onSubmit={(e) => {
+            onSubmit={e => {
               e.preventDefault();
               save("contact");
             }}
@@ -355,49 +355,49 @@ function AccountDetails({
               placeholder="Address line 1"
               className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
               value={form.address_line1 || ""}
-              onChange={(e) => handleChange("address_line1", e.target.value)}
+              onChange={e => handleChange("address_line1", e.target.value)}
             />
             <input
               type="text"
               placeholder="Address line 2"
               className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
               value={form.address_line2 || ""}
-              onChange={(e) => handleChange("address_line2", e.target.value)}
+              onChange={e => handleChange("address_line2", e.target.value)}
             />
             <input
               type="text"
               placeholder="City"
               className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
               value={form.city || ""}
-              onChange={(e) => handleChange("city", e.target.value)}
+              onChange={e => handleChange("city", e.target.value)}
             />
             <input
               type="text"
               placeholder="State"
               className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
               value={form.state || ""}
-              onChange={(e) => handleChange("state", e.target.value)}
+              onChange={e => handleChange("state", e.target.value)}
             />
             <input
               type="text"
               placeholder="ZIP"
               className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
               value={form.zip || ""}
-              onChange={(e) => handleChange("zip", e.target.value)}
+              onChange={e => handleChange("zip", e.target.value)}
             />
             <input
               type="text"
               placeholder="Country"
               className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
               value={form.country || ""}
-              onChange={(e) => handleChange("country", e.target.value)}
+              onChange={e => handleChange("country", e.target.value)}
             />
             <input
               type="tel"
               placeholder="Phone"
               className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
               value={form.phone || ""}
-              onChange={(e) => handleChange("phone", e.target.value)}
+              onChange={e => handleChange("phone", e.target.value)}
             />
             <div className="flex gap-3 pt-2">
               <button
@@ -448,7 +448,7 @@ function AccountDetails({
         </h2>
         {editing === "payment" ? (
           <form
-            onSubmit={(e) => {
+            onSubmit={e => {
               e.preventDefault();
               save("payment");
             }}
@@ -459,7 +459,7 @@ function AccountDetails({
               placeholder="Payment method"
               className="w-full bg-transparent border border-cosmic-fog rounded-md p-2"
               value={form.payment_method || ""}
-              onChange={(e) => handleChange("payment_method", e.target.value)}
+              onChange={e => handleChange("payment_method", e.target.value)}
             />
             <div className="flex gap-3 pt-2">
               <button

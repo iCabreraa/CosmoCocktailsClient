@@ -7,7 +7,7 @@ import { ShoppingCart, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function AddToCartButton({ product }: { product: Product }) {
-  const addToCart = useCart((state) => state.addToCart);
+  const addToCart = useCart(state => state.addToCart);
   const [open, setOpen] = useState(false);
   const [sizes, setSizes] = useState<CocktailSize[]>([]);
   const [loading, setLoading] = useState(false);
@@ -36,15 +36,15 @@ export default function AddToCartButton({ product }: { product: Product }) {
       return;
     }
 
-    const sizeIds = rawSizes.map((s) => s.sizes_id).filter(Boolean);
+    const sizeIds = rawSizes.map(s => s.sizes_id).filter(Boolean);
     const { data: sizeDetails } = await supabase
       .from("sizes")
       .select("id, name, volume_ml")
       .in("id", sizeIds);
 
-    const finalSizes: CocktailSize[] = rawSizes.map((s) => ({
+    const finalSizes: CocktailSize[] = rawSizes.map(s => ({
       ...s,
-      size: sizeDetails?.find((d) => d.id === s.sizes_id) ?? null,
+      size: sizeDetails?.find(d => d.id === s.sizes_id) ?? null,
     }));
 
     setSizes(finalSizes);
@@ -88,7 +88,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
         >
           <div
             className="bg-cosmic-bg rounded-lg p-6 max-w-sm w-full relative"
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
             <button
               onClick={() => setOpen(false)}
@@ -108,7 +108,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
             )}
 
             <div className="space-y-2">
-              {sizes.map((size) => (
+              {sizes.map(size => (
                 <button
                   key={size.id}
                   onClick={() => handleSelect(size)}

@@ -22,9 +22,9 @@ export default function ContactIntro() {
           viewport={{ once: true }}
           className="text-cosmic-silver text-base md:text-lg font-[--font-josefin] max-w-2xl"
         >
-          We'd love to hear from you! Whether you're planning an event or just
-          have a question about our cocktails, reach out and we'll get back to
-          you soon.
+          We&apos;d love to hear from you! Whether you&apos;re planning an event
+          or just have a question about our cocktails, reach out and we&apos;ll
+          get back to you soon.
         </motion.p>
       </div>
     </section>

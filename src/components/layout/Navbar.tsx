@@ -31,8 +31,8 @@ export default function Navbar() {
         menuOpen
           ? "bg-transparent text-cosmic-text"
           : showBg
-          ? "md:bg-cosmic-light md:text-black bg-transparent text-cosmic-text"
-          : "bg-transparent text-cosmic-text"
+            ? "md:bg-cosmic-light md:text-black bg-transparent text-cosmic-text"
+            : "bg-transparent text-cosmic-text"
       )}
     >
       <div className="max-w-7xl mx-auto px-6 py-4">
@@ -70,7 +70,7 @@ export default function Navbar() {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-10 text-sm uppercase py-2">
-            {navLinks.map((item) => (
+            {navLinks.map(item => (
               <Link
                 key={item}
                 href={`/${item}`}
@@ -118,7 +118,7 @@ export default function Navbar() {
             className="md:hidden bg-transparent text-cosmic-text px-6 pb-6"
           >
             <nav className="flex flex-col divide-y divide-cosmic-silver/20 text-center text-sm uppercase">
-              {navLinks.map((item) => (
+              {navLinks.map(item => (
                 <Link
                   key={item}
                   href={`/${item}`}

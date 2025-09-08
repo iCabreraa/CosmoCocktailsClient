@@ -4,8 +4,8 @@ import { useCart } from "@/store/cart";
 import Link from "next/link";
 
 export default function CartClient() {
-  const items = useCart((state) => state.items);
-  const clearCart = useCart((state) => state.clearCart);
+  const items = useCart(state => state.items);
+  const clearCart = useCart(state => state.clearCart);
   const total = items.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
@@ -23,7 +23,7 @@ export default function CartClient() {
 
   return (
     <main className="py-20 px-6 max-w-3xl mx-auto">
-      {items.map((item) => (
+      {items.map(item => (
         <CartItem key={item.id} item={item} />
       ))}
       <div className="flex justify-between items-center mt-6 gap-4">
@@ -33,6 +33,8 @@ export default function CartClient() {
         <div className="flex gap-3">
           <Link
             href="/checkout"
+            target="_blank"
+            rel="noopener noreferrer"
             className="px-5 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition"
           >
             Proceed to Checkout

@@ -30,7 +30,7 @@ export default function Benefits() {
           viewport={{ once: true }}
           className="grid gap-4 text-left mx-auto w-fit text-cosmic-silver font-[--font-josefin] text-base md:text-lg"
         >
-          {benefits.map((item) => (
+          {benefits.map(item => (
             <li key={item} className="flex items-start gap-3">
               <Check className="text-cosmic-gold mt-1" size={20} />
               <span>{item}</span>

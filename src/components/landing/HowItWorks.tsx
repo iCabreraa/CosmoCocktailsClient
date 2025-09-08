@@ -27,7 +27,7 @@ export default function HowItWorks() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setActivePulse((prev) => (prev + 1) % steps.length);
+      setActivePulse(prev => (prev + 1) % steps.length);
     }, 1200); // Cambia cada 1.2 segundos
     return () => clearInterval(interval);
   }, [steps.length]);

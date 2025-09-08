@@ -10,8 +10,8 @@ interface CartItemProps {
 }
 
 export default function CartItem({ item }: CartItemProps) {
-  const remove = useCart((state) => state.removeFromCart);
-  const update = useCart((state) => state.updateQuantity);
+  const remove = useCart(state => state.removeFromCart);
+  const update = useCart(state => state.updateQuantity);
 
   return (
     <div className="flex items-center gap-4 py-4 border-b border-cosmic-fog/30">

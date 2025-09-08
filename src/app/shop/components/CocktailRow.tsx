@@ -21,7 +21,7 @@ export default function CocktailRow({ title, cocktails }: CocktailRowProps) {
         </h2>
 
         <div className="flex overflow-x-auto gap-6 pb-2 snap-x snap-mandatory scrollbar-hide">
-          {cocktails.map((cocktail) => (
+          {cocktails.map(cocktail => (
             <div
               key={cocktail.id}
               className="min-w-[220px] flex-shrink-0 snap-start rounded-lg bg-white/5 backdrop-blur-sm p-4 border border-cosmic-gold/10 hover:border-cosmic-gold/30 hover:scale-105 transition-transform duration-300"

@@ -43,7 +43,7 @@ export default async function CocktailDetailPage({
     .eq("cocktail_id", params.id)
     .eq("available", true);
 
-  const sizeIds = rawSizes?.map((s) => s.sizes_id).filter(Boolean) ?? [];
+  const sizeIds = rawSizes?.map(s => s.sizes_id).filter(Boolean) ?? [];
 
   // Info de tamaños desde la tabla sizes
   const { data: sizeDetails } = await supabase
@@ -53,12 +53,12 @@ export default async function CocktailDetailPage({
 
   // Unión manual
   const sizes: CocktailSize[] =
-    rawSizes?.map((s) => ({
+    rawSizes?.map(s => ({
       id: s.id,
       price: s.price,
       available: s.available,
       sizes_id: s.sizes_id,
-      size: sizeDetails?.find((d) => d.id === s.sizes_id) ?? null,
+      size: sizeDetails?.find(d => d.id === s.sizes_id) ?? null,
     })) ?? [];
 
   const flavor: FlavorProfile | undefined = cocktailFlavorMap[cocktail.id];
@@ -131,7 +131,7 @@ export default async function CocktailDetailPage({
                 Available Sizes
               </h2>
 
-              {sizes.map((size) => (
+              {sizes.map(size => (
                 <div
                   key={size.id}
                   className="flex justify-between items-center border-b border-cosmic-gold/20 pb-2"

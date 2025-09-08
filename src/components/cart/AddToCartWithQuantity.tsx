@@ -11,14 +11,14 @@ export default function AddToCartWithQuantity({
   product: Product;
 }) {
   const [qty, setQty] = useState(1);
-  const addToCart = useCart((state) => state.addToCart);
+  const addToCart = useCart(state => state.addToCart);
 
   function increase() {
-    setQty((q) => q + 1);
+    setQty(q => q + 1);
   }
 
   function decrease() {
-    setQty((q) => Math.max(1, q - 1));
+    setQty(q => Math.max(1, q - 1));
   }
 
   return (
