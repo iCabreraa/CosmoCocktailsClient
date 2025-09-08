@@ -50,9 +50,7 @@ export default function RoleGuard({
             <p className="text-sm text-gray-500">
               Rol requerido: {allowedRoles.join(" o ")}
             </p>
-            <p className="text-sm text-gray-500">
-              Tu rol actual: {role}
-            </p>
+            <p className="text-sm text-gray-500">Tu rol actual: {role}</p>
           </div>
         </div>
       )

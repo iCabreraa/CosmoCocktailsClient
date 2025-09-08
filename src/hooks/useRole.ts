@@ -20,7 +20,7 @@ export function useRole() {
   const hasPermission = useMemo(() => {
     return (requiredRole: UserRole | UserRole[]) => {
       if (loading) return false;
-      
+
       const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
       return roles.includes(role);
     };

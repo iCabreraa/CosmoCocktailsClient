@@ -66,9 +66,9 @@ export function useAuth() {
   return {
     user,
     loading,
-    signIn,
-    signUp,
-    signOut,
+    login: signIn,
+    signup: signUp,
+    logout: signOut,
     updateProfile,
     isAuthenticated: !!user,
   };
