@@ -6,6 +6,7 @@ import "swiper/css";
 import "swiper/css/pagination";
 import Image from "next/image";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const featuredCocktails = [
   {
@@ -29,6 +30,50 @@ const featuredCocktails = [
 ];
 
 export default function FeaturedBanner() {
+  const { t, language } = useLanguage();
+  const localized = featuredCocktails.map(c => ({
+    ...c,
+    title:
+      language === "es"
+        ? c.title === "Tropical Delights"
+          ? "Delicias Tropicales"
+          : c.title === "Cosmic Classics"
+            ? "Clásicos Cósmicos"
+            : c.title === "Non-Alcoholic Magic"
+              ? "Magia Sin Alcohol"
+              : c.title
+        : language === "nl"
+          ? c.title === "Tropical Delights"
+            ? "Tropische Delicatessen"
+            : c.title === "Cosmic Classics"
+              ? "Kosmische Klassiekers"
+              : c.title === "Non-Alcoholic Magic"
+                ? "Alcoholvrije Magie"
+                : c.title
+          : c.title,
+    description:
+      language === "es"
+        ? c.description ===
+          "Taste summer in every sip. Explore our tropical cocktails."
+          ? "El sabor del verano en cada sorbo. Explora nuestros cócteles tropicales."
+          : c.description === "Legendary recipes, now bottled for your events."
+            ? "Recetas legendarias, ahora embotelladas para tus eventos."
+            : c.description === "Cocktails that impress — without the alcohol."
+              ? "Cócteles que impresionan — sin alcohol."
+              : c.description
+        : language === "nl"
+          ? c.description ===
+            "Taste summer in every sip. Explore our tropical cocktails."
+            ? "Proef de zomer in elke slok. Ontdek onze tropische cocktails."
+            : c.description ===
+                "Legendary recipes, now bottled for your events."
+              ? "Legendarische recepten, nu gebotteld voor je evenementen."
+              : c.description ===
+                  "Cocktails that impress — without the alcohol."
+                ? "Cocktails die imponeren — zonder alcohol."
+                : c.description
+          : c.description,
+  }));
   return (
     <div className="relative w-full rounded-xl overflow-hidden shadow-lg bg-[url('/images/hero-bg.webp')] bg-cover bg-center border border-cosmic-gold/20">
       {" "}
@@ -39,7 +84,7 @@ export default function FeaturedBanner() {
         loop={true}
         className="h-[400px] md:h-[550px]"
       >
-        {featuredCocktails.map((cocktail, index) => (
+        {localized.map((cocktail, index) => (
           <SwiperSlide key={index}>
             <div className="relative w-full h-full">
               <Image
@@ -60,7 +105,7 @@ export default function FeaturedBanner() {
                   href={cocktail.href}
                   className="px-6 py-3 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black focus:outline-none focus:ring-2 focus:ring-cosmic-gold transition-all duration-300 font-[--font-josefin]"
                 >
-                  Explore now
+                  {t("shop.explore_now")}
                 </Link>
               </div>
             </div>

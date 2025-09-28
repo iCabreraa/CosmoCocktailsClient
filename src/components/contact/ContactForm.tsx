@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ContactForm() {
+  const { t } = useLanguage();
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -11,7 +13,7 @@ export default function ContactForm() {
     setSubmitting(true);
     setTimeout(() => {
       setSubmitting(false);
-      alert("Message sent!");
+      alert(t("contact.form_success"));
     }, 500);
   };
 
@@ -30,21 +32,21 @@ export default function ContactForm() {
             type="text"
             name="name"
             required
-            placeholder="Your name"
+            placeholder={t("contact.form_name")}
             className="bg-transparent border border-cosmic-fog rounded-md p-3 text-cosmic-text placeholder-cosmic-fog focus:outline-none"
           />
           <input
             type="email"
             name="email"
             required
-            placeholder="Your email"
+            placeholder={t("contact.form_email")}
             className="bg-transparent border border-cosmic-fog rounded-md p-3 text-cosmic-text placeholder-cosmic-fog focus:outline-none"
           />
           <textarea
             name="message"
             rows={5}
             required
-            placeholder="Your message"
+            placeholder={t("contact.form_message")}
             className="bg-transparent border border-cosmic-fog rounded-md p-3 text-cosmic-text placeholder-cosmic-fog focus:outline-none"
           />
           <button
@@ -52,8 +54,7 @@ export default function ContactForm() {
             disabled={submitting}
             className="inline-block px-8 py-4 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black font-[--font-josefin] tracking-wide text-base md:text-lg shadow-md hover:shadow-lg hover:shadow-cosmic-gold/30 hover:scale-105 transition-all duration-300 ease-in-out disabled:opacity-50"
           >
-            {/* TODO */}
-            {submitting ? "Sending..." : "Send Message"}
+            {submitting ? t("contact.form_sending") : t("contact.form_send")}
           </button>
         </motion.form>
       </div>

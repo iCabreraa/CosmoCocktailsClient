@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const team = [
   {
@@ -22,6 +23,7 @@ const team = [
 ];
 
 export default function TeamSection() {
+  const { t } = useLanguage();
   return (
     <section className="py-16 md:py-24 px-6" id="team">
       <div className="max-w-5xl mx-auto flex flex-col gap-8 text-center">
@@ -32,7 +34,7 @@ export default function TeamSection() {
           viewport={{ once: true }}
           className="text-3xl md:text-4xl font-[--font-unica] text-[#D8DAE3]"
         >
-          Meet the Team
+          {t("about.values_title")}
         </motion.h2>
         <motion.div
           initial={{ opacity: 0 }}

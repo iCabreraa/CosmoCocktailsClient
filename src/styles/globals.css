@@ -109,3 +109,64 @@ h3 {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* THEME SUPPORT */
+:root {
+  --cosmic-bg: #0b0f1c;
+  --cosmic-text: #f4f3ef;
+  --cosmic-gold: #f59e0b;
+  --cosmic-blue: #3b82f6;
+  --cosmic-purple: #8b5cf6;
+}
+
+.light {
+  --cosmic-bg: #f8fafc;
+  --cosmic-text: #1e293b;
+  --cosmic-gold: #d97706;
+  --cosmic-blue: #2563eb;
+  --cosmic-purple: #7c3aed;
+}
+
+.dark {
+  --cosmic-bg: #0b0f1c;
+  --cosmic-text: #f4f3ef;
+  --cosmic-gold: #f59e0b;
+  --cosmic-blue: #3b82f6;
+  --cosmic-purple: #8b5cf6;
+}
+
+.bg-cosmic-bg {
+  background-color: var(--cosmic-bg);
+}
+
+.text-cosmic-text {
+  color: var(--cosmic-text);
+}
+
+.text-cosmic-gold {
+  color: var(--cosmic-gold);
+}
+
+.bg-cosmic-gold {
+  background-color: var(--cosmic-gold);
+}
+
+.border-cosmic-gold {
+  border-color: var(--cosmic-gold);
+}
+
+.text-cosmic-blue {
+  color: var(--cosmic-blue);
+}
+
+.bg-cosmic-blue {
+  background-color: var(--cosmic-blue);
+}
+
+.text-cosmic-purple {
+  color: var(--cosmic-purple);
+}
+
+.bg-cosmic-purple {
+  background-color: var(--cosmic-purple);
+}

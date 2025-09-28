@@ -1,8 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function AboutIntro() {
+  const { t } = useLanguage();
   return (
     <section className="py-20 md:py-28 px-6" id="intro">
       <div className="max-w-4xl mx-auto text-center flex flex-col gap-6">
@@ -13,7 +15,7 @@ export default function AboutIntro() {
           viewport={{ once: true }}
           className="text-4xl md:text-5xl font-[--font-unica] text-[#D8DAE3]"
         >
-          What is CosmoCocktails?
+          {t("about.title")}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0 }}
@@ -22,9 +24,7 @@ export default function AboutIntro() {
           viewport={{ once: true }}
           className="text-cosmic-silver text-base md:text-lg font-[--font-josefin] leading-relaxed"
         >
-          CosmoCocktails is born from our passion for mixology. We craft
-          bar-quality cocktails with premium ingredients so you can enjoy them
-          anywhere. Ready to serve, beautifully packaged and always delicious.
+          {t("about.description")}
         </motion.p>
       </div>
     </section>

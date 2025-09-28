@@ -1,8 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ContactIntro() {
+  const { t } = useLanguage();
   return (
     <section className="py-20 md:py-28 px-6 text-center" id="contact-intro">
       <div className="max-w-4xl mx-auto flex flex-col gap-6 items-center">
@@ -13,7 +15,7 @@ export default function ContactIntro() {
           viewport={{ once: true }}
           className="text-4xl md:text-5xl font-[--font-unica] text-[#D8DAE3]"
         >
-          Contact Us
+          {t("contact.title")}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0 }}
@@ -22,9 +24,7 @@ export default function ContactIntro() {
           viewport={{ once: true }}
           className="text-cosmic-silver text-base md:text-lg font-[--font-josefin] max-w-2xl"
         >
-          We&apos;d love to hear from you! Whether you&apos;re planning an event
-          or just have a question about our cocktails, reach out and we&apos;ll
-          get back to you soon.
+          {t("contact.subtitle")}
         </motion.p>
       </div>
     </section>

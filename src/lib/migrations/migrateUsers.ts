@@ -1,6 +1,5 @@
 // Script para migrar usuarios existentes a Supabase Auth
 import { createClient } from "@/lib/supabase/server";
-import { env } from "@/lib/env";
 
 export async function migrateUsersToSupabaseAuth() {
   const supabase = createClient();

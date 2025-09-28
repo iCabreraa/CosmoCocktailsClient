@@ -3,6 +3,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import { useEffect, useState } from "react";
 import { CocktailWithPrice } from "@/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 import FeaturedBanner from "./components/FeaturedBanner";
 import CocktailRow from "./components/CocktailRow";
@@ -10,6 +11,7 @@ import CocktailRow from "./components/CocktailRow";
 export default function ShopPage() {
   const [cocktails, setCocktails] = useState<CocktailWithPrice[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t, language } = useLanguage();
 
   async function fetchCocktails() {
     try {
@@ -40,47 +42,47 @@ export default function ShopPage() {
         const mockCocktails: CocktailWithPrice[] = [
           {
             id: "1",
-            name: "Cosmic Martini",
+            name: "Sex on the Beach",
             description:
-              "A stellar blend of premium vodka, dry vermouth, and a touch of cosmic magic.",
-            image_url: "/images/cocktailsImages/martini.webp",
+              "A tropical blend of vodka, peach schnapps, cranberry juice, and orange juice.",
+            image_url: "/images/cocktailsImages/sex-on-the-beach.webp",
             min_price: 12.99,
             min_size_id: "1",
-            alcohol_percentage: 25,
+            alcohol_percentage: 15,
             has_non_alcoholic_version: true,
           },
           {
             id: "2",
-            name: "Nebula Negroni",
+            name: "Pornstar Martini",
             description:
-              "An interstellar twist on the classic Italian cocktail with gin, campari, and sweet vermouth.",
-            image_url: "/images/cocktailsImages/negroni.webp",
+              "A modern classic with vanilla vodka, passion fruit, and prosecco.",
+            image_url: "/images/cocktailsImages/pornstar-martini.webp",
             min_price: 14.99,
             min_size_id: "2",
-            alcohol_percentage: 28,
-            has_non_alcoholic_version: false,
+            alcohol_percentage: 18,
+            has_non_alcoholic_version: true,
           },
           {
             id: "3",
-            name: "Galaxy Gimlet",
+            name: "Piña Colada",
             description:
-              "A refreshing gin-based cocktail with lime and a hint of elderflower for cosmic elegance.",
-            image_url: "/images/cocktailsImages/gimlet.webp",
+              "A tropical delight with rum, coconut cream, and pineapple juice.",
+            image_url: "/images/cocktailsImages/pina-colada.webp",
             min_price: 11.99,
             min_size_id: "3",
-            alcohol_percentage: 22,
+            alcohol_percentage: 12,
             has_non_alcoholic_version: true,
           },
           {
             id: "4",
-            name: "Stellar Sour",
+            name: "Gin and Tonic",
             description:
-              "A perfectly balanced whiskey sour with a cosmic twist and egg white foam.",
-            image_url: "/images/cocktailsImages/sour.webp",
-            min_price: 13.99,
+              "A classic refreshing cocktail with gin and tonic water.",
+            image_url: "/images/cocktailsImages/gin-and-tonic.webp",
+            min_price: 9.99,
             min_size_id: "4",
-            alcohol_percentage: 24,
-            has_non_alcoholic_version: false,
+            alcohol_percentage: 14,
+            has_non_alcoholic_version: true,
           },
         ];
         setCocktails(mockCocktails);
@@ -130,47 +132,47 @@ export default function ShopPage() {
       const mockCocktails: CocktailWithPrice[] = [
         {
           id: "1",
-          name: "Cosmic Martini",
+          name: "Sex on the Beach",
           description:
-            "A stellar blend of premium vodka, dry vermouth, and a touch of cosmic magic.",
-          image_url: "/images/cocktailsImages/martini.webp",
+            "A tropical blend of vodka, peach schnapps, cranberry juice, and orange juice.",
+          image_url: "/images/cocktailsImages/sex-on-the-beach.webp",
           min_price: 12.99,
           min_size_id: "1",
-          alcohol_percentage: 25,
+          alcohol_percentage: 15,
           has_non_alcoholic_version: true,
         },
         {
           id: "2",
-          name: "Nebula Negroni",
+          name: "Pornstar Martini",
           description:
-            "An interstellar twist on the classic Italian cocktail with gin, campari, and sweet vermouth.",
-          image_url: "/images/cocktailsImages/negroni.webp",
+            "A modern classic with vanilla vodka, passion fruit, and prosecco.",
+          image_url: "/images/cocktailsImages/pornstar-martini.webp",
           min_price: 14.99,
           min_size_id: "2",
-          alcohol_percentage: 28,
-          has_non_alcoholic_version: false,
+          alcohol_percentage: 18,
+          has_non_alcoholic_version: true,
         },
         {
           id: "3",
-          name: "Galaxy Gimlet",
+          name: "Piña Colada",
           description:
-            "A refreshing gin-based cocktail with lime and a hint of elderflower for cosmic elegance.",
-          image_url: "/images/cocktailsImages/gimlet.webp",
+            "A tropical delight with rum, coconut cream, and pineapple juice.",
+          image_url: "/images/cocktailsImages/pina-colada.webp",
           min_price: 11.99,
           min_size_id: "3",
-          alcohol_percentage: 22,
+          alcohol_percentage: 12,
           has_non_alcoholic_version: true,
         },
         {
           id: "4",
-          name: "Stellar Sour",
+          name: "Gin and Tonic",
           description:
-            "A perfectly balanced whiskey sour with a cosmic twist and egg white foam.",
-          image_url: "/images/cocktailsImages/sour.webp",
-          min_price: 13.99,
+            "A classic refreshing cocktail with gin and tonic water.",
+          image_url: "/images/cocktailsImages/gin-and-tonic.webp",
+          min_price: 9.99,
           min_size_id: "4",
-          alcohol_percentage: 24,
-          has_non_alcoholic_version: false,
+          alcohol_percentage: 14,
+          has_non_alcoholic_version: true,
         },
       ];
       setCocktails(mockCocktails);
@@ -186,10 +188,29 @@ export default function ShopPage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex justify-center items-center">
-        <p className="text-cosmic-silver text-lg">Loading cocktails...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cosmic-gold"></div>
+        <p className="text-cosmic-silver text-lg ml-4">
+          {t("common.loading")} cocktails...
+        </p>
       </div>
     );
   }
+
+  // Agrupar cócteles por categorías
+  const nonAlcoholicCocktails = cocktails.filter(
+    c => c.alcohol_percentage === 0
+  );
+  const strongCocktails = cocktails.filter(c => c.alcohol_percentage >= 18);
+  const lightCocktails = cocktails.filter(
+    c => c.alcohol_percentage > 0 && c.alcohol_percentage <= 14
+  );
+  const tropicalCocktails = cocktails.filter(
+    c =>
+      c.name.toLowerCase().includes("tropical") ||
+      c.name.toLowerCase().includes("tiki") ||
+      c.name.toLowerCase().includes("pina") ||
+      c.name.toLowerCase().includes("coconut")
+  );
 
   return (
     <section className="py-24 px-6">
@@ -197,33 +218,37 @@ export default function ShopPage() {
         {/* Banner Principal */}
         <FeaturedBanner />
 
-        {/* Sección de Cartelera de Cócteles */}
-        <CocktailRow title="All Cocktails" cocktails={cocktails} />
+        {/* Sección Principal - Todos los Cócteles */}
+        <CocktailRow title={t("shop.all_cocktails")} cocktails={cocktails} />
 
-        <CocktailRow
-          title="Non-Alcoholic Magic"
-          cocktails={cocktails.filter(c => c.alcohol_percentage === 0)}
-        />
+        {/* Secciones Agrupadas - Solo mostrar si hay cócteles */}
+        {nonAlcoholicCocktails.length > 0 && (
+          <CocktailRow
+            title={t("shop.non_alcoholic")}
+            cocktails={nonAlcoholicCocktails}
+          />
+        )}
 
-        <CocktailRow
-          title="Strong Drinks"
-          cocktails={cocktails.filter(c => c.alcohol_percentage >= 18)}
-        />
+        {strongCocktails.length > 0 && (
+          <CocktailRow
+            title={t("shop.strong_drinks")}
+            cocktails={strongCocktails}
+          />
+        )}
 
-        <CocktailRow
-          title="Light & Fresh"
-          cocktails={cocktails.filter(
-            c => c.alcohol_percentage > 0 && c.alcohol_percentage <= 14
-          )}
-        />
+        {lightCocktails.length > 0 && (
+          <CocktailRow
+            title={t("shop.light_fresh")}
+            cocktails={lightCocktails}
+          />
+        )}
 
-        <CocktailRow
-          title="Tropical Tiki"
-          cocktails={cocktails.filter(c =>
-            c.name.toLowerCase().includes("tiki")
-          )}
-        />
-        {/* Aquí luego añadimos más CocktailRow por categorías específicas */}
+        {tropicalCocktails.length > 0 && (
+          <CocktailRow
+            title={t("shop.tropical")}
+            cocktails={tropicalCocktails}
+          />
+        )}
       </div>
     </section>
   );

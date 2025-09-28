@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import EventCard, { Event } from "./EventCard";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const events: Event[] = [
   {
@@ -28,10 +29,16 @@ const events: Event[] = [
 ];
 
 export default function EventsSection() {
+  const { t } = useLanguage();
+  const localized = events.map((e, idx) => ({
+    ...e,
+    title: t(`events.card${idx + 1}_title`),
+    description: t(`events.card${idx + 1}_description`),
+  }));
   return (
     <section className="py-16 px-6" id="events-list">
       <div className="max-w-6xl mx-auto grid gap-8 md:grid-cols-3">
-        {events.map((event, idx) => (
+        {localized.map((event, idx) => (
           <motion.div
             key={idx}
             initial={{ opacity: 0, y: 20 }}

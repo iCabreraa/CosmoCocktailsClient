@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabaseClient";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
-import { env } from "@/lib/env";
+import { envServer } from "@/lib/env-server";
 import { checkRateLimit } from "@/lib/rateLimiter";
 
 export async function POST(request: Request) {
@@ -52,9 +52,13 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
-    const token = jwt.sign({ id: user.id, email: user.email }, env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      envServer.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
     cookies().set("token", token, { httpOnly: true, sameSite: "lax" });
     const { password: _pw, ...safeUser } = user as any;
     return NextResponse.json({ user: safeUser });

@@ -3,16 +3,13 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function HeroSection() {
-  const words = [
-    "Bar-quality",
-    "cocktails.",
-    "Delivered",
-    "to",
-    "your",
-    "orbit.",
-  ];
+  const { t } = useLanguage();
+
+  const fullTitle = t("home.hero_title");
+  const words = fullTitle.split(" ");
 
   return (
     <section className="pt-20 md:pt-16 min-h-[85vh] flex items-center justify-center relative px-6">
@@ -32,13 +29,17 @@ export default function HeroSection() {
                 visible: { opacity: 1, y: 0 },
               }}
               transition={{ duration: 0.6 }}
-              className={
-                word.includes("cocktails.") ||
-                word.includes("Delivered") ||
-                word.includes("orbit.")
-                  ? "text-cosmic-gold inline-block mr-2"
-                  : "inline-block mr-2"
-              }
+              className={`inline-block mr-2 ${
+                // Highlight logic: for ES specifically, color the word "órbita"
+                (typeof window !== "undefined" &&
+                  (navigator.language?.startsWith("es") ||
+                    document.documentElement.lang === "es") &&
+                  word.toLowerCase().includes("órbita")) ||
+                index === 2 ||
+                index === 5
+                  ? "text-cosmic-gold"
+                  : ""
+              }`}
             >
               {word}
             </motion.span>
@@ -52,7 +53,7 @@ export default function HeroSection() {
           transition={{ delay: 0.8, duration: 0.6 }}
           className="mt-2 text-base md:text-lg text-[#A1A1B0] font-[--font-josefin] max-w-2xl"
         >
-          Crafted by mixologists. Served with stellar taste.
+          {t("home.hero_description")}
         </motion.p>
 
         {/* Botón + Glow pulsante */}

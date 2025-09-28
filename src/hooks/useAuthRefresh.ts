@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
-import { useAuth } from "./useAuth";
+import { useAuthUnified } from "./useAuthUnified";
 import { createClient } from "@/lib/supabase/client";
 import { securityAuditor } from "@/lib/security/audit";
 
 export function useAuthRefresh() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, signOut: logout } = useAuthUnified();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const supabase = createClient();

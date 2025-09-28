@@ -3,8 +3,10 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { FaInstagram, FaLinkedinIn } from "react-icons/fa";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ContactBlock() {
+  const { t } = useLanguage();
   return (
     <section className="py-20 md:py-28 px-6 text-center" id="contact">
       <div className="max-w-4xl mx-auto flex flex-col gap-8 items-center">
@@ -15,7 +17,7 @@ export default function ContactBlock() {
           viewport={{ once: true }}
           className="text-3xl md:text-4xl font-[--font-unica] text-[#D8DAE3]"
         >
-          Get in touch
+          {t("contact.title")}
         </motion.h2>
         <motion.p
           initial={{ opacity: 0 }}
@@ -24,7 +26,7 @@ export default function ContactBlock() {
           viewport={{ once: true }}
           className="text-cosmic-silver text-base md:text-lg font-[--font-josefin]"
         >
-          Have questions or want to book us for an event? Drop us a message!
+          {t("contact.subtitle")}
         </motion.p>
         <motion.div
           initial={{ opacity: 0 }}

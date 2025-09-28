@@ -24,3 +24,4 @@ SELECT auth.users.create_user(
   'staff123456',
   '{"full_name": "Staff Cosmococktails", "phone": "+31 612345679", "role": "staff", "avatar_url": "https://i.pravatar.cc/300?img=2"}'
 );
+

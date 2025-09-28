@@ -147,3 +147,4 @@ CREATE POLICY "Admins can view all order items" ON public.order_items
   FOR SELECT USING (
     (auth.jwt() ->> 'user_metadata')::json ->> 'role' = 'admin'
   );
+

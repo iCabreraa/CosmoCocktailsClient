@@ -6,15 +6,22 @@ import { ShoppingCart, User, Menu, X } from "lucide-react";
 import { FaInstagram, FaLinkedinIn } from "react-icons/fa";
 import clsx from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 import "@fontsource/major-mono-display";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { t } = useLanguage();
 
   const showBg = scrolled || hovered;
-  const navLinks = ["shop", "events", "about", "contact"];
+  const navLinks = [
+    { key: "shop", href: "/shop" },
+    { key: "events", href: "/events" },
+    { key: "about", href: "/about" },
+    { key: "contact", href: "/contact" },
+  ];
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -72,15 +79,15 @@ export default function Navbar() {
           <nav className="hidden md:flex items-center gap-10 text-sm uppercase py-2">
             {navLinks.map(item => (
               <Link
-                key={item}
-                href={`/${item}`}
+                key={item.key}
+                href={item.href}
                 className={clsx(
                   "nav-link",
                   showBg ? "text-black" : "text-cosmic-silver",
                   "hover:text-cosmic-gold"
                 )}
               >
-                {item}
+                {t(`nav.${item.key}`)}
               </Link>
             ))}
           </nav>
@@ -120,12 +127,12 @@ export default function Navbar() {
             <nav className="flex flex-col divide-y divide-cosmic-silver/20 text-center text-sm uppercase">
               {navLinks.map(item => (
                 <Link
-                  key={item}
-                  href={`/${item}`}
+                  key={item.key}
+                  href={item.href}
                   onClick={() => setMenuOpen(false)}
                   className="py-3 hover:text-cosmic-gold transition"
                 >
-                  {item}
+                  {t(`nav.${item.key}`)}
                 </Link>
               ))}
             </nav>

@@ -89,3 +89,4 @@ export async function checkRLSStatus() {
     console.error("❌ Error verificando RLS:", error);
   }
 }
+

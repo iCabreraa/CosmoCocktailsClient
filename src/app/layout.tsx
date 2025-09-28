@@ -3,6 +3,11 @@ import { ReactNode } from "react";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import QueryProvider from "@/components/providers/QueryProvider";
+import ThemeProvider from "@/components/providers/ThemeProvider";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import LanguageTest from "@/components/LanguageTest";
 import Image from "next/image";
 
 // Font imports
@@ -33,23 +38,44 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
-      <body
-        className={`${unica.variable} ${josefin.variable} font-sans bg-cosmic-bg text-cosmic-text`}
-      >
-        {/* Fondo general para todo el sitio */}
-        <div className="relative min-h-screen">
-          <Image
-            src="/images/hero-bg.webp"
-            alt="Background"
-            fill
-            priority
-            className="object-cover brightness-[0.7] -z-10"
-          />
-          <Navbar />
-          <main className="pt-36">{children}</main>
-          <Footer />
-        </div>
+    <html lang="es">
+      <body className={`${unica.variable} ${josefin.variable} font-sans`}>
+        <ErrorBoundary>
+          <LanguageProvider>
+            <ThemeProvider>
+              <QueryProvider>
+                <div className="relative min-h-screen bg-cosmic-bg text-cosmic-text">
+                  {/* Fondo cósmico para tema oscuro */}
+                  <div className="dark:block hidden">
+                    <Image
+                      src="/images/hero-bg.webp"
+                      alt="Cosmic Background Dark"
+                      fill
+                      priority
+                      className="object-cover brightness-[0.7] -z-10"
+                    />
+                  </div>
+                  {/* Fondo cósmico claro para tema claro */}
+                  <div className="light:block hidden">
+                    <Image
+                      src="/images/hero-bg.webp"
+                      alt="Cosmic Background Light"
+                      fill
+                      priority
+                      className="object-cover brightness-[1.2] saturate-75 -z-10"
+                    />
+                    <div className="absolute inset-0 bg-white/20 -z-10"></div>
+                  </div>
+                  <Navbar />
+                  <main className="pt-36">{children}</main>
+                  <Footer />
+                  {/* Toggle visibility by setting localStorage key 'cosmic-language-widget-hidden' to 'true' */}
+                  <LanguageTest />
+                </div>
+              </QueryProvider>
+            </ThemeProvider>
+          </LanguageProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

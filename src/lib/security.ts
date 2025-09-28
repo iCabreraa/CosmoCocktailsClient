@@ -13,22 +13,24 @@ export function getSecurityHeaders(config?: Partial<SecurityConfig>) {
   const cspDirectives = isDev
     ? [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-        "style-src 'self' 'unsafe-inline'",
+        "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://is.stripe.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "img-src 'self' data: blob: https:",
-        "font-src 'self' data:",
-        "connect-src 'self' https: wss:",
+        "font-src 'self' data: https://fonts.gstatic.com",
+        "connect-src 'self' https: wss: https://api.stripe.com https://q.stripe.com",
+        "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "form-action 'self'",
       ]
     : [
         "default-src 'self'",
-        "script-src 'self'",
-        "style-src 'self' 'unsafe-inline'",
+        "script-src 'self' https://js.stripe.com https://is.stripe.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "img-src 'self' data: https:",
-        "font-src 'self'",
-        "connect-src 'self' https:",
+        "font-src 'self' https://fonts.gstatic.com",
+        "connect-src 'self' https://api.stripe.com https://q.stripe.com",
+        "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "form-action 'self'",
@@ -46,19 +48,6 @@ export function getSecurityHeaders(config?: Partial<SecurityConfig>) {
     // Referrer Policy
     "Referrer-Policy": "strict-origin-when-cross-origin",
 
-    // Permissions Policy
-    "Permissions-Policy": [
-      "camera=()",
-      "microphone=()",
-      "geolocation=()",
-      "interest-cohort=()",
-      "payment=()",
-      "usb=()",
-      "magnetometer=()",
-      "gyroscope=()",
-      "accelerometer=()",
-    ].join(", "),
-
     // Content Security Policy
     "Content-Security-Policy": cspDirectives.join("; "),
 
@@ -70,10 +59,23 @@ export function getSecurityHeaders(config?: Partial<SecurityConfig>) {
             "max-age=31536000; includeSubDomains; preload",
         }),
 
-    // Cross-Origin Policies
-    "Cross-Origin-Embedder-Policy": "require-corp",
-    "Cross-Origin-Opener-Policy": "same-origin",
-    "Cross-Origin-Resource-Policy": "same-origin",
+    // Cross-Origin Policies (relajados para desarrollo)
+    ...(isDev
+      ? {
+          "Cross-Origin-Embedder-Policy": "unsafe-none",
+          "Cross-Origin-Opener-Policy": "same-origin",
+          "Cross-Origin-Resource-Policy": "cross-origin",
+        }
+      : {
+          "Cross-Origin-Embedder-Policy": "require-corp",
+          "Cross-Origin-Opener-Policy": "same-origin",
+          "Cross-Origin-Resource-Policy": "same-origin",
+        }),
+
+    // Permissions Policy (relajado para desarrollo)
+    "Permissions-Policy": isDev
+      ? "camera=(), microphone=(), geolocation=(), payment=*"
+      : "camera=(), microphone=(), geolocation=(), payment=(self)",
   };
 }
 

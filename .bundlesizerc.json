@@ -1,0 +1,52 @@
+{
+  "files": [
+    {
+      "path": ".next/static/chunks/app/layout-*.js",
+      "maxSize": "100 kB"
+    },
+    {
+      "path": ".next/static/chunks/app/page-*.js",
+      "maxSize": "50 kB"
+    },
+    {
+      "path": ".next/static/chunks/app/shop/page-*.js",
+      "maxSize": "200 kB"
+    },
+    {
+      "path": ".next/static/chunks/app/checkout/page-*.js",
+      "maxSize": "150 kB"
+    },
+    {
+      "path": ".next/static/chunks/app/account/page-*.js",
+      "maxSize": "100 kB"
+    },
+    {
+      "path": ".next/static/chunks/main-*.js",
+      "maxSize": "150 kB"
+    },
+    {
+      "path": ".next/static/chunks/webpack-*.js",
+      "maxSize": "50 kB"
+    },
+    {
+      "path": ".next/static/chunks/supabase-*.js",
+      "maxSize": "100 kB"
+    },
+    {
+      "path": ".next/static/chunks/stripe-*.js",
+      "maxSize": "80 kB"
+    },
+    {
+      "path": ".next/static/chunks/vendors-*.js",
+      "maxSize": "300 kB"
+    },
+    {
+      "path": ".next/static/chunks/common-*.js",
+      "maxSize": "50 kB"
+    }
+  ],
+  "ci": {
+    "trackBranches": ["main", "develop"],
+    "disable": false
+  }
+}

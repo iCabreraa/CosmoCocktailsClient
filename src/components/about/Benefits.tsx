@@ -2,15 +2,17 @@
 
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
-
-const benefits = [
-  "Premium cocktails delivered to your door",
-  "Ready to drink — no mixology skills needed",
-  "Curated recipes for every taste",
-  "Perfect for parties or relaxing at home",
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Benefits() {
+  const { t } = useLanguage();
+
+  const benefits = [
+    t("about.help1"),
+    t("about.help2"),
+    t("about.help3"),
+    t("about.help4"),
+  ];
   return (
     <section className="py-16 md:py-24 px-6 bg-transparent" id="benefits">
       <div className="max-w-5xl mx-auto flex flex-col gap-8 text-center">
@@ -21,7 +23,7 @@ export default function Benefits() {
           viewport={{ once: true }}
           className="text-3xl md:text-4xl font-[--font-unica] text-[#D8DAE3]"
         >
-          How can we help you?
+          {t("about.how_help_title")}
         </motion.h2>
         <motion.ul
           initial={{ opacity: 0 }}

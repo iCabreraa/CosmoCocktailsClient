@@ -60,3 +60,4 @@ COMMENT ON COLUMN security_events.description IS 'Descripción legible del event
 COMMENT ON COLUMN security_events.metadata IS 'Datos adicionales del evento en formato JSON';
 COMMENT ON COLUMN security_events.ip_address IS 'Dirección IP del usuario (si está disponible)';
 COMMENT ON COLUMN security_events.user_agent IS 'User agent del navegador del usuario';
+

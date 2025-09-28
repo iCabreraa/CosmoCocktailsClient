@@ -1,8 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function EventsIntro() {
+  const { t } = useLanguage();
   return (
     <section className="py-20 md:py-28 px-6 text-center" id="events-intro">
       <div className="max-w-4xl mx-auto flex flex-col gap-6 items-center">
@@ -13,7 +15,7 @@ export default function EventsIntro() {
           viewport={{ once: true }}
           className="text-4xl md:text-5xl font-[--font-unica] text-[#D8DAE3]"
         >
-          Cosmic News & Events
+          {t("events.title")}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0 }}
@@ -22,9 +24,7 @@ export default function EventsIntro() {
           viewport={{ once: true }}
           className="text-cosmic-silver text-base md:text-lg font-[--font-josefin] max-w-2xl"
         >
-          Stay updated on our latest appearances and stellar celebrations. Here
-          you can find the highlights of where we have been shaking up the
-          galaxy.
+          {t("events.subtitle")}
         </motion.p>
       </div>
     </section>

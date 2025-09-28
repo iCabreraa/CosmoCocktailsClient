@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { supabase } from "@/lib/supabaseClient";
-import { env } from "@/lib/env";
+import { envServer } from "@/lib/env-server";
 
 export async function GET() {
   try {
@@ -10,7 +10,7 @@ export async function GET() {
     if (!token) {
       return NextResponse.json({ user: null });
     }
-    const decoded = jwt.verify(token, env.JWT_SECRET) as { id: string };
+    const decoded = jwt.verify(token, envServer.JWT_SECRET) as { id: string };
     const { data: user } = await supabase
       .from("users")
       .select("*")
@@ -32,7 +32,7 @@ export async function PATCH(request: Request) {
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const decoded = jwt.verify(token, env.JWT_SECRET) as { id: string };
+    const decoded = jwt.verify(token, envServer.JWT_SECRET) as { id: string };
     const updates = await request.json();
     const { data: user, error } = await supabase
       .from("users")

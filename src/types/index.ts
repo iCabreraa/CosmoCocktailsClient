@@ -18,6 +18,9 @@ export type CocktailWithPrice = {
   min_size_id: string | null;
   alcohol_percentage: number;
   has_non_alcoholic_version: boolean;
+  tags?: string[];
+  created_at?: string;
+  updated_at?: string;
 };
 
 export interface CocktailSize {

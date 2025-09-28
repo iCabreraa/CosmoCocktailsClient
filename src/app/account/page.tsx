@@ -2,24 +2,26 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useAuthRefresh } from "@/hooks/useAuthRefresh";
 import { useRouter } from "next/navigation";
 import {
   ErrorNotification,
   useNotifications,
 } from "@/components/ErrorNotification";
+import AccountTabs from "@/components/account/AccountTabs";
 
 export default function AccountPage() {
   const {
     user,
     loading,
-    login,
-    signup,
-    logout,
-    isAuthenticated,
+    signIn: login,
+    signUp: signup,
+    signOut: logout,
     error: authError,
-  } = useAuth();
+  } = useAuthUnified();
+
+  const isAuthenticated = !!user;
   const { refreshError, clearRefreshError } = useAuthRefresh();
   const { notifications, addNotification, removeNotification } =
     useNotifications();
@@ -85,10 +87,12 @@ export default function AccountPage() {
           router.push("/");
         }
       } else {
-        const { error } = await signup(formData.email, formData.password, {
-          full_name: formData.full_name,
-          phone: formData.phone,
-        });
+        const { error } = await signup(
+          formData.email,
+          formData.password,
+          formData.full_name,
+          formData.phone
+        );
         if (error) {
           setError(error.message);
           addNotification({
@@ -109,7 +113,8 @@ export default function AccountPage() {
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado";
+      const errorMessage =
+        error instanceof Error ? error.message : "Ocurrió un error inesperado";
       setError(errorMessage);
       addNotification({
         type: "error",
@@ -137,64 +142,24 @@ export default function AccountPage() {
 
   if (isAuthenticated && user) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md mx-auto">
-          <div className="bg-white shadow rounded-lg p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Mi Cuenta</h1>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <p className="mt-1 text-sm text-gray-900">{user.email}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Nombre
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {user.user_metadata?.full_name || "No especificado"}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Teléfono
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {user.user_metadata?.phone || "No especificado"}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Rol
-                </label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {user.user_metadata?.role || "cliente"}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-6 flex space-x-4">
-              <button
-                onClick={handleLogout}
-                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
-              >
-                Cerrar Sesión
-              </button>
-              <Link
-                href="/"
-                className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors text-center"
-              >
-                Ir al Inicio
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
+      <>
+        <AccountTabs
+          user={user}
+          onUpdate={async updates => {
+            // Aquí implementarías la lógica de actualización
+            console.log("Updating user:", updates);
+          }}
+          onLogout={handleLogout}
+        />
+        {/* Notificaciones */}
+        {notifications.map(notification => (
+          <ErrorNotification
+            key={notification.id}
+            {...notification}
+            onClose={() => removeNotification(notification.id!)}
+          />
+        ))}
+      </>
     );
   }
 
@@ -216,8 +181,8 @@ export default function AccountPage() {
                   >
                     Nombre Completo
                   </label>
-            <input
-              type="text"
+                  <input
+                    type="text"
                     id="full_name"
                     required={!isLogin}
                     value={formData.full_name}
@@ -235,8 +200,8 @@ export default function AccountPage() {
                   >
                     Teléfono
                   </label>
-            <input
-              type="tel"
+                  <input
+                    type="tel"
                     id="phone"
                     value={formData.phone}
                     onChange={e =>
@@ -313,12 +278,12 @@ export default function AccountPage() {
           </div>
 
           <div className="mt-4 text-center">
-          <Link
+            <Link
               href="/"
               className="text-gray-600 hover:text-gray-500 text-sm"
-          >
+            >
               ← Volver al inicio
-          </Link>
+            </Link>
           </div>
         </div>
       </div>

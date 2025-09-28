@@ -54,3 +54,4 @@ CREATE POLICY "Admins can delete security events" ON public.security_events
   FOR DELETE USING (
     (auth.jwt() ->> 'user_metadata')::json ->> 'role' = 'admin'
   );
+

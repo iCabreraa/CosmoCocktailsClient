@@ -3,23 +3,26 @@
 import { motion } from "framer-motion";
 import { FaGlassMartiniAlt, FaShippingFast, FaCocktail } from "react-icons/fa";
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function HowItWorks() {
+  const { t } = useLanguage();
+
   const steps = [
     {
       icon: FaGlassMartiniAlt,
-      title: "Choose your cocktails",
-      description: "Select from our curated menu of stellar drinks.",
+      title: t("home.step1_title"),
+      description: t("home.step1_description"),
     },
     {
       icon: FaShippingFast,
-      title: "We prepare & ship",
-      description: "Bottled and delivered directly to your door.",
+      title: t("home.step2_title"),
+      description: t("home.step2_description"),
     },
     {
       icon: FaCocktail,
-      title: "Shake & enjoy",
-      description: "Serve effortlessly. Impress endlessly.",
+      title: t("home.step3_title"),
+      description: t("home.step3_description"),
     },
   ];
 
@@ -42,7 +45,7 @@ export default function HowItWorks() {
           transition={{ duration: 0.8 }}
           className="text-4xl md:text-5xl font-[--font-unica] text-[#D8DAE3] text-center mb-12"
         >
-          How it works
+          {t("home.how_it_works")}
         </motion.h2>
 
         {/* Timeline */}

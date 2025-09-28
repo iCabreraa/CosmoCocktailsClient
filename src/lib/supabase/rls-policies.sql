@@ -145,3 +145,4 @@ CREATE POLICY "Admins can view all orders" ON public.orders
 
 CREATE POLICY "Admins can view all order items" ON public.order_items
   FOR SELECT USING (auth.is_admin());
+
