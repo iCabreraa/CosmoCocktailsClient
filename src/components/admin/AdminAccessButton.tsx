@@ -16,9 +16,10 @@ export default function AdminAccessButton() {
   const handleClick = () => {
     setBusy(true);
     // En producción, usar el subdominio del admin
-    const url = process.env.NODE_ENV === "production" 
-      ? "https://admin.cosmococktails.nl"  // ← Cambiar por tu dominio real
-      : "http://localhost:5174";
+    const url =
+      process.env.NODE_ENV === "production"
+        ? "https://admin.cosmococktails.nl" // ← Cambiar por tu dominio real
+        : "http://localhost:5174";
     window.open(url, "_blank", "noopener,noreferrer");
     setBusy(false);
   };
