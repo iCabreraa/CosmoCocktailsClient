@@ -29,26 +29,51 @@ export function useAdminAccess(): AdminAccessState {
         }
 
         if (!user) {
-          setState({ canAccess: false, isLoading: false, error: "no-user", userRole: null });
+          setState({
+            canAccess: false,
+            isLoading: false,
+            error: "no-user",
+            userRole: null,
+          });
           return;
         }
 
         const validRoles = ["admin", "staff"];
         if (!validRoles.includes(user.role)) {
-          setState({ canAccess: false, isLoading: false, error: "invalid-role", userRole: user.role });
+          setState({
+            canAccess: false,
+            isLoading: false,
+            error: "invalid-role",
+            userRole: user.role,
+          });
           return;
         }
 
         const supabase = createClient();
         const { data } = await supabase.auth.getSession();
         if (!data.session) {
-          setState({ canAccess: false, isLoading: false, error: "no-session", userRole: user.role });
+          setState({
+            canAccess: false,
+            isLoading: false,
+            error: "no-session",
+            userRole: user.role,
+          });
           return;
         }
 
-        setState({ canAccess: true, isLoading: false, error: null, userRole: user.role });
+        setState({
+          canAccess: true,
+          isLoading: false,
+          error: null,
+          userRole: user.role,
+        });
       } catch (e) {
-        setState({ canAccess: false, isLoading: false, error: "error", userRole: user?.role ?? null });
+        setState({
+          canAccess: false,
+          isLoading: false,
+          error: "error",
+          userRole: user?.role ?? null,
+        });
       }
     };
 
@@ -57,5 +82,3 @@ export function useAdminAccess(): AdminAccessState {
 
   return state;
 }
-
-

@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
-import { HiOutlineCog6Tooth, HiOutlineArrowTopRightOnSquare } from "react-icons/hi2";
+import {
+  HiOutlineCog6Tooth,
+  HiOutlineArrowTopRightOnSquare,
+} from "react-icons/hi2";
 
 export default function AdminAccessButton() {
   const { canAccess, isLoading } = useAdminAccess();
@@ -12,7 +15,10 @@ export default function AdminAccessButton() {
 
   const handleClick = () => {
     setBusy(true);
-    const url = "http://localhost:5174";
+    // En producción, usar el subdominio del admin
+    const url = process.env.NODE_ENV === "production" 
+      ? "https://admin.cosmococktails.nl"  // ← Cambiar por tu dominio real
+      : "http://localhost:5174";
     window.open(url, "_blank", "noopener,noreferrer");
     setBusy(false);
   };
@@ -45,5 +51,3 @@ export default function AdminAccessButton() {
     </div>
   );
 }
-
-
