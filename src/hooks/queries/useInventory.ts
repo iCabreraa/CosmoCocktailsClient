@@ -174,8 +174,8 @@ export function useUpdateStock() {
         stock_quantity: newStock,
       };
 
-      // @ts-ignore - Supabase types issue in build environments
-      const { error: updateError } = await supabase
+      // @ts-expect-error - Supabase types issue in build environments
+      const { error: updateError } = await (supabase as any)
         .from("cocktail_sizes")
         .update(updatePayload)
         .eq("cocktail_id", cocktailId)

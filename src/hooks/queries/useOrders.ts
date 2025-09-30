@@ -118,8 +118,8 @@ export function useCreateOrder() {
       shipping_address?: any;
     }) => {
       // Crear el pedido
-      // @ts-ignore - Supabase types issue in build environments
-      const { data: order, error: orderError } = await supabase
+      // @ts-expect-error - Supabase types issue in build environments
+      const { data: order, error: orderError } = await (supabase as any)
         .from("orders")
         .insert({
           user_id: orderData.user_id,

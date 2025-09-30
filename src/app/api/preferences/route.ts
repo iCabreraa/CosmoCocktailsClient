@@ -55,8 +55,8 @@ export async function PUT(request: NextRequest) {
         .single();
 
       const merged = { ...(current?.preferences || {}), theme };
-      // @ts-ignore - Supabase types issue in build environments
-      const { error: upErr1 } = await supabase
+      // @ts-expect-error - Supabase types issue in build environments
+      const { error: upErr1 } = await (supabase as any)
         .from("users_new")
         .update({ preferences: merged })
         .eq("id", user.id);
@@ -65,8 +65,8 @@ export async function PUT(request: NextRequest) {
     }
 
     // 2) Guardar language/currency en user_preferences (currency fijo a EUR)
-    // @ts-ignore - Supabase types issue in build environments
-    const { error: upErr2 } = await supabase.from("user_preferences").upsert(
+    // @ts-expect-error - Supabase types issue in build environments
+    const { error: upErr2 } = await (supabase as any).from("user_preferences").upsert(
       {
         user_id: user.id,
         language: language ?? "es",

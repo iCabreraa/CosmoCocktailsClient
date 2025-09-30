@@ -28,8 +28,8 @@ export async function POST(request: NextRequest) {
 
     // Crear el pedido
     console.log("💳 Creating order in database...");
-    // @ts-ignore - Supabase types issue in build environments
-    const { data: order, error: orderError } = await supabase
+    // @ts-expect-error - Supabase types issue in build environments
+    const { data: order, error: orderError } = await (supabase as any)
       .from("orders")
       .insert({
         user_id: user_id || null,
@@ -66,8 +66,8 @@ export async function POST(request: NextRequest) {
 
     console.log("📦 Order items to insert:", orderItems);
 
-    // @ts-ignore - Supabase types issue in build environments
-    const { error: itemsError } = await supabase
+    // @ts-expect-error - Supabase types issue in build environments
+    const { error: itemsError } = await (supabase as any)
       .from("order_items")
       .insert(orderItems);
 
@@ -108,8 +108,8 @@ export async function POST(request: NextRequest) {
         `📊 Stock update: ${currentStock.stock_quantity} - ${item.quantity} = ${newStock} (available: ${isAvailable})`
       );
 
-      // @ts-ignore - Supabase types issue in build environments
-      const { error: stockError } = await supabase
+      // @ts-expect-error - Supabase types issue in build environments
+      const { error: stockError } = await (supabase as any)
         .from("cocktail_sizes")
         .update({
           stock_quantity: newStock,

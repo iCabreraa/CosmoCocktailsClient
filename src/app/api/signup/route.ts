@@ -20,8 +20,8 @@ export async function POST(request: Request) {
       );
     }
     const hashed = await bcrypt.hash(password, 10);
-    // @ts-ignore - Supabase types issue in build environments
-    const { data, error } = await supabase
+    // @ts-expect-error - Supabase types issue in build environments
+    const { data, error } = await (supabase as any)
       .from("users")
       .insert({
         email,
