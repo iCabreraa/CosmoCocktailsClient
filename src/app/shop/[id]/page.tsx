@@ -150,16 +150,14 @@ export default async function CocktailDetailPage({
                   </div>
 
                   <AddToCartWithQuantity
-                    product={{
-                      id: size.id,
-                      name: `${cocktail.name} (${
-                        size.size?.name ?? `${size.size?.volume_ml ?? 0}ml`
-                      })`,
-                      slug: cocktail.id,
-                      image: cocktail.image_url ?? "/images/placeholder.webp",
-                      description: cocktail.description ?? "",
-                      price: size.price,
-                    }}
+                    cocktailId={cocktail.id}
+                    cocktailName={cocktail.name}
+                    cocktailImage={cocktail.image_url ?? "/images/placeholder.webp"}
+                    sizeId={size.sizes_id}
+                    sizeName={size.size?.name ?? "Unknown"}
+                    volumeMl={size.size?.volume_ml ?? 0}
+                    price={size.price}
+                    cocktailSizeId={size.id}
                   />
                 </div>
               ))}

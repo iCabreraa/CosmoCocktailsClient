@@ -65,7 +65,9 @@ export default function AddToCartButton({
       .in("id", sizeIds);
 
     const finalSizes: CocktailSize[] = typedRawSizes.map(s => {
-      const sizeDetail = (sizeDetails as any)?.find((d: any) => d.id === s.sizes_id);
+      const sizeDetail = (sizeDetails as any)?.find(
+        (d: any) => d.id === s.sizes_id
+      );
       console.log("🔍 Mapping size:", {
         cocktail_id: cocktail.id,
         sizes_id: s.sizes_id,

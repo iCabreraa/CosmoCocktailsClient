@@ -1,15 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { Product } from "@/types";
 import { useCart } from "@/store/cart";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 
+interface AddToCartProps {
+  cocktailId: string;
+  cocktailName: string;
+  cocktailImage: string;
+  sizeId: string;
+  sizeName: string;
+  volumeMl: number;
+  price: number;
+  cocktailSizeId: string; // ID de la tabla cocktail_sizes
+}
+
 export default function AddToCartWithQuantity({
-  product,
-}: {
-  product: Product;
-}) {
+  cocktailId,
+  cocktailName,
+  cocktailImage,
+  sizeId,
+  sizeName,
+  volumeMl,
+  price,
+  cocktailSizeId,
+}: AddToCartProps) {
   const [qty, setQty] = useState(1);
   const addToCart = useCart(state => state.addToCart);
 
@@ -45,14 +60,14 @@ export default function AddToCartWithQuantity({
       <button
         onClick={() =>
           addToCart({
-            cocktail_id: product.id,
-            sizes_id: product.id, // Usar el ID del producto como sizes_id temporalmente
+            cocktail_id: cocktailId,
+            sizes_id: sizeId,
             quantity: qty,
-            unit_price: product.price,
-            cocktail_name: product.name,
-            size_name: "Standard",
-            volume_ml: 500, // Valor por defecto
-            image_url: product.image,
+            unit_price: price,
+            cocktail_name: cocktailName,
+            size_name: sizeName,
+            volume_ml: volumeMl,
+            image_url: cocktailImage,
           })
         }
         className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black focus:outline-none focus:ring-2 focus:ring-cosmic-gold transition-all text-sm"

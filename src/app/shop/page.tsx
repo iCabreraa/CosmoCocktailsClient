@@ -99,7 +99,10 @@ export default function ShopPage() {
 
           if (sizeError) console.error(sizeError);
 
-          const typedSizes = sizes as Array<{ id: string; price: number }> | null;
+          const typedSizes = sizes as Array<{
+            id: string;
+            price: number;
+          }> | null;
           const minPrice =
             typedSizes && typedSizes.length > 0
               ? Math.min(...typedSizes.map(s => s.price))
