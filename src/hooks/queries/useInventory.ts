@@ -160,7 +160,9 @@ export function useUpdateStock() {
         throw new Error(`Error fetching current stock: ${fetchError.message}`);
       }
 
-      const typedCurrentStock = currentStock as { stock_quantity: number } | null;
+      const typedCurrentStock = currentStock as {
+        stock_quantity: number;
+      } | null;
 
       const newStock = Math.max(
         0,
@@ -168,9 +170,14 @@ export function useUpdateStock() {
       );
 
       // Actualizar stock
+      const updatePayload: { stock_quantity: number } = {
+        stock_quantity: newStock,
+      };
+
       const { error: updateError } = await supabase
         .from("cocktail_sizes")
-        .update({ stock_quantity: newStock })
+        // Tipado explícito para evitar 'never' en compilación
+        .update(updatePayload as any)
         .eq("cocktail_id", cocktailId)
         .eq("sizes_id", sizeId);
 

@@ -43,7 +43,10 @@ export function useInventoryValidation(): UseInventoryValidationReturn {
           return false;
         }
 
-        const typedData = data as { available: boolean; stock_quantity: number } | null;
+        const typedData = data as {
+          available: boolean;
+          stock_quantity: number;
+        } | null;
         return typedData?.available && (typedData?.stock_quantity || 0) > 0;
       } catch (err) {
         console.error("Error in checkItemAvailability:", err);

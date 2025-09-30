@@ -243,12 +243,15 @@ export function useOrderStats(userId?: string) {
 
       const stats = {
         totalOrders: typedData?.length || 0,
-        pendingOrders: typedData?.filter(o => o.status === "pending").length || 0,
+        pendingOrders:
+          typedData?.filter(o => o.status === "pending").length || 0,
         completedOrders:
           typedData?.filter(o => o.status === "completed").length || 0,
-        totalRevenue: typedData?.reduce((sum, o) => sum + o.total_price, 0) || 0,
+        totalRevenue:
+          typedData?.reduce((sum, o) => sum + o.total_price, 0) || 0,
         averageOrderValue: typedData?.length
-          ? typedData.reduce((sum, o) => sum + o.total_price, 0) / typedData.length
+          ? typedData.reduce((sum, o) => sum + o.total_price, 0) /
+            typedData.length
           : 0,
         ordersThisMonth:
           typedData?.filter(o => {
