@@ -66,14 +66,16 @@ export async function PUT(request: NextRequest) {
 
     // 2) Guardar language/currency en user_preferences (currency fijo a EUR)
     // @ts-expect-error - Supabase types issue in build environments
-    const { error: upErr2 } = await (supabase as any).from("user_preferences").upsert(
-      {
-        user_id: user.id,
-        language: language ?? "es",
-        currency: "EUR",
-      },
-      { onConflict: "user_id" }
-    );
+    const { error: upErr2 } = await (supabase as any)
+      .from("user_preferences")
+      .upsert(
+        {
+          user_id: user.id,
+          language: language ?? "es",
+          currency: "EUR",
+        },
+        { onConflict: "user_id" }
+      );
     if (upErr2)
       return NextResponse.json({ error: upErr2.message }, { status: 500 });
 
