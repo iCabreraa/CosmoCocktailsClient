@@ -134,9 +134,6 @@ INSERT INTO public.users (
     full_name,
     phone,
     role,
-    status,
-    preferences,
-    metadata,
     created_at,
     updated_at
 )
@@ -148,11 +145,8 @@ SELECT
     CASE 
         WHEN ui.role = 'admin' THEN 'admin'
         WHEN ui.role = 'staff' THEN 'staff'
-        ELSE 'customer'
+        ELSE 'client'
     END as role,
-    'active' as status,
-    '{}' as preferences,
-    '{}' as metadata,
     NOW() as created_at,
     NOW() as updated_at
 FROM user_ids ui;
