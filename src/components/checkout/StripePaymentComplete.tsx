@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
+import { envClient } from "@/lib/env-client";
 import {
   Elements,
   PaymentElement,
@@ -11,7 +12,7 @@ import {
 import { CreditCard, Lock, AlertTriangle, CheckCircle } from "lucide-react";
 import { CartItem } from "@/types/shared";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const stripePromise = loadStripe(envClient.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 interface StripePaymentCompleteProps {
   clientSecret: string;
