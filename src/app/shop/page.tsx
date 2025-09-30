@@ -1,6 +1,6 @@
 "use client";
 
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { CocktailWithPrice } from "@/types";
 
@@ -10,6 +10,7 @@ import CocktailRow from "./components/CocktailRow";
 export default function ShopPage() {
   const [cocktails, setCocktails] = useState<CocktailWithPrice[]>([]);
   const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
   async function fetchCocktails() {
     try {
@@ -89,8 +90,8 @@ export default function ShopPage() {
 
       // Si hay datos en Supabase, procesarlos normalmente
       const cocktailsWithPrices = await Promise.all(
-        cocktails.map(async cocktail => {
-          const { data: sizes, error: sizeError } = await supabase
+        cocktails.map(async (cocktail: any) => {
+          const { data: sizes, error: sizeError } = await (supabase as any)
             .from("cocktail_sizes")
             .select("id, price")
             .eq("cocktail_id", cocktail.id)
@@ -98,14 +99,15 @@ export default function ShopPage() {
 
           if (sizeError) console.error(sizeError);
 
+          const typedSizes = sizes as Array<{ id: string; price: number }> | null;
           const minPrice =
-            sizes && sizes.length > 0
-              ? Math.min(...sizes.map(s => s.price))
+            typedSizes && typedSizes.length > 0
+              ? Math.min(...typedSizes.map(s => s.price))
               : null;
 
           const minSizeId =
-            sizes && sizes.length > 0
-              ? sizes.reduce((prev, curr) =>
+            typedSizes && typedSizes.length > 0
+              ? typedSizes.reduce((prev, curr) =>
                   curr.price < prev.price ? curr : prev
                 ).id
               : null;

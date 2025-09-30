@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
@@ -34,6 +34,7 @@ export async function POST(request: Request) {
         }
       );
     }
+    const supabase = createClient();
     const { data: user, error } = await supabase
       .from("users")
       .select("*")

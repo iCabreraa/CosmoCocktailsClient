@@ -1,6 +1,6 @@
 import Image from "next/image";
 import AddToCartWithQuantity from "@/components/cart/AddToCartWithQuantity";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/server";
 import { cocktailFlavorMap, FlavorProfile } from "@/data/cocktailInfo";
 
 interface CocktailSize {
@@ -19,6 +19,7 @@ export default async function CocktailDetailPage({
 }: {
   params: { id: string };
 }) {
+  const supabase = createClient();
   // Cocktail principal
   const { data: cocktail, error } = await supabase
     .from("cocktails")

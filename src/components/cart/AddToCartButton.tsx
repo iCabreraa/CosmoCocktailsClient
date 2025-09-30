@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useCart } from "@/store/cart";
 import { CocktailSize, Cocktail } from "@/types/shared";
 import { ShoppingCart, X } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 
 interface AddToCartButtonProps {
   cocktail: Cocktail;
@@ -22,6 +22,7 @@ export default function AddToCartButton({
   const [sizes, setSizes] = useState<CocktailSize[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -35,7 +36,7 @@ export default function AddToCartButton({
     setLoading(true);
     console.log("🔍 Fetching sizes for cocktail:", cocktail.id);
 
-    const { data: rawSizes, error: sizeErr } = await supabase
+    const { data: rawSizes, error: sizeErr } = await (supabase as any)
       .from("cocktail_sizes")
       .select("id, price, available, sizes_id, stock_quantity")
       .eq("cocktail_id", cocktail.id);
@@ -49,21 +50,22 @@ export default function AddToCartButton({
       return;
     }
 
-    if (!rawSizes || rawSizes.length === 0) {
+    const typedRawSizes = rawSizes as any[];
+    if (!typedRawSizes || typedRawSizes.length === 0) {
       console.log("⚠️ No sizes found for cocktail:", cocktail.id);
       setError("No sizes available");
       setLoading(false);
       return;
     }
 
-    const sizeIds = rawSizes.map(s => s.sizes_id).filter(Boolean);
-    const { data: sizeDetails } = await supabase
+    const sizeIds = typedRawSizes.map(s => s.sizes_id).filter(Boolean);
+    const { data: sizeDetails } = await (supabase as any)
       .from("sizes")
       .select("id, name, volume_ml")
       .in("id", sizeIds);
 
-    const finalSizes: CocktailSize[] = rawSizes.map(s => {
-      const sizeDetail = sizeDetails?.find(d => d.id === s.sizes_id);
+    const finalSizes: CocktailSize[] = typedRawSizes.map(s => {
+      const sizeDetail = (sizeDetails as any)?.find((d: any) => d.id === s.sizes_id);
       console.log("🔍 Mapping size:", {
         cocktail_id: cocktail.id,
         sizes_id: s.sizes_id,

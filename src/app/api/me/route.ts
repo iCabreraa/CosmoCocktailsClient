@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/server";
 import { envServer } from "@/lib/env-server";
 
 export async function GET() {
@@ -11,6 +11,7 @@ export async function GET() {
       return NextResponse.json({ user: null });
     }
     const decoded = jwt.verify(token, envServer.JWT_SECRET) as { id: string };
+    const supabase = createClient();
     const { data: user } = await supabase
       .from("users")
       .select("*")
@@ -34,6 +35,7 @@ export async function PATCH(request: Request) {
     }
     const decoded = jwt.verify(token, envServer.JWT_SECRET) as { id: string };
     const updates = await request.json();
+    const supabase = createClient();
     const { data: user, error } = await (supabase as any)
       .from("users")
       .update(updates)
