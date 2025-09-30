@@ -174,10 +174,9 @@ export function useUpdateStock() {
         stock_quantity: newStock,
       };
 
-      // Casteamos el query builder para evitar la inferencia a 'never' en entornos de build
-      const cocktailSizesTable = supabase.from("cocktail_sizes") as any;
-
-      const { error: updateError } = await cocktailSizesTable
+      // @ts-ignore - Supabase types issue in build environments
+      const { error: updateError } = await supabase
+        .from("cocktail_sizes")
         .update(updatePayload)
         .eq("cocktail_id", cocktailId)
         .eq("sizes_id", sizeId);

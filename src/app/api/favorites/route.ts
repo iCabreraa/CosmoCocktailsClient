@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
 
+  // @ts-ignore - Supabase types issue in build environments
   const { error } = await supabase
     .from("user_favorites")
     .insert({ user_id: user.id, cocktail_id });
