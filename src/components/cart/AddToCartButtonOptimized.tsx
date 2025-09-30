@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useCocktailSizes } from "@/hooks/queries/useInventory";
 import { useCart } from "@/store/cart";
 import { Cocktail } from "@/types/shared";
+import { CocktailSizesRow } from "@/types";
 import { ShoppingCart, Plus, Minus } from "lucide-react";
 
 interface AddToCartButtonProps {
@@ -14,14 +15,16 @@ export default function AddToCartButtonOptimized({
   cocktail,
 }: AddToCartButtonProps) {
   const [open, setOpen] = useState(false);
-  const [selectedSize, setSelectedSize] = useState<any>(null);
+  const [selectedSize, setSelectedSize] = useState<CocktailSizesRow | null>(
+    null
+  );
   const [quantity, setQuantity] = useState(1);
 
   const { addToCart } = useCart();
 
   // Usar React Query para obtener tamaños
   const {
-    data: sizes = [] as any[],
+    data: sizes = [],
     isLoading,
     error,
     refetch,
@@ -33,7 +36,7 @@ export default function AddToCartButtonOptimized({
     }
   }, [sizes, selectedSize]);
 
-  function handleSelect(size: any) {
+  function handleSelect(size: CocktailSizesRow) {
     setSelectedSize(size);
     setQuantity(1);
   }
@@ -41,15 +44,17 @@ export default function AddToCartButtonOptimized({
   function handleAddToCart() {
     if (!selectedSize) return;
 
-    console.log("🛒 Adding to cart:", {
-      cocktail_id: cocktail.id,
-      sizes_id: selectedSize.sizes_id,
-      cocktail_name: cocktail.name,
-      size_name:
-        selectedSize.sizes?.[0]?.name ??
-        `${selectedSize.sizes?.[0]?.volume_ml ?? 0}ml`,
-      price: selectedSize.price,
-    });
+    if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
+      console.log("🛒 Adding to cart:", {
+        cocktail_id: cocktail.id,
+        sizes_id: selectedSize.sizes_id,
+        cocktail_name: cocktail.name,
+        size_name:
+          selectedSize.sizes.name ?? `${selectedSize.sizes.volume_ml}ml`,
+        price: selectedSize.price,
+      });
+    }
 
     addToCart({
       cocktail_id: cocktail.id,
@@ -57,10 +62,8 @@ export default function AddToCartButtonOptimized({
       quantity,
       unit_price: selectedSize.price,
       cocktail_name: cocktail.name,
-      size_name:
-        selectedSize.sizes?.[0]?.name ??
-        `${selectedSize.sizes?.[0]?.volume_ml ?? 0}ml`,
-      volume_ml: selectedSize.size?.volume_ml ?? 0,
+      size_name: selectedSize.sizes.name ?? `${selectedSize.sizes.volume_ml}ml`,
+      volume_ml: selectedSize.sizes.volume_ml,
       image_url: cocktail.image_url,
     });
     setOpen(false);
@@ -149,8 +152,7 @@ export default function AddToCartButtonOptimized({
                       <div className="flex justify-between items-center">
                         <div>
                           <div className="font-medium text-cosmic-text">
-                            {size.sizes?.[0]?.name ||
-                              `${size.sizes?.[0]?.volume_ml}ml`}
+                            {size.sizes.name || `${size.sizes.volume_ml}ml`}
                           </div>
                           <div className="text-sm text-cosmic-fog">
                             Stock: {size.stock_quantity}

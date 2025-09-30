@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { queryKeys, getQueryConfig } from "@/lib/query-client";
 import { CartItem } from "@/types/shared";
+import { CocktailSizesRow, InventoryCheckRow } from "@/types";
 
 const supabase = createClient();
 
@@ -21,9 +22,11 @@ export function useInventoryCheck(cocktailId: string, sizeId: string) {
         throw new Error(`Error checking inventory: ${error.message}`);
       }
 
+      const typedData = data as InventoryCheckRow | null;
+
       return {
-        available: data?.available ?? false,
-        stock_quantity: data?.stock_quantity ?? 0,
+        available: typedData?.available ?? false,
+        stock_quantity: typedData?.stock_quantity ?? 0,
         cocktail_id: cocktailId,
         sizes_id: sizeId,
       };
@@ -116,7 +119,7 @@ export function useCocktailSizes(cocktailId: string) {
         throw new Error(`Error fetching cocktail sizes: ${error.message}`);
       }
 
-      return data || [];
+      return (data as CocktailSizesRow[]) || [];
     },
     enabled: !!cocktailId,
     ...getQueryConfig("inventory"),

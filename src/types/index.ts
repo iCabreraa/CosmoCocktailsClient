@@ -33,3 +33,29 @@ export interface CocktailSize {
     volume_ml: number | null;
   } | null;
 }
+
+// Tipos para las respuestas de Supabase
+export interface CocktailSizesRow {
+  cocktail_id: string;
+  sizes_id: string;
+  price: number;
+  available: boolean;
+  stock_quantity: number;
+  cocktails: {
+    id: string;
+    name: string;
+    image_url: string | null;
+  };
+  sizes: {
+    id: string;
+    name: string;
+    volume_ml: number;
+  };
+}
+
+export interface InventoryCheckRow {
+  available: boolean;
+  stock_quantity: number;
+  cocktail_id: string;
+  sizes_id: string;
+}
