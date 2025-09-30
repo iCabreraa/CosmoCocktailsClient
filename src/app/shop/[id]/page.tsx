@@ -1,13 +1,7 @@
 import Image from "next/image";
 import AddToCartWithQuantity from "@/components/cart/AddToCartWithQuantity";
 import { supabase } from "@/lib/supabaseClient";
-import {
-  cocktailFlavorMap,
-  FlavorProfile,
-  cocktailDescriptions,
-} from "@/data/cocktailInfo";
-import { useLanguage } from "@/contexts/LanguageContext";
-import ClientLabels from "./client-labels";
+import { cocktailFlavorMap, FlavorProfile } from "@/data/cocktailInfo";
 
 interface CocktailSize {
   id: string;
@@ -25,7 +19,6 @@ export default async function CocktailDetailPage({
 }: {
   params: { id: string };
 }) {
-  // Server Component: we will localize static labels by reading current html lang
   // Cocktail principal
   const { data: cocktail, error } = await supabase
     .from("cocktails")
@@ -72,7 +65,6 @@ export default async function CocktailDetailPage({
 
   return (
     <section className="py-24 px-6">
-      <ClientLabels />
       <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
         <div className="relative h-72 md:h-96">
           <Image
@@ -88,29 +80,19 @@ export default async function CocktailDetailPage({
             {cocktail.name}
           </h1>
 
-          {(() => {
-            // Multilingual description fallback: DB -> map by lang -> DB default
-            const lang =
-              typeof document !== "undefined"
-                ? document.documentElement.lang
-                : "es";
-            const byMap =
-              cocktailDescriptions[cocktail.id]?.[lang as "es" | "en" | "nl"];
-            const text = byMap || cocktail.description;
-            return text ? <p className="text-cosmic-silver">{text}</p> : null;
-          })()}
+          {cocktail.description && (
+            <p className="text-cosmic-silver">{cocktail.description}</p>
+          )}
 
           {cocktail.has_non_alcoholic_version && (
             <p className="text-sm text-cosmic-gold">
-              {/* localized by client */}
+              Non-alcoholic option available
             </p>
           )}
 
           {/* Alcohol strength */}
           <div>
-            <p className="text-sm text-cosmic-silver mb-1">
-              {/* localized by client */}
-            </p>
+            <p className="text-sm text-cosmic-silver mb-1">Alcohol strength</p>
             <div className="w-full bg-cosmic-sky/40 h-3 rounded">
               <div
                 className="h-3 bg-cosmic-gold rounded"
@@ -125,9 +107,7 @@ export default async function CocktailDetailPage({
           {/* Flavor profile */}
           {flavor && (
             <div className="space-y-2">
-              <p className="text-sm text-cosmic-silver">
-                {/* localized by client */}
-              </p>
+              <p className="text-sm text-cosmic-silver">Flavor profile</p>
               {Object.entries(flavor).map(([key, value]) => (
                 <div key={key} className="flex items-center gap-2">
                   <span className="w-20 capitalize text-sm text-cosmic-fog">

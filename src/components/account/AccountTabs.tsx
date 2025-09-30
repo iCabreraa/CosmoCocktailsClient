@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { User } from "@/types/user-system";
 import UserDashboard from "./UserDashboard";
 import UserProfile from "./UserProfile";
 import UserOrders from "./UserOrders";
 import UserFavorites from "./UserFavorites";
 import UserSettings from "./UserSettings";
-import AdminAccessButton from "../admin/AdminAccessButton";
 import {
   HiOutlineHome,
   HiOutlineUser,
@@ -24,20 +22,19 @@ interface AccountTabsProps {
   onLogout: () => void;
 }
 
-const TABS_DEF = [
-  { id: "dashboard", key: "account.tabs.dashboard", icon: HiOutlineHome },
-  { id: "profile", key: "account.tabs.profile", icon: HiOutlineUser },
-  { id: "orders", key: "account.tabs.orders", icon: HiOutlineShoppingBag },
-  { id: "favorites", key: "account.tabs.favorites", icon: HiOutlineHeart },
-  { id: "settings", key: "account.tabs.settings", icon: HiOutlineCog },
-] as const;
+const tabs = [
+  { id: "dashboard", name: "Dashboard", icon: HiOutlineHome },
+  { id: "profile", name: "Perfil", icon: HiOutlineUser },
+  { id: "orders", name: "Pedidos", icon: HiOutlineShoppingBag },
+  { id: "favorites", name: "Favoritos", icon: HiOutlineHeart },
+  { id: "settings", name: "Configuración", icon: HiOutlineCog },
+];
 
 export default function AccountTabs({
   user,
   onUpdate,
   onLogout,
 }: AccountTabsProps) {
-  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -52,13 +49,7 @@ export default function AccountTabs({
   const renderTabContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return (
-          <div className="space-y-6">
-            {/* Botón de acceso admin - Solo visible para admin/staff */}
-            <AdminAccessButton />
-            <UserDashboard user={user} stats={mockStats} />
-          </div>
-        );
+        return <UserDashboard user={user} stats={mockStats} />;
       case "profile":
         return <UserProfile user={user} onUpdate={onUpdate} />;
       case "orders":
@@ -68,12 +59,7 @@ export default function AccountTabs({
       case "settings":
         return <UserSettings user={user} onUpdate={onUpdate} />;
       default:
-        return (
-          <div className="space-y-6">
-            <AdminAccessButton />
-            <UserDashboard user={user} stats={mockStats} />
-          </div>
-        );
+        return <UserDashboard user={user} stats={mockStats} />;
     }
   };
 
@@ -82,9 +68,7 @@ export default function AccountTabs({
       {/* Mobile Header */}
       <div className="lg:hidden bg-white/5 backdrop-blur-md border-b border-slate-700/40 px-4 py-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-slate-100">
-            {t("account.my_account")}
-          </h1>
+          <h1 className="text-lg font-semibold text-slate-100">Mi Cuenta</h1>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 rounded-lg text-slate-200 hover:bg-white/10"
@@ -123,14 +107,14 @@ export default function AccountTabs({
               </div>
               <div>
                 <h2 className="font-semibold text-slate-100">
-                  {user.full_name || t("account.default_user")}
+                  {user.full_name || "Usuario"}
                 </h2>
                 <p className="text-sm text-slate-300">{user.email}</p>
               </div>
             </div>
 
             <nav className="space-y-2">
-              {TABS_DEF.map(tab => {
+              {tabs.map(tab => {
                 const Icon = tab.icon;
                 return (
                   <button
@@ -143,7 +127,7 @@ export default function AccountTabs({
                     }`}
                   >
                     <Icon className="h-5 w-5 mr-3" />
-                    {t(tab.key)}
+                    {tab.name}
                   </button>
                 );
               })}
@@ -155,7 +139,7 @@ export default function AccountTabs({
                 className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
               >
                 <HiXMark className="h-5 w-5 mr-3" />
-                {t("account.logout")}
+                Cerrar Sesión
               </button>
             </div>
           </div>
@@ -172,7 +156,7 @@ export default function AccountTabs({
               <div className="p-6">
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-lg font-semibold text-slate-100">
-                    {t("account.my_account")}
+                    Mi Cuenta
                   </h2>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -183,7 +167,7 @@ export default function AccountTabs({
                 </div>
 
                 <nav className="space-y-2">
-                  {TABS_DEF.map(tab => {
+                  {tabs.map(tab => {
                     const Icon = tab.icon;
                     return (
                       <button
@@ -199,7 +183,7 @@ export default function AccountTabs({
                         }`}
                       >
                         <Icon className="h-5 w-5 mr-3" />
-                        {t(tab.key)}
+                        {tab.name}
                       </button>
                     );
                   })}
@@ -214,7 +198,7 @@ export default function AccountTabs({
                     className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
                   >
                     <HiXMark className="h-5 w-5 mr-3" />
-                    {t("account.logout")}
+                    Cerrar Sesión
                   </button>
                 </div>
               </div>

@@ -7,7 +7,6 @@ import QueryProvider from "@/components/providers/QueryProvider";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import LanguageTest from "@/components/LanguageTest";
 import Image from "next/image";
 
 // Font imports
@@ -69,8 +68,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <Navbar />
                   <main className="pt-36">{children}</main>
                   <Footer />
-                  {/* Toggle visibility by setting localStorage key 'cosmic-language-widget-hidden' to 'true' */}
-                  <LanguageTest />
                 </div>
               </QueryProvider>
             </ThemeProvider>

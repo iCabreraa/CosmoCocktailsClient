@@ -18,10 +18,8 @@ import StripePaymentComplete from "./StripePaymentComplete";
 import { Address } from "@/types/shared";
 import { useClientData } from "@/hooks/useClientData";
 import { useAuthUnified } from "@/hooks/useAuthUnified";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function CheckoutClient() {
-  const { t } = useLanguage();
   const {
     items,
     subtotal,
@@ -241,7 +239,7 @@ export default function CheckoutClient() {
       <main className="py-20 px-6 min-h-[70vh] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cosmic-gold mx-auto mb-4"></div>
-          <p className="text-cosmic-fog">{t("common.loading")}</p>
+          <p className="text-cosmic-fog">Loading checkout...</p>
         </div>
       </main>
     );
@@ -251,9 +249,7 @@ export default function CheckoutClient() {
     return (
       <main className="py-20 px-6 min-h-[70vh] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-500 mb-4">
-            {t("common.error")}: {error}
-          </p>
+          <p className="text-red-500 mb-4">Error loading checkout: {error}</p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-cosmic-gold text-black rounded-full hover:bg-cosmic-gold/80 transition"
@@ -276,7 +272,7 @@ export default function CheckoutClient() {
             href="/shop"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-cosmic-gold text-black hover:bg-cosmic-gold/80 transition font-medium"
           >
-            {t("cart.empty_button")}
+            Start Shopping
           </Link>
         </div>
       </main>
@@ -288,9 +284,9 @@ export default function CheckoutClient() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-[--font-unica] text-cosmic-gold mb-2">
-            {t("checkout.title")}
+            Checkout
           </h1>
-          <p className="text-cosmic-fog">{t("checkout.order_summary")}</p>
+          <p className="text-cosmic-fog">Complete your order securely</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -370,7 +366,7 @@ export default function CheckoutClient() {
             <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
               <h2 className="text-xl font-[--font-unica] text-cosmic-gold mb-4 flex items-center gap-2">
                 <CreditCard className="w-5 h-5" />
-                {t("checkout.payment_title")}
+                Payment Information
               </h2>
 
               {paymentError && (
@@ -429,7 +425,7 @@ export default function CheckoutClient() {
           <div className="lg:col-span-1">
             <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10 sticky top-6">
               <h2 className="text-xl font-[--font-unica] text-cosmic-gold mb-4">
-                {t("checkout.order_summary")}
+                Order Summary
               </h2>
 
               <div className="space-y-3 mb-6">
@@ -458,10 +454,7 @@ export default function CheckoutClient() {
 
               <div className="space-y-2 text-sm pt-4 border-t border-cosmic-fog/30">
                 <div className="flex justify-between text-cosmic-text">
-                  <span>
-                    {t("cart.subtotal")} ({item_count}{" "}
-                    {item_count === 1 ? t("cart.item") : t("cart.items")})
-                  </span>
+                  <span>Subtotal ({item_count} items)</span>
                   <span>€{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-cosmic-text">
@@ -469,16 +462,16 @@ export default function CheckoutClient() {
                   <span>€{vat_amount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-cosmic-text">
-                  <span>{t("cart.shipping")}</span>
+                  <span>Shipping</span>
                   <span>
                     {shipping_cost > 0
                       ? `€${shipping_cost.toFixed(2)}`
-                      : t("cart.free")}
+                      : "Free"}
                   </span>
                 </div>
                 <div className="border-t border-cosmic-fog/30 pt-2">
                   <div className="flex justify-between text-lg font-semibold text-cosmic-gold">
-                    <span>{t("cart.total")}</span>
+                    <span>Total</span>
                     <span>€{total.toFixed(2)}</span>
                   </div>
                 </div>
@@ -486,7 +479,7 @@ export default function CheckoutClient() {
 
               {shipping_cost > 0 && (
                 <p className="text-xs text-cosmic-fog mt-4 text-center">
-                  {t("cart.free_shipping_note")}
+                  Free shipping on orders over €50
                 </p>
               )}
             </div>

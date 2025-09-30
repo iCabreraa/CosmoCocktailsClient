@@ -3,10 +3,8 @@
 import { CocktailWithPrice } from "@/types";
 import Link from "next/link";
 import LazyImage from "@/components/images/LazyImage";
-import { useMemo } from "react";
 import AddToCartButton from "@/components/cart/AddToCartButton";
 import FavoriteButton from "@/components/ui/FavoriteButton";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CocktailCardProps {
   cocktail: CocktailWithPrice;
@@ -17,12 +15,6 @@ export default function CocktailCard({
   cocktail,
   className = "",
 }: CocktailCardProps) {
-  const { t } = useLanguage();
-  const safeImageUrl = useMemo(() => {
-    const url = cocktail.image_url || "/images/default-cocktail.webp";
-    if (url.startsWith("http")) return url;
-    return url.startsWith("/") ? url : `/${url}`;
-  }, [cocktail.image_url]);
   return (
     <div
       className={`
@@ -35,7 +27,7 @@ export default function CocktailCard({
         {/* Imagen */}
         <div className="relative w-full h-48 rounded-lg overflow-hidden mb-4">
           <LazyImage
-            src={safeImageUrl}
+            src={cocktail.image_url ?? "/images/default-cocktail.webp"}
             alt={cocktail.name}
             fill
             className="object-cover group-hover:scale-110 transition-transform duration-300"
@@ -68,9 +60,7 @@ export default function CocktailCard({
           {/* Precio */}
           <div className="flex items-center justify-between">
             <p className="text-cosmic-gold font-semibold">
-              {cocktail.min_price
-                ? `€${cocktail.min_price}`
-                : t("shop.coming_soon")}
+              {cocktail.min_price ? `€${cocktail.min_price}` : "Próximamente"}
             </p>
 
             {/* Tags */}
@@ -92,13 +82,13 @@ export default function CocktailCard({
           <div className="flex items-center justify-between text-xs text-cosmic-silver">
             <span>
               {cocktail.alcohol_percentage === 0
-                ? t("cocktail.non_alcoholic")
-                : `${cocktail.alcohol_percentage}% ${t("cocktail.alcohol")}`}
+                ? "Sin alcohol"
+                : `${cocktail.alcohol_percentage}% alcohol`}
             </span>
 
             {cocktail.has_non_alcoholic_version && (
               <span className="text-cosmic-gold">
-                {t("cocktail.non_alcoholic_version_available")}
+                Versión sin alcohol disponible
               </span>
             )}
           </div>

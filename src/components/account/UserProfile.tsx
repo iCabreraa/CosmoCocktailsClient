@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { User } from "@/types/user-system";
 import {
   HiOutlineUser,
@@ -18,7 +17,6 @@ interface UserProfileProps {
 }
 
 export default function UserProfile({ user, onUpdate }: UserProfileProps) {
-  const { t } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     full_name: user.full_name || "",
@@ -40,7 +38,7 @@ export default function UserProfile({ user, onUpdate }: UserProfileProps) {
       setIsEditing(false);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : t("account.error_updating_profile")
+        err instanceof Error ? err.message : "Error al actualizar perfil"
       );
     } finally {
       setLoading(false);
@@ -70,14 +68,12 @@ export default function UserProfile({ user, onUpdate }: UserProfileProps) {
           </div>
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-slate-100">
-              {user.full_name || t("profile.unspecified")}
+              {user.full_name || "Usuario"}
             </h2>
             <p className="text-slate-300">{user.email}</p>
             <div className="flex items-center mt-2">
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {user.role === "customer"
-                  ? t("account.customer_role")
-                  : user.role}
+                {user.role === "customer" ? "Cliente" : user.role}
               </span>
             </div>
           </div>
@@ -86,7 +82,7 @@ export default function UserProfile({ user, onUpdate }: UserProfileProps) {
             className="flex items-center px-4 py-2 text-sm font-medium text-sky-300 bg-sky-500/10 border border-sky-400/30 rounded-lg hover:bg-sky-500/20 transition-colors"
           >
             <HiOutlineCog className="h-4 w-4 mr-2" />
-            {isEditing ? t("profile.header_cancel") : t("profile.header_edit")}
+            {isEditing ? "Cancelar" : "Editar"}
           </button>
         </div>
       </div>
@@ -94,7 +90,7 @@ export default function UserProfile({ user, onUpdate }: UserProfileProps) {
       {/* Profile Form */}
       <div className="bg-white/5 backdrop-blur-md rounded-lg border border-[#f59e0b]/30 shadow-[0_0_24px_rgba(245,158,11,.12)] p-6">
         <h3 className="text-lg font-semibold text-slate-100 mb-6">
-          {t("profile.personal_info")}
+          Información Personal
         </h3>
 
         {error && (
@@ -108,7 +104,7 @@ export default function UserProfile({ user, onUpdate }: UserProfileProps) {
           <div>
             <label className="block text-sm font-medium text-slate-200 mb-2">
               <HiOutlineUser className="h-4 w-4 inline mr-2" />
-              {t("profile.full_name")}
+              Nombre Completo
             </label>
             {isEditing ? (
               <input
@@ -118,11 +114,11 @@ export default function UserProfile({ user, onUpdate }: UserProfileProps) {
                   setFormData({ ...formData, full_name: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-slate-600 rounded-lg bg-white/5 text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder={t("profile.full_name")}
+                placeholder="Tu nombre completo"
               />
             ) : (
               <p className="text-slate-100 py-2">
-                {user.full_name || t("profile.unspecified")}
+                {user.full_name || "No especificado"}
               </p>
             )}
           </div>
@@ -137,7 +133,7 @@ export default function UserProfile({ user, onUpdate }: UserProfileProps) {
               {user.email}
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              {t("profile.email_note")}
+              El email no se puede cambiar por seguridad
             </p>
           </div>
 
@@ -145,7 +141,7 @@ export default function UserProfile({ user, onUpdate }: UserProfileProps) {
           <div>
             <label className="block text-sm font-medium text-slate-200 mb-2">
               <HiOutlinePhone className="h-4 w-4 inline mr-2" />
-              {t("profile.phone")}
+              Teléfono
             </label>
             {isEditing ? (
               <input
@@ -159,7 +155,7 @@ export default function UserProfile({ user, onUpdate }: UserProfileProps) {
               />
             ) : (
               <p className="text-slate-100 py-2">
-                {user.phone || t("account.not_specified")}
+                {user.phone || "No especificado"}
               </p>
             )}
           </div>
@@ -167,13 +163,11 @@ export default function UserProfile({ user, onUpdate }: UserProfileProps) {
           {/* Account Info */}
           <div className="border-t border-slate-700/40 pt-6">
             <h4 className="text-sm font-medium text-slate-200 mb-4">
-              {t("profile.account_info")}
+              Información de la Cuenta
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-600">
-                  {t("profile.member_since")}
-                </p>
+                <p className="text-sm text-gray-600">Miembro desde</p>
                 <p className="text-slate-100 font-medium">
                   {new Date(user.created_at).toLocaleDateString("es-ES", {
                     year: "numeric",
@@ -183,9 +177,7 @@ export default function UserProfile({ user, onUpdate }: UserProfileProps) {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">
-                  {t("profile.last_update")}
-                </p>
+                <p className="text-sm text-gray-600">Última actualización</p>
                 <p className="text-slate-100 font-medium">
                   {new Date(user.updated_at).toLocaleDateString("es-ES", {
                     year: "numeric",
@@ -206,7 +198,7 @@ export default function UserProfile({ user, onUpdate }: UserProfileProps) {
               className="flex items-center px-4 py-2 text-sm font-medium text-slate-200 bg-white/5 border border-slate-600 rounded-lg hover:bg-white/10 transition-colors"
             >
               <HiXMark className="h-4 w-4 mr-2" />
-              {t("profile.cancel")}
+              Cancelar
             </button>
             <button
               onClick={handleSave}
@@ -214,7 +206,7 @@ export default function UserProfile({ user, onUpdate }: UserProfileProps) {
               className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <HiOutlineCheck className="h-4 w-4 mr-2" />
-              {loading ? t("profile.saving") : t("profile.save_changes")}
+              {loading ? "Guardando..." : "Guardar Cambios"}
             </button>
           </div>
         )}

@@ -3,7 +3,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import { useEffect, useState } from "react";
 import { CocktailWithPrice } from "@/types";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 import FeaturedBanner from "./components/FeaturedBanner";
 import CocktailRow from "./components/CocktailRow";
@@ -11,7 +10,6 @@ import CocktailRow from "./components/CocktailRow";
 export default function ShopPage() {
   const [cocktails, setCocktails] = useState<CocktailWithPrice[]>([]);
   const [loading, setLoading] = useState(true);
-  const { t, language } = useLanguage();
 
   async function fetchCocktails() {
     try {
@@ -189,9 +187,7 @@ export default function ShopPage() {
     return (
       <div className="min-h-[60vh] flex justify-center items-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cosmic-gold"></div>
-        <p className="text-cosmic-silver text-lg ml-4">
-          {t("common.loading")} cocktails...
-        </p>
+        <p className="text-cosmic-silver text-lg ml-4">Loading cocktails...</p>
       </div>
     );
   }
@@ -219,33 +215,27 @@ export default function ShopPage() {
         <FeaturedBanner />
 
         {/* Sección Principal - Todos los Cócteles */}
-        <CocktailRow title={t("shop.all_cocktails")} cocktails={cocktails} />
+        <CocktailRow title="All Cocktails" cocktails={cocktails} />
 
         {/* Secciones Agrupadas - Solo mostrar si hay cócteles */}
         {nonAlcoholicCocktails.length > 0 && (
           <CocktailRow
-            title={t("shop.non_alcoholic")}
+            title="Non-Alcoholic Magic"
             cocktails={nonAlcoholicCocktails}
           />
         )}
 
         {strongCocktails.length > 0 && (
-          <CocktailRow
-            title={t("shop.strong_drinks")}
-            cocktails={strongCocktails}
-          />
+          <CocktailRow title="Strong Drinks" cocktails={strongCocktails} />
         )}
 
         {lightCocktails.length > 0 && (
-          <CocktailRow
-            title={t("shop.light_fresh")}
-            cocktails={lightCocktails}
-          />
+          <CocktailRow title="Light & Fresh" cocktails={lightCocktails} />
         )}
 
         {tropicalCocktails.length > 0 && (
           <CocktailRow
-            title={t("shop.tropical")}
+            title="Tropical Delights"
             cocktails={tropicalCocktails}
           />
         )}

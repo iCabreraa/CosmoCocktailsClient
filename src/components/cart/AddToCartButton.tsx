@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useCart } from "@/store/cart";
 import { CocktailSize, Cocktail } from "@/types/shared";
 import { ShoppingCart, X } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/lib/supabaseClient";
 
 interface AddToCartButtonProps {
@@ -18,7 +17,6 @@ export default function AddToCartButton({
   minPrice,
   minSizeId,
 }: AddToCartButtonProps) {
-  const { t } = useLanguage();
   const addToCart = useCart(state => state.addToCart);
   const [open, setOpen] = useState(false);
   const [sizes, setSizes] = useState<CocktailSize[]>([]);
@@ -46,14 +44,14 @@ export default function AddToCartButton({
 
     if (sizeErr) {
       console.error("❌ Error fetching sizes:", sizeErr);
-      setError(t("common.error_loading_sizes"));
+      setError("Failed to load sizes");
       setLoading(false);
       return;
     }
 
     if (!rawSizes || rawSizes.length === 0) {
       console.log("⚠️ No sizes found for cocktail:", cocktail.id);
-      setError(t("cocktail.no_sizes"));
+      setError("No sizes available");
       setLoading(false);
       return;
     }
@@ -131,7 +129,7 @@ export default function AddToCartButton({
         className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black focus:outline-none focus:ring-2 focus:ring-cosmic-gold transition-all text-sm"
       >
         <ShoppingCart className="w-4 h-4" />
-        {t("shop.add_to_cart")}
+        Add to Cart
       </button>
 
       {open && (
@@ -146,48 +144,33 @@ export default function AddToCartButton({
             <button
               onClick={() => setOpen(false)}
               className="absolute right-3 top-3 text-cosmic-fog hover:text-white focus:outline-none focus:ring-2 focus:ring-cosmic-gold"
-              aria-label={t("common.close")}
+              aria-label="Close"
             >
               <X size={18} />
             </button>
             <h2 className="text-lg font-[--font-unica] text-cosmic-gold mb-4">
-              {t("cocktail.size_selection")}
+              Choose a size
             </h2>
 
-            {loading && (
-              <p className="text-cosmic-fog">{t("common.loading")}</p>
-            )}
-            {error && (
-              <p className="text-red-500 text-sm">
-                {t("common.error")}: {error}
-              </p>
-            )}
+            {loading && <p className="text-cosmic-fog">Loading...</p>}
+            {error && <p className="text-red-500 text-sm">{error}</p>}
             {!loading && sizes.length === 0 && (
-              <p className="text-cosmic-fog">{t("cocktail.no_sizes")}</p>
+              <p className="text-cosmic-fog">No sizes available.</p>
             )}
 
             <div className="space-y-2">
-              {sizes.map(size => {
-                const sizeLabel = size.size?.name?.toLowerCase() || "";
-                const translatedName =
-                  sizeLabel.includes("small") && sizeLabel.includes("bottle")
-                    ? t("sizes.small_bottle")
-                    : sizeLabel === "shot" || sizeLabel.includes("shots")
-                      ? sizeLabel.includes("shots")
-                        ? t("sizes.shots")
-                        : t("sizes.shot")
-                      : (size.size?.name ?? `${size.size?.volume_ml ?? 0}ml`);
-                return (
-                  <button
-                    key={size.id}
-                    onClick={() => handleSelect(size)}
-                    className="w-full flex justify-between items-center border border-cosmic-gold rounded px-4 py-2 text-cosmic-text hover:bg-cosmic-gold/20"
-                  >
-                    <span>{translatedName}</span>
-                    <span>€{size.price.toFixed(2)}</span>
-                  </button>
-                );
-              })}
+              {sizes.map(size => (
+                <button
+                  key={size.id}
+                  onClick={() => handleSelect(size)}
+                  className="w-full flex justify-between items-center border border-cosmic-gold rounded px-4 py-2 text-cosmic-text hover:bg-cosmic-gold/20"
+                >
+                  <span>
+                    {size.size?.name ?? `${size.size?.volume_ml ?? 0}ml`}
+                  </span>
+                  <span>€{size.price.toFixed(2)}</span>
+                </button>
+              ))}
             </div>
           </div>
         </div>

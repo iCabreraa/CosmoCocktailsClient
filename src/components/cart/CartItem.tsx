@@ -4,14 +4,12 @@ import Image from "next/image";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { CartItem as CartItemType } from "@/types/shared";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CartItemProps {
   item: CartItemType;
 }
 
 export default function CartItem({ item }: CartItemProps) {
-  const { t } = useLanguage();
   const remove = useCart(state => state.removeFromCart);
   const update = useCart(state => state.updateQuantity);
 
@@ -46,7 +44,7 @@ export default function CartItem({ item }: CartItemProps) {
               )
             }
             className="p-1 border border-cosmic-fog rounded hover:bg-cosmic-gold hover:text-black transition"
-            aria-label={t("cart.decrease_qty")}
+            aria-label="Decrease quantity"
           >
             <Minus size={12} />
           </button>
@@ -56,7 +54,7 @@ export default function CartItem({ item }: CartItemProps) {
               update(item.cocktail_id, item.sizes_id, item.quantity + 1)
             }
             className="p-1 border border-cosmic-fog rounded hover:bg-cosmic-gold hover:text-black transition"
-            aria-label={t("cart.increase_qty")}
+            aria-label="Increase quantity"
           >
             <Plus size={12} />
           </button>
@@ -69,7 +67,7 @@ export default function CartItem({ item }: CartItemProps) {
         <button
           onClick={() => remove(item.cocktail_id, item.sizes_id)}
           className="text-cosmic-fog hover:text-red-600 transition mt-1"
-          aria-label={t("cart.remove_item")}
+          aria-label="Remove from cart"
         >
           <Trash2 size={16} />
         </button>

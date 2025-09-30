@@ -9,7 +9,6 @@ import {
   HiOutlineEye,
   HiOutlineTruck,
 } from "react-icons/hi2";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Order {
   id: string;
@@ -31,7 +30,6 @@ interface UserOrdersProps {
 }
 
 export default function UserOrders({ userId }: UserOrdersProps) {
-  const { t, language } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -45,13 +43,12 @@ export default function UserOrders({ userId }: UserOrdersProps) {
     try {
       setLoading(true);
       const response = await fetch(`/api/orders?user_id=${userId}`);
-      if (!response.ok)
-        throw new Error(t("orders.error_loading" as any) || "Error");
+      if (!response.ok) throw new Error("Error al cargar pedidos");
 
       const data = await response.json();
       setOrders(data.orders || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.unknown_error"));
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
@@ -73,13 +70,13 @@ export default function UserOrders({ userId }: UserOrdersProps) {
   const getStatusText = (status: string) => {
     switch (status) {
       case "completed":
-        return t("orders.status.completed");
+        return "Completado";
       case "pending":
-        return t("orders.status.pending");
+        return "Pendiente";
       case "cancelled":
-        return t("orders.status.cancelled");
+        return "Cancelado";
       case "shipped":
-        return t("orders.status.shipped");
+        return "Enviado";
       default:
         return status;
     }
@@ -112,13 +109,13 @@ export default function UserOrders({ userId }: UserOrdersProps) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
         <HiOutlineXCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-        <p className="text-red-800 font-medium">{t("common.error")}</p>
+        <p className="text-red-800 font-medium">Error al cargar pedidos</p>
         <p className="text-red-600 text-sm mt-2">{error}</p>
         <button
           onClick={fetchUserOrders}
           className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
         >
-          {t("orders.retry")}
+          Reintentar
         </button>
       </div>
     );
@@ -130,9 +127,11 @@ export default function UserOrders({ userId }: UserOrdersProps) {
       <div className="bg-white/5 backdrop-blur-md rounded-lg border border-sky-500/30 shadow-[0_0_24px_rgba(59,130,246,.12)] p-6">
         <h2 className="text-2xl font-bold text-slate-100 flex items-center">
           <HiOutlineShoppingBag className="h-6 w-6 mr-3 text-blue-600" />
-          {t("orders.title")}
+          Mis Pedidos
         </h2>
-        <p className="text-slate-300 mt-2">{t("orders.subtitle")}</p>
+        <p className="text-slate-300 mt-2">
+          Gestiona y revisa todos tus pedidos espaciales
+        </p>
       </div>
 
       {/* Orders List */}
@@ -155,20 +154,13 @@ export default function UserOrders({ userId }: UserOrdersProps) {
                       Pedido #{order.id.slice(-8)}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {new Date(order.created_at).toLocaleDateString(
-                        language === "en"
-                          ? "en-GB"
-                          : language === "nl"
-                            ? "nl-NL"
-                            : "es-ES",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }
-                      )}
+                      {new Date(order.created_at).toLocaleDateString("es-ES", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </p>
                   </div>
                 </div>
@@ -214,13 +206,12 @@ export default function UserOrders({ userId }: UserOrdersProps) {
                     className="flex items-center px-4 py-2 text-sm font-medium text-sky-300 bg-sky-500/10 border border-sky-400/30 rounded-lg hover:bg-sky-500/20 transition-colors"
                   >
                     <HiOutlineEye className="h-4 w-4 mr-2" />
-                    {t("orders.view_details")}
+                    Ver Detalles
                   </button>
                 </div>
                 <p className="text-sm text-slate-300 mt-2">
                   {order.items.length} cocktail
-                  {order.items.length !== 1 ? "s" : ""}{" "}
-                  {t("orders.items_total")}
+                  {order.items.length !== 1 ? "s" : ""} en total
                 </p>
               </div>
             </div>
@@ -230,11 +221,14 @@ export default function UserOrders({ userId }: UserOrdersProps) {
         <div className="bg-white/5 backdrop-blur-md rounded-lg border border-slate-700/40 p-12 text-center">
           <HiOutlineShoppingBag className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-slate-100 mb-2">
-            {t("orders.empty_title")}
+            Aún no tienes pedidos
           </h3>
-          <p className="text-slate-300 mb-6">{t("orders.empty_subtitle")}</p>
+          <p className="text-slate-300 mb-6">
+            ¡Explora nuestro catálogo de cocktails espaciales y haz tu primer
+            pedido!
+          </p>
           <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            {t("footer.explore")}
+            Ver Catálogo
           </button>
         </div>
       )}
@@ -246,7 +240,7 @@ export default function UserOrders({ userId }: UserOrdersProps) {
             <div className="p-6 border-b border-slate-700/40">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-slate-100">
-                  {t("orders.order_details")} #{selectedOrder.id.slice(-8)}
+                  Detalles del Pedido #{selectedOrder.id.slice(-8)}
                 </h3>
                 <button
                   onClick={() => setSelectedOrder(null)}
@@ -291,7 +285,7 @@ export default function UserOrders({ userId }: UserOrdersProps) {
               <div className="mt-6 pt-6 border-t border-slate-700/40">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold text-slate-100">
-                    {t("orders.order_total")}
+                    Total del Pedido:
                   </span>
                   <span className="text-2xl font-bold text-slate-100">
                     €{selectedOrder.total_amount}
