@@ -68,13 +68,15 @@ export function useInventoryValidation(items: CartItem[]) {
             };
           }
 
+          const typedData = data as { available: boolean; stock_quantity: number } | null;
+
           return {
             cocktail_id: item.cocktail_id,
             sizes_id: item.sizes_id,
-            available: data?.available ?? false,
-            stock_quantity: data?.stock_quantity ?? 0,
+            available: typedData?.available ?? false,
+            stock_quantity: typedData?.stock_quantity ?? 0,
             requested_quantity: item.quantity,
-            max_available: Math.min(data?.stock_quantity ?? 0, item.quantity),
+            max_available: Math.min(typedData?.stock_quantity ?? 0, item.quantity),
           };
         })
       );
@@ -204,14 +206,21 @@ export function useInventoryStats() {
         throw new Error(`Error fetching inventory stats: ${error.message}`);
       }
 
+      const typedData = data as Array<{
+        available: boolean;
+        stock_quantity: number;
+        cocktails: { name: string };
+        sizes: { name: string; volume_ml: number };
+      }> | null;
+
       const stats = {
-        totalItems: data?.length || 0,
-        availableItems: data?.filter(item => item.available).length || 0,
+        totalItems: typedData?.length || 0,
+        availableItems: typedData?.filter(item => item.available).length || 0,
         outOfStockItems:
-          data?.filter(item => !item.available || item.stock_quantity === 0)
+          typedData?.filter(item => !item.available || item.stock_quantity === 0)
             .length || 0,
         lowStockItems:
-          data?.filter(
+          typedData?.filter(
             item =>
               item.available &&
               item.stock_quantity > 0 &&
