@@ -172,9 +172,9 @@ export function useOrders(): UseOrdersReturn {
         updated_at: new Date().toISOString(),
       };
 
-      const { data, error: createError } = await supabase
+      const { data, error: createError } = await (supabase as any)
         .from("orders")
-        .insert(orderToCreate)
+        .insert(orderToCreate as any)
         .select(
           `
           *,
@@ -217,12 +217,12 @@ export function useOrders(): UseOrdersReturn {
     setError(null);
 
     try {
-      const { data, error: updateError } = await supabase
+      const { data, error: updateError } = await (supabase as any)
         .from("orders")
         .update({
           ...updates,
           updated_at: new Date().toISOString(),
-        })
+        } as any)
         .eq("id", orderId)
         .select(
           `

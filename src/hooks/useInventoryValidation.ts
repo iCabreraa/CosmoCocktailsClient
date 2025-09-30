@@ -47,7 +47,9 @@ export function useInventoryValidation(): UseInventoryValidationReturn {
           available: boolean;
           stock_quantity: number;
         } | null;
-        return Boolean(typedData?.available) && (typedData?.stock_quantity || 0) > 0;
+        return (
+          Boolean(typedData?.available) && (typedData?.stock_quantity || 0) > 0
+        );
       } catch (err) {
         console.error("Error in checkItemAvailability:", err);
         return false;
