@@ -145,9 +145,9 @@ export function useCreateOrder() {
         item_total: item.item_total,
       }));
 
-      const { error: itemsError } = await supabase
+      const { error: itemsError } = await (supabase as any)
         .from("order_items")
-        .insert(orderItems);
+        .insert(orderItems as any[]);
 
       if (itemsError) {
         throw new Error(`Error creating order items: ${itemsError.message}`);
