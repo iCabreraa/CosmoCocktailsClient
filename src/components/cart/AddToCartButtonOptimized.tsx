@@ -21,7 +21,7 @@ export default function AddToCartButtonOptimized({
 
   // Usar React Query para obtener tamaños
   const {
-    data: sizes = [],
+    data: sizes = [] as any[],
     isLoading,
     error,
     refetch,
