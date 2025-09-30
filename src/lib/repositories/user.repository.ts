@@ -38,9 +38,9 @@ export class UserRepository {
   }
 
   async create(userData: CreateUserData & { id?: string }): Promise<User> {
-    const { data, error } = await this.supabase
+    const { data, error } = await (this.supabase as any)
       .from("users_new")
-      .insert(userData)
+      .insert(userData as any)
       .select()
       .single();
 
@@ -49,7 +49,7 @@ export class UserRepository {
   }
 
   async update(id: string, updates: Partial<User>): Promise<User> {
-    const { data, error } = await this.supabase
+    const { data, error } = await (this.supabase as any)
       .from("users_new")
       .update({
         ...updates,
@@ -106,7 +106,7 @@ export class UserRepository {
   }
 
   async updateRole(id: string, role: string): Promise<User> {
-    const { data, error } = await this.supabase
+    const { data, error } = await (this.supabase as any)
       .from("users_new")
       .update({
         role,
@@ -121,7 +121,7 @@ export class UserRepository {
   }
 
   async delete(id: string): Promise<void> {
-    const { error } = await this.supabase
+    const { error } = await (this.supabase as any)
       .from("users_new")
       .delete()
       .eq("id", id);

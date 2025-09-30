@@ -73,7 +73,7 @@ export function useClientData() {
   ): Promise<ClientData | null> => {
     try {
       // Intentar guardar en la base de datos primero
-      const { data: existingClient } = await supabase
+      const { data: existingClient } = await (supabase as any)
         .from("clients")
         .select("id")
         .eq("email", data.email)
@@ -83,7 +83,7 @@ export function useClientData() {
 
       if (existingClient) {
         // Actualizar cliente existente
-        const { data: updatedClient, error } = await supabase
+        const { data: updatedClient, error } = await (supabase as any)
           .from("clients")
           .update({
             full_name: data.full_name,
@@ -100,9 +100,9 @@ export function useClientData() {
         savedClient = updatedClient;
       } else {
         // Crear nuevo cliente
-        const { data: newClient, error } = await supabase
+        const { data: newClient, error } = await (supabase as any)
           .from("clients")
-          .insert([data])
+          .insert([data as any])
           .select()
           .single();
 

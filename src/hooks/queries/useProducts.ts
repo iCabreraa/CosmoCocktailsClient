@@ -233,14 +233,19 @@ export function useProductStats() {
         has_non_alcoholic_version: boolean;
       }> | null;
 
+      const list = typedData ?? [];
+      const totalAlcohol = list.reduce(
+        (sum, p) => sum + (p.alcohol_percentage || 0),
+        0
+      );
+
       const stats = {
-        totalProducts: typedData?.length || 0,
-        availableProducts: typedData?.filter(p => p.is_available).length || 0,
+        totalProducts: list.length || 0,
+        availableProducts: list.filter(p => p.is_available).length || 0,
         nonAlcoholicProducts:
-          typedData?.filter(p => p.has_non_alcoholic_version).length || 0,
+          list.filter(p => p.has_non_alcoholic_version).length || 0,
         averageAlcoholPercentage:
-          typedData?.reduce((sum, p) => sum + p.alcohol_percentage, 0) /
-            (typedData?.length || 1) || 0,
+          list.length > 0 ? totalAlcohol / list.length : 0,
       };
 
       return stats;

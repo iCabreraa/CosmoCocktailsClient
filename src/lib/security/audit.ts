@@ -22,7 +22,7 @@ export class SecurityAuditor {
 
   async logEvent(event: Omit<SecurityEvent, "id" | "created_at">) {
     try {
-      const { data, error } = await this.supabase
+      const { data, error } = await (this.supabase as any)
         .from("security_events")
         .insert({
           ...event,
