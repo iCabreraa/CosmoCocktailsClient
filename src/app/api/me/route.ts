@@ -34,7 +34,6 @@ export async function PATCH(request: Request) {
     }
     const decoded = jwt.verify(token, envServer.JWT_SECRET) as { id: string };
     const updates = await request.json();
-    // @ts-expect-error - Supabase types issue in build environments
     const { data: user, error } = await (supabase as any)
       .from("users")
       .update(updates)
