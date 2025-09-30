@@ -127,13 +127,17 @@ WITH user_ids AS (
     FROM auth.users 
     WHERE email IN ('test-admin@cosmococktails.com', 'test-staff@cosmococktails.com', 'test-customer@cosmococktails.com')
 )
--- 6. Crear perfiles en public.users para que el e-commerce funcione
-INSERT INTO public.users (
+-- 6. Crear perfiles en public.users_new para que el e-commerce funcione
+INSERT INTO public.users_new (
     id,
     email,
     full_name,
     phone,
+    avatar_url,
     role,
+    status,
+    preferences,
+    metadata,
     created_at,
     updated_at
 )
@@ -142,11 +146,15 @@ SELECT
     ui.email,
     ui.full_name,
     ui.phone,
+    'https://i.pravatar.cc/300?img=1' as avatar_url,
     CASE 
-        WHEN ui.role = 'admin' THEN 'admin'
-        WHEN ui.role = 'staff' THEN 'staff'
-        ELSE 'client'
+        WHEN ui.role = 'admin' THEN 'admin'::user_role
+        WHEN ui.role = 'staff' THEN 'staff'::user_role
+        ELSE 'customer'::user_role
     END as role,
+    'active'::user_status as status,
+    '{}' as preferences,
+    '{}' as metadata,
     NOW() as created_at,
     NOW() as updated_at
 FROM user_ids ui;
@@ -163,11 +171,11 @@ WHERE au.email IN ('test-admin@cosmococktails.com', 'test-staff@cosmococktails.c
 UNION ALL
 
 SELECT 
-    'PUBLIC USERS' as source,
+    'PUBLIC USERS_NEW' as source,
     pu.email,
     pu.role as public_role,
     pu.full_name
-FROM public.users pu
+FROM public.users_new pu
 WHERE pu.email IN ('test-admin@cosmococktails.com', 'test-staff@cosmococktails.com', 'test-customer@cosmococktails.com')
 
 ORDER BY email, source;
