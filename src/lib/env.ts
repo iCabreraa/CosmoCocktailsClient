@@ -1,6 +1,4 @@
 import { z } from "zod";
-import { envClient } from "./env-client";
-import "server-only";
 
 const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().min(1, "Supabase URL is required"),
@@ -28,7 +26,6 @@ const envSchema = z.object({
 // Función para validar variables de entorno con mejor manejo de errores
 function validateEnv() {
   try {
-    // Solo se debe usar en servidor. Para cliente usa envClient.
     return envSchema.parse(process.env);
   } catch (error) {
     // Log validation errors in development
@@ -42,8 +39,11 @@ function validateEnv() {
       console.warn("⚠️ Usando valores por defecto para desarrollo...");
 
       return {
-        NEXT_PUBLIC_SUPABASE_URL: envClient.NEXT_PUBLIC_SUPABASE_URL,
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: envClient.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        NEXT_PUBLIC_SUPABASE_URL:
+          process.env.NEXT_PUBLIC_SUPABASE_URL ||
+          "https://placeholder.supabase.co",
+        NEXT_PUBLIC_SUPABASE_ANON_KEY:
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder_key",
         SUPABASE_SERVICE_ROLE_KEY:
           process.env.SUPABASE_SERVICE_ROLE_KEY || "placeholder_service_key",
         JWT_SECRET:
