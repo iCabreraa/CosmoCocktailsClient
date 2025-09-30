@@ -188,9 +188,9 @@ export function useUpdateOrderStatus() {
       if (status) updateData.status = status;
       if (paymentStatus) updateData.payment_status = paymentStatus;
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("orders")
-        .update(updateData)
+        .update(updateData as any)
         .eq("id", orderId)
         .select()
         .single();
