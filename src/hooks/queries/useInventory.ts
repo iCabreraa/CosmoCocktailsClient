@@ -174,10 +174,11 @@ export function useUpdateStock() {
         stock_quantity: newStock,
       };
 
-      const { error: updateError } = await supabase
-        .from("cocktail_sizes")
-        // Tipado explícito para evitar 'never' en compilación
-        .update(updatePayload as any)
+      // Casteamos el query builder para evitar la inferencia a 'never' en entornos de build
+      const cocktailSizesTable = supabase.from("cocktail_sizes") as any;
+
+      const { error: updateError } = await cocktailSizesTable
+        .update(updatePayload)
         .eq("cocktail_id", cocktailId)
         .eq("sizes_id", sizeId);
 
