@@ -235,17 +235,23 @@ export function useOrderStats(userId?: string) {
         throw new Error(`Error fetching order stats: ${error.message}`);
       }
 
+      const typedData = data as Array<{
+        status: string;
+        total_price: number;
+        created_at: string;
+      }> | null;
+
       const stats = {
-        totalOrders: data?.length || 0,
-        pendingOrders: data?.filter(o => o.status === "pending").length || 0,
+        totalOrders: typedData?.length || 0,
+        pendingOrders: typedData?.filter(o => o.status === "pending").length || 0,
         completedOrders:
-          data?.filter(o => o.status === "completed").length || 0,
-        totalRevenue: data?.reduce((sum, o) => sum + o.total_price, 0) || 0,
-        averageOrderValue: data?.length
-          ? data.reduce((sum, o) => sum + o.total_price, 0) / data.length
+          typedData?.filter(o => o.status === "completed").length || 0,
+        totalRevenue: typedData?.reduce((sum, o) => sum + o.total_price, 0) || 0,
+        averageOrderValue: typedData?.length
+          ? typedData.reduce((sum, o) => sum + o.total_price, 0) / typedData.length
           : 0,
         ordersThisMonth:
-          data?.filter(o => {
+          typedData?.filter(o => {
             const orderDate = new Date(o.created_at);
             const now = new Date();
             return (

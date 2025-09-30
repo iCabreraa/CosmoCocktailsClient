@@ -227,14 +227,20 @@ export function useProductStats() {
         throw new Error(`Error fetching product stats: ${error.message}`);
       }
 
+      const typedData = data as Array<{
+        is_available: boolean;
+        alcohol_percentage: number;
+        has_non_alcoholic_version: boolean;
+      }> | null;
+
       const stats = {
-        totalProducts: data?.length || 0,
-        availableProducts: data?.filter(p => p.is_available).length || 0,
+        totalProducts: typedData?.length || 0,
+        availableProducts: typedData?.filter(p => p.is_available).length || 0,
         nonAlcoholicProducts:
-          data?.filter(p => p.has_non_alcoholic_version).length || 0,
+          typedData?.filter(p => p.has_non_alcoholic_version).length || 0,
         averageAlcoholPercentage:
-          data?.reduce((sum, p) => sum + p.alcohol_percentage, 0) /
-            (data?.length || 1) || 0,
+          typedData?.reduce((sum, p) => sum + p.alcohol_percentage, 0) /
+            (typedData?.length || 1) || 0,
       };
 
       return stats;

@@ -43,7 +43,8 @@ export function useInventoryValidation(): UseInventoryValidationReturn {
           return false;
         }
 
-        return data?.available && (data?.stock_quantity || 0) > 0;
+        const typedData = data as { available: boolean; stock_quantity: number } | null;
+        return typedData?.available && (typedData?.stock_quantity || 0) > 0;
       } catch (err) {
         console.error("Error in checkItemAvailability:", err);
         return false;
@@ -67,7 +68,8 @@ export function useInventoryValidation(): UseInventoryValidationReturn {
           return 0;
         }
 
-        return data?.stock_quantity || 0;
+        const typedData = data as { stock_quantity: number } | null;
+        return typedData?.stock_quantity || 0;
       } catch (err) {
         console.error("Error in getMaxQuantity:", err);
         return 0;

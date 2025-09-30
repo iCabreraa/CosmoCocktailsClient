@@ -68,7 +68,10 @@ export function useInventoryValidation(items: CartItem[]) {
             };
           }
 
-          const typedData = data as { available: boolean; stock_quantity: number } | null;
+          const typedData = data as {
+            available: boolean;
+            stock_quantity: number;
+          } | null;
 
           return {
             cocktail_id: item.cocktail_id,
@@ -76,7 +79,10 @@ export function useInventoryValidation(items: CartItem[]) {
             available: typedData?.available ?? false,
             stock_quantity: typedData?.stock_quantity ?? 0,
             requested_quantity: item.quantity,
-            max_available: Math.min(typedData?.stock_quantity ?? 0, item.quantity),
+            max_available: Math.min(
+              typedData?.stock_quantity ?? 0,
+              item.quantity
+            ),
           };
         })
       );
@@ -154,9 +160,11 @@ export function useUpdateStock() {
         throw new Error(`Error fetching current stock: ${fetchError.message}`);
       }
 
+      const typedCurrentStock = currentStock as { stock_quantity: number } | null;
+
       const newStock = Math.max(
         0,
-        (currentStock?.stock_quantity ?? 0) - quantity
+        (typedCurrentStock?.stock_quantity ?? 0) - quantity
       );
 
       // Actualizar stock
@@ -217,8 +225,9 @@ export function useInventoryStats() {
         totalItems: typedData?.length || 0,
         availableItems: typedData?.filter(item => item.available).length || 0,
         outOfStockItems:
-          typedData?.filter(item => !item.available || item.stock_quantity === 0)
-            .length || 0,
+          typedData?.filter(
+            item => !item.available || item.stock_quantity === 0
+          ).length || 0,
         lowStockItems:
           typedData?.filter(
             item =>
