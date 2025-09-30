@@ -173,7 +173,7 @@ UNION ALL
 SELECT 
     'PUBLIC USERS_NEW' as source,
     pu.email,
-    pu.role as public_role,
+    pu.role::text as public_role,
     pu.full_name
 FROM public.users_new pu
 WHERE pu.email IN ('test-admin@cosmococktails.com', 'test-staff@cosmococktails.com', 'test-customer@cosmococktails.com')
