@@ -18,16 +18,19 @@ export default function CocktailRow({ title, cocktails }: CocktailRowProps) {
 
   if (cocktails.length < 2) return null;
 
-  // Debug: Log para ver qué datos están llegando
-  console.log(
-    `CocktailRow ${title}:`,
-    cocktails.map(c => ({
-      id: c.id,
-      name: c.name,
-      min_price: c.min_price,
-      min_size_id: c.min_size_id,
-    }))
-  );
+  // Debug solo en desarrollo
+  if (process.env.NODE_ENV === "development") {
+    // eslint-disable-next-line no-console
+    console.log(
+      `CocktailRow ${title}:`,
+      cocktails.map(c => ({
+        id: c.id,
+        name: c.name,
+        min_price: c.min_price,
+        min_size_id: c.min_size_id,
+      }))
+    );
+  }
 
   return (
     <section className="py-12">

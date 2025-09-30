@@ -63,7 +63,6 @@ function validateEnv() {
           "development",
       };
     }
-    // En producción, propaga error claro para logs del servidor
     throw error;
   }
 }

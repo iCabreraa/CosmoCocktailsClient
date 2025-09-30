@@ -4,6 +4,7 @@ import { useState } from "react";
 import { User } from "@/types/user-system";
 import UserDashboard from "./UserDashboard";
 import UserProfile from "./UserProfile";
+import AdminAccessButton from "@/components/admin/AdminAccessButton";
 import UserOrders from "./UserOrders";
 import UserFavorites from "./UserFavorites";
 import UserSettings from "./UserSettings";
@@ -49,7 +50,12 @@ export default function AccountTabs({
   const renderTabContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <UserDashboard user={user} stats={mockStats} />;
+        return (
+          <div className="space-y-6">
+            <AdminAccessButton />
+            <UserDashboard user={user} stats={mockStats} />
+          </div>
+        );
       case "profile":
         return <UserProfile user={user} onUpdate={onUpdate} />;
       case "orders":
@@ -59,7 +65,12 @@ export default function AccountTabs({
       case "settings":
         return <UserSettings user={user} onUpdate={onUpdate} />;
       default:
-        return <UserDashboard user={user} stats={mockStats} />;
+        return (
+          <div className="space-y-6">
+            <AdminAccessButton />
+            <UserDashboard user={user} stats={mockStats} />
+          </div>
+        );
     }
   };
 
