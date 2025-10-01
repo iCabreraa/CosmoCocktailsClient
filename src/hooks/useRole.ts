@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "./useAuth";
+import { useAuthUnified as useAuth } from "./useAuthUnified";
 import { useMemo } from "react";
 
 export type UserRole = "admin" | "client" | "staff";
@@ -10,7 +10,7 @@ export function useRole() {
 
   const role = useMemo((): UserRole => {
     if (!user) return "client";
-    return (user.user_metadata?.role as UserRole) || "client";
+    return (user.role as UserRole) || "client";
   }, [user]);
 
   const isAdmin = useMemo(() => role === "admin", [role]);

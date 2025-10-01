@@ -152,7 +152,9 @@ export default async function CocktailDetailPage({
                   <AddToCartWithQuantity
                     cocktailId={cocktail.id}
                     cocktailName={cocktail.name}
-                    cocktailImage={cocktail.image_url ?? "/images/placeholder.webp"}
+                    cocktailImage={
+                      cocktail.image_url ?? "/images/placeholder.webp"
+                    }
                     sizeId={size.sizes_id}
                     sizeName={size.size?.name ?? "Unknown"}
                     volumeMl={size.size?.volume_ml ?? 0}

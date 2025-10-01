@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useCallback, useRef } from "react";
-import { useAuth } from "./useAuth";
+import { useAuthUnified as useAuth } from "./useAuthUnified";
 import { useRouter } from "next/navigation";
 
 interface UseAutoLogoutOptions {

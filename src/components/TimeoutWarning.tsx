@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthUnified as useAuth } from "@/hooks/useAuthUnified";
 
 interface TimeoutWarningProps {
   onExtend: () => void;

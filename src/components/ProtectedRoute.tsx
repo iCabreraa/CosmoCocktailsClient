@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthUnified as useAuth } from "@/hooks/useAuthUnified";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -35,7 +35,7 @@ export default function ProtectedRoute({
   }
 
   // Verificar rol si es necesario
-  if (requiredRole && user?.user_metadata?.role !== requiredRole) {
+  if (requiredRole && user?.role !== requiredRole) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

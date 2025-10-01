@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@/types/user-system";
 import { UserService } from "@/lib/services/user.service";
+import { securityAuditor } from "@/lib/security/audit";
 
 const userService = new UserService();
 
@@ -90,6 +91,12 @@ export function useAuthUnified() {
       });
 
       if (error) {
+        // Log failed login attempt
+        await securityAuditor.logLogin("", false);
+        await securityAuditor.logSuspiciousActivity(
+          `Failed login attempt for email: ${email}`,
+          { email, error: error.message }
+        );
         setError(error.message);
         return { data: null, error };
       }
@@ -99,6 +106,8 @@ export function useAuthUnified() {
         const userProfile = await userService.getUserById(data.user.id);
         if (userProfile) {
           setUser(userProfile);
+          // Log successful login
+          await securityAuditor.logLogin(data.user.id, true);
         } else {
           setError("User profile not found");
           setUser(null);
@@ -109,6 +118,10 @@ export function useAuthUnified() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       setError(errorMessage);
+      await securityAuditor.logSuspiciousActivity(
+        `Login error for email: ${email}`,
+        { email, error: errorMessage }
+      );
       return { data: null, error: { message: errorMessage } };
     } finally {
       setLoading(false);
@@ -158,6 +171,12 @@ export function useAuthUnified() {
   const signOut = async () => {
     try {
       setError(null);
+      
+      // Log logout before signing out
+      if (user) {
+        await securityAuditor.logLogout(user.id);
+      }
+
       const { error } = await supabase.auth.signOut();
 
       if (error) {
@@ -200,5 +219,10 @@ export function useAuthUnified() {
     signUp,
     signOut,
     updateProfile,
+    isAuthenticated: !!user,
+    // Alias for compatibility with useAuth
+    login: signIn,
+    logout: signOut,
+    signup: signUp,
   };
 }
