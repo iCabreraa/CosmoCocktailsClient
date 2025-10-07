@@ -2,12 +2,38 @@
 
 import { useState } from "react";
 import { User } from "@/types/user-system";
-import UserDashboard from "./UserDashboard";
-import UserProfile from "./UserProfile";
+import dynamic from "next/dynamic";
+const UserDashboard = dynamic(() => import("./UserDashboard"), {
+  ssr: true,
+  loading: () => (
+    <div className="h-48 w-full animate-pulse bg-white/10 rounded-xl" />
+  ),
+});
+const UserProfile = dynamic(() => import("./UserProfile"), {
+  ssr: true,
+  loading: () => (
+    <div className="h-64 w-full animate-pulse bg-white/10 rounded-xl" />
+  ),
+});
 import AdminAccessButton from "@/components/admin/AdminAccessButton";
-import UserOrders from "./UserOrders";
-import UserFavorites from "./UserFavorites";
-import UserSettings from "./UserSettings";
+const UserOrders = dynamic(() => import("./UserOrders"), {
+  ssr: true,
+  loading: () => (
+    <div className="h-64 w-full animate-pulse bg-white/10 rounded-xl" />
+  ),
+});
+const UserFavorites = dynamic(() => import("./UserFavorites"), {
+  ssr: true,
+  loading: () => (
+    <div className="h-64 w-full animate-pulse bg-white/10 rounded-xl" />
+  ),
+});
+const UserSettings = dynamic(() => import("./UserSettings"), {
+  ssr: true,
+  loading: () => (
+    <div className="h-64 w-full animate-pulse bg-white/10 rounded-xl" />
+  ),
+});
 import {
   HiOutlineHome,
   HiOutlineUser,

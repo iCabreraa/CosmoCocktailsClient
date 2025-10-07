@@ -10,6 +10,7 @@ export function useAuthUnified() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const supabase = createClient();
 
@@ -17,6 +18,7 @@ export function useAuthUnified() {
     // Obtener sesión inicial
     const getInitialSession = async () => {
       try {
+        // Primero intentar obtener la sesión sin timeout para mantener persistencia
         const {
           data: { session },
         } = await supabase.auth.getSession();
@@ -38,8 +40,10 @@ export function useAuthUnified() {
       } catch (err) {
         console.error("Error getting initial session:", err);
         setError("Failed to load user session");
+        setUser(null);
       } finally {
         setLoading(false);
+        setIsInitialized(true);
       }
     };
 
@@ -53,6 +57,9 @@ export function useAuthUnified() {
         // eslint-disable-next-line no-console
         console.log("Auth state changed:", event, session?.user?.id);
       }
+
+      // Solo procesar cambios después de la inicialización inicial
+      if (!isInitialized) return;
 
       if (session?.user) {
         try {
@@ -74,16 +81,15 @@ export function useAuthUnified() {
       } else {
         setUser(null);
       }
-      setLoading(false);
+      // No cambiar loading aquí para evitar interrupciones
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+  }, [supabase.auth, isInitialized]);
 
   const signIn = async (email: string, password: string) => {
     try {
       setError(null);
-      setLoading(true);
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -123,8 +129,6 @@ export function useAuthUnified() {
         { email, error: errorMessage }
       );
       return { data: null, error: { message: errorMessage } };
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -136,7 +140,6 @@ export function useAuthUnified() {
   ) => {
     try {
       setError(null);
-      setLoading(true);
 
       const response = await fetch("/api/auth/signup", {
         method: "POST",
@@ -163,8 +166,6 @@ export function useAuthUnified() {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       setError(errorMessage);
       return { data: null, error: { message: errorMessage } };
-    } finally {
-      setLoading(false);
     }
   };
 

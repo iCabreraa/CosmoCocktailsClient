@@ -51,27 +51,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <ThemeProvider>
               <QueryProvider>
                 <div className="relative min-h-screen bg-cosmic-bg text-cosmic-text">
-                  {/* Fondo cósmico para tema oscuro */}
-                  <div className="dark:block hidden">
-                    <Image
-                      src="/images/hero-bg.webp"
-                      alt="Cosmic Background Dark"
-                      fill
-                      priority
-                      className="object-cover brightness-[0.7] -z-10"
-                    />
-                  </div>
-                  {/* Fondo cósmico claro para tema claro */}
-                  <div className="light:block hidden">
-                    <Image
-                      src="/images/hero-bg.webp"
-                      alt="Cosmic Background Light"
-                      fill
-                      priority
-                      className="object-cover brightness-[1.2] saturate-75 -z-10"
-                    />
-                    <div className="absolute inset-0 bg-white/20 -z-10"></div>
-                  </div>
+                  {/* Background temporarily removed for performance and clarity */}
                   <Navbar />
                   <main className="pt-36">{children}</main>
                   <Footer />

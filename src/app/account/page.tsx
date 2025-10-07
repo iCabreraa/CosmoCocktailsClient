@@ -84,7 +84,9 @@ export default function AccountPage() {
             message: "Has iniciado sesión correctamente.",
             duration: 3000,
           });
-          router.push("/");
+          // Permanecer en /account; el listener de auth actualizará el dashboard sin forzar navegación
+          // Limpiar el formulario después del login exitoso
+          setFormData({ email: "", password: "", full_name: "", phone: "" });
         }
       } else {
         const { error } = await signup(
