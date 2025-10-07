@@ -3,9 +3,21 @@
 import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { CocktailWithPrice } from "@/types";
+import dynamic from "next/dynamic";
 
-import FeaturedBanner from "./components/FeaturedBanner";
-import CocktailRow from "./components/CocktailRow";
+const FeaturedBanner = dynamic(() => import("./components/FeaturedBanner"), {
+  ssr: true,
+  loading: () => (
+    <div className="h-56 w-full animate-pulse bg-cosmic-silver/10 rounded-xl" />
+  ),
+});
+
+const CocktailRow = dynamic(() => import("./components/CocktailRow"), {
+  ssr: true,
+  loading: () => (
+    <div className="h-72 w-full animate-pulse bg-cosmic-silver/10 rounded-xl" />
+  ),
+});
 
 export default function ShopPage() {
   const [cocktails, setCocktails] = useState<CocktailWithPrice[]>([]);

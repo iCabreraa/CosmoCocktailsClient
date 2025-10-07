@@ -171,7 +171,7 @@ export function useAuthUnified() {
   const signOut = async () => {
     try {
       setError(null);
-      
+
       // Log logout before signing out
       if (user) {
         await securityAuditor.logLogout(user.id);

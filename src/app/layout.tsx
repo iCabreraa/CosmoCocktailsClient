@@ -8,6 +8,9 @@ import ThemeProvider from "@/components/providers/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/react";
 
 // Font imports
 import { Inter, Playfair_Display } from "next/font/google";
@@ -36,6 +39,10 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const ServiceWorkerRegister = dynamic(
+    () => import("@/components/performance/ServiceWorkerRegister"),
+    { ssr: false }
+  );
   return (
     <html lang="es">
       <body className={`${unica.variable} ${josefin.variable} font-sans`}>
@@ -68,6 +75,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <Navbar />
                   <main className="pt-36">{children}</main>
                   <Footer />
+                  <ServiceWorkerRegister />
+                  <SpeedInsights />
+                  <Analytics />
                 </div>
               </QueryProvider>
             </ThemeProvider>

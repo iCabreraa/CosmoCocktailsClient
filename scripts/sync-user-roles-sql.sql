@@ -45,3 +45,4 @@ WHERE u.role IS NOT NULL;
 
 -- 4. Limpiar función temporal
 DROP FUNCTION IF EXISTS sync_user_roles();
+

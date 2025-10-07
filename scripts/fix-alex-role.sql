@@ -29,3 +29,4 @@ SELECT
 FROM public.users u
 JOIN auth.users au ON u.id = au.id
 WHERE u.email = 'alexaliaman9@gmail.com';
+
