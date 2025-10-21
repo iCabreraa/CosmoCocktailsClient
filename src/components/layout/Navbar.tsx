@@ -261,7 +261,6 @@ export default function Navbar() {
                   })}
                 </nav>
 
-
                 {/* Account Section */}
                 {user && (
                   <div className="mt-4">
@@ -340,67 +339,80 @@ export default function Navbar() {
               </div>
 
               {/* User Section - At the very bottom */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 border-t border-slate-700/40 bg-white/5">
+              <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 border-t border-slate-700/40 bg-gradient-to-t from-slate-900/50 to-white/5 backdrop-blur-md">
                 {user ? (
-                  <div className="space-y-3">
-                    {/* User Info - Avatar, Name and Role in same line */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
+                  <div className="space-y-4">
+                    {/* User Profile Card */}
+                    <div className="bg-white/5 rounded-xl p-4 border border-white/10 backdrop-blur-sm">
+                      {/* User Info - Avatar, Name and Role */}
+                      <div className="flex items-center space-x-3 mb-3">
                         {/* Avatar */}
-                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-cosmic-gold/20 to-sky-300/20 border border-cosmic-gold/30 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-cosmic-gold/30 to-sky-300/30 border-2 border-cosmic-gold/40 flex items-center justify-center shadow-lg">
                           {user?.avatar_url ? (
                             <Image
                               src={user.avatar_url}
-                              alt={user?.full_name || user?.email?.split("@")[0] || "Usuario"}
-                              width={32}
-                              height={32}
+                              alt={
+                                user?.full_name ||
+                                user?.email?.split("@")[0] ||
+                                "Usuario"
+                              }
+                              width={40}
+                              height={40}
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <HiOutlineUser className="text-base text-cosmic-gold" />
+                            <HiOutlineUser className="text-lg text-cosmic-gold" />
                           )}
                         </div>
-                        
+
                         {/* Name and Role */}
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-slate-100 font-medium">
-                            {user?.full_name || user?.email?.split("@")[0] || "Usuario"}
-                          </span>
-                          {user?.role && (
-                            <RoleBadge role={user.role} />
-                          )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <span className="text-sm font-semibold text-slate-100 truncate">
+                              {user?.full_name ||
+                                user?.email?.split("@")[0] ||
+                                "Usuario"}
+                            </span>
+                            {user?.role && <RoleBadge role={user.role} />}
+                          </div>
+                          <p className="text-xs text-slate-400">
+                            {user?.email}
+                          </p>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Admin Panel Button */}
-                    {(user.role === "admin" || user.role === "super_admin" || user.role === "staff" || user.role === "manager") && (
-                      <Link
-                        href="/admin"
-                        onClick={() => setMenuOpen(false)}
-                        className="flex items-center px-3 py-2 text-sm font-medium rounded-lg bg-white/10 text-slate-100 hover:bg-white/20 transition-all duration-200 border border-white/20"
-                      >
-                        <HiOutlineCog6Tooth className="h-4 w-4 mr-2" />
-                        <span>Panel de Administración</span>
-                      </Link>
-                    )}
+                      {/* Admin Panel Button */}
+                      {(user.role === "admin" ||
+                        user.role === "super_admin" ||
+                        user.role === "staff" ||
+                        user.role === "manager") && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setMenuOpen(false)}
+                          className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium rounded-lg bg-gradient-to-r from-cosmic-gold/20 to-sky-300/20 text-cosmic-gold hover:from-cosmic-gold/30 hover:to-sky-300/30 transition-all duration-200 border border-cosmic-gold/30 shadow-lg hover:shadow-cosmic-gold/25"
+                        >
+                          <HiOutlineCog6Tooth className="h-4 w-4 mr-2" />
+                          <span>Panel de Administración</span>
+                        </Link>
+                      )}
+                    </div>
 
                     {/* Logout Button */}
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center px-3 py-3 text-sm font-medium text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                      className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-red-300 hover:bg-red-500/10 hover:text-red-200 rounded-lg transition-all duration-200 border border-red-500/20 hover:border-red-400/40"
                     >
-                      <HiXMark className="h-5 w-5 mr-3" />
-                      {t("account.logout")}
+                      <HiXMark className="h-4 w-4 mr-2" />
+                      <span>Cerrar Sesión</span>
                     </button>
                   </div>
                 ) : (
                   <Link
                     href="/account"
                     onClick={() => setMenuOpen(false)}
-                    className="w-full flex items-center px-3 py-3 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-slate-100 rounded-lg transition-colors"
+                    className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-slate-100 rounded-lg transition-colors border border-white/10"
                   >
-                    <HiOutlineUser className="h-5 w-5 mr-3" />
+                    <HiOutlineUser className="h-4 w-4 mr-2" />
                     {t("nav.login")}
                   </Link>
                 )}
