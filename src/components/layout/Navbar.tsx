@@ -205,7 +205,7 @@ export default function Navbar() {
         id: "admin",
         name: t("account.tabs.admin"),
         icon: HiOutlineCog6Tooth,
-        href: "/account?tab=admin",
+        href: "/admin",
       });
     }
 
