@@ -224,7 +224,7 @@ export default function Navbar() {
               onClick={() => setMenuOpen(false)}
             />
             <div className="fixed left-0 top-0 h-full w-72 sm:w-80 bg-white/5 backdrop-blur-md shadow-xl z-[101]">
-              <div className="p-4 sm:p-6 pb-32">
+              <div className="p-4 sm:p-6 pb-40">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-lg font-semibold text-slate-100">
@@ -263,7 +263,7 @@ export default function Navbar() {
 
                 {/* Account Section */}
                 {user && (
-                  <div className="mt-4">
+                  <div className="mt-8">
                     <button
                       onClick={() => {
                         if (!isInAccountSection) {
@@ -299,7 +299,7 @@ export default function Navbar() {
 
                     {/* Account Dropdown */}
                     {accountDropdownOpen && (
-                      <nav className="space-y-1 mt-2 ml-6">
+                      <nav className="space-y-2 mt-4 ml-6">
                         {getAccountTabs().map(tab => {
                           const Icon = tab.icon;
                           const currentTab = getCurrentAccountTab();
@@ -331,12 +331,12 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* User Section - At the very bottom */}
-              <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 border-t border-slate-700/40 bg-gradient-to-t from-slate-900/50 to-white/5 backdrop-blur-md">
+              {/* User Section - At the very bottom with more spacing */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 pt-8 border-t border-slate-700/40 bg-gradient-to-t from-slate-900/50 to-white/5 backdrop-blur-md">
                 {user ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {/* Language Selector - Above user card */}
-                    <div className="flex justify-center">
+                    <div className="flex justify-center mb-2">
                       <LanguageSelector />
                     </div>
 
