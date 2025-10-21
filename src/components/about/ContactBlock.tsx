@@ -2,11 +2,25 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { FaInstagram, FaLinkedinIn } from "react-icons/fa";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ContactBlock() {
+  const { t, isInitialized } = useLanguage();
+
+  if (!isInitialized) {
+    return (
+      <section className="py-20 md:py-28 px-6 text-center" id="feedback">
+        <div className="max-w-4xl mx-auto flex flex-col gap-8 items-center">
+          <div className="h-12 bg-slate-700/30 rounded animate-pulse"></div>
+          <div className="h-6 bg-slate-700/20 rounded animate-pulse"></div>
+          <div className="h-12 bg-slate-700/20 rounded animate-pulse"></div>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="py-20 md:py-28 px-6 text-center" id="contact">
+    <section className="py-20 md:py-28 px-6 text-center" id="feedback">
       <div className="max-w-4xl mx-auto flex flex-col gap-8 items-center">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
@@ -15,16 +29,16 @@ export default function ContactBlock() {
           viewport={{ once: true }}
           className="text-3xl md:text-4xl font-[--font-unica] text-[#D8DAE3]"
         >
-          Get in touch
+          {t("about.feedback_title")}
         </motion.h2>
         <motion.p
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.8 }}
           viewport={{ once: true }}
-          className="text-cosmic-silver text-base md:text-lg font-[--font-josefin]"
+          className="text-cosmic-silver text-base md:text-lg font-[--font-josefin] max-w-2xl mx-auto"
         >
-          Have questions or want to book us for an event? Drop us a message!
+          {t("about.feedback_message")}
         </motion.p>
         <motion.div
           initial={{ opacity: 0 }}
@@ -33,28 +47,18 @@ export default function ContactBlock() {
           viewport={{ once: true }}
           className="flex flex-col items-center gap-4"
         >
-          <a
-            href="mailto:cosmococktails2024@gmail.com"
-            className="text-cosmic-gold font-[--font-josefin] hover:underline"
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.2 }}
           >
-            cosmococktails2024@gmail.com
-          </a>
-          <div className="flex gap-4 text-cosmic-silver">
             <Link
-              href="https://www.instagram.com/cosmococktails_2024/"
-              target="_blank"
-              className="hover:text-cosmic-gold transition"
+              href="/contact"
+              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-cosmic-gold to-sky-300 text-slate-900 font-semibold rounded-xl hover:from-cosmic-gold/90 hover:to-sky-300/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-cosmic-gold/25"
             >
-              <FaInstagram />
+              {t("about.contact_us")}
             </Link>
-            {/* <Link
-              href="https://linkedin.com"
-              target="_blank"
-              className="hover:text-cosmic-gold transition"
-            >
-              <FaLinkedinIn />
-            </Link> */}
-          </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>
