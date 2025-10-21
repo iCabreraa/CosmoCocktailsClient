@@ -1,17 +1,25 @@
-import { supabase } from "../supabaseClient";
+import { createClient } from "../supabase/client";
 import {
   User,
   CreateUserData,
   UserFilters,
   PaginatedUsers,
 } from "../../types/user-system";
+import {
+  UserInsert,
+  UserUpdate,
+  SecurityEventInsert,
+} from "../../types/supabase";
 
 export class UserRepository {
-  private supabase = supabase;
+  private getSupabase() {
+    return createClient();
+  }
 
   async findById(id: string): Promise<User | null> {
-    const { data, error } = await this.supabase
-      .from("users_new")
+    const supabase = this.getSupabase();
+    const { data, error } = await supabase
+      .from("users")
       .select("*")
       .eq("id", id)
       .single();
@@ -24,8 +32,9 @@ export class UserRepository {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const { data, error } = await this.supabase
-      .from("users_new")
+    const supabase = this.getSupabase();
+    const { data, error } = await supabase
+      .from("users")
       .select("*")
       .eq("email", email)
       .single();
@@ -38,9 +47,10 @@ export class UserRepository {
   }
 
   async create(userData: CreateUserData & { id?: string }): Promise<User> {
-    const { data, error } = await (this.supabase as any)
-      .from("users_new")
-      .insert(userData as any)
+    const supabase = this.getSupabase();
+    const { data, error } = await supabase
+      .from("users")
+      .insert(userData as UserInsert)
       .select()
       .single();
 
@@ -49,12 +59,13 @@ export class UserRepository {
   }
 
   async update(id: string, updates: Partial<User>): Promise<User> {
-    const { data, error } = await (this.supabase as any)
-      .from("users_new")
+    const supabase = this.getSupabase();
+    const { data, error } = await supabase
+      .from("users")
       .update({
         ...updates,
         updated_at: new Date().toISOString(),
-      })
+      } as UserUpdate)
       .eq("id", id)
       .select()
       .single();
@@ -68,10 +79,11 @@ export class UserRepository {
     limit: number = 10,
     filters: UserFilters = {}
   ): Promise<PaginatedUsers> {
+    const supabase = this.getSupabase();
     const offset = (page - 1) * limit;
 
-    let query = this.supabase
-      .from("users_new")
+    let query = supabase
+      .from("users")
       .select("*", { count: "exact" })
       .range(offset, offset + limit - 1);
 
@@ -106,25 +118,48 @@ export class UserRepository {
   }
 
   async updateRole(id: string, role: string): Promise<User> {
-    const { data, error } = await (this.supabase as any)
-      .from("users_new")
+    const supabase = this.getSupabase();
+    // 1. Actualizar rol en users (el trigger se encargará de sincronizar con auth.users)
+    const { data, error } = await supabase
+      .from("users")
       .update({
-        role,
+        role: role as
+          | "super_admin"
+          | "admin"
+          | "manager"
+          | "staff"
+          | "customer"
+          | "guest",
         updated_at: new Date().toISOString(),
-      })
+      } as UserUpdate)
       .eq("id", id)
       .select()
       .single();
 
     if (error) throw new Error(`Error updating role: ${error.message}`);
+
+    // 2. Log del evento para auditoría
+    const securityEvent: SecurityEventInsert = {
+      event_type: "role_updated",
+      user_id: id,
+      details: {
+        success: true,
+        reason: `Role updated to ${role}`,
+        new_role: role,
+        source: "user_repository",
+        timestamp: new Date().toISOString(),
+      },
+      created_at: new Date().toISOString(),
+    };
+
+    await supabase.from("security_events").insert(securityEvent);
+
     return data;
   }
 
   async delete(id: string): Promise<void> {
-    const { error } = await (this.supabase as any)
-      .from("users_new")
-      .delete()
-      .eq("id", id);
+    const supabase = this.getSupabase();
+    const { error } = await supabase.from("users").delete().eq("id", id);
 
     if (error) throw new Error(`Error deleting user: ${error.message}`);
   }

@@ -24,14 +24,12 @@ export function useAuthUnified() {
         } = await supabase.auth.getSession();
 
         if (session?.user) {
-          // Buscar perfil completo en users_new
+          // Buscar perfil completo en users
           const userProfile = await userService.getUserById(session.user.id);
           if (userProfile) {
             setUser(userProfile);
           } else {
-            console.warn(
-              "User authenticated but profile not found in users_new"
-            );
+            console.warn("User authenticated but profile not found in users");
             setUser(null);
           }
         } else {
@@ -58,19 +56,14 @@ export function useAuthUnified() {
         console.log("Auth state changed:", event, session?.user?.id);
       }
 
-      // Solo procesar cambios después de la inicialización inicial
-      if (!isInitialized) return;
-
       if (session?.user) {
         try {
-          // Buscar perfil completo en users_new
+          // Buscar perfil completo en users
           const userProfile = await userService.getUserById(session.user.id);
           if (userProfile) {
             setUser(userProfile);
           } else {
-            console.warn(
-              "User authenticated but profile not found in users_new"
-            );
+            console.warn("User authenticated but profile not found in users");
             setUser(null);
           }
         } catch (err) {
@@ -85,7 +78,7 @@ export function useAuthUnified() {
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase.auth, isInitialized]);
+  }, [supabase.auth]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -108,7 +101,7 @@ export function useAuthUnified() {
       }
 
       if (data.user) {
-        // Buscar perfil completo en users_new
+        // Buscar perfil completo en users
         const userProfile = await userService.getUserById(data.user.id);
         if (userProfile) {
           setUser(userProfile);
