@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ShoppingCart, User, Menu, X, Globe } from "lucide-react";
@@ -260,26 +261,6 @@ export default function Navbar() {
                   })}
                 </nav>
 
-                {/* User Info Section */}
-                {user && (
-                  <div className="mt-8 p-4 bg-white/5 rounded-lg border border-white/10">
-                    <UserAvatar user={user} size="md" showName={true} showRole={true} />
-                    
-                    {/* Admin/Staff Direct Access */}
-                    {(user.role === "admin" || user.role === "super_admin" || user.role === "staff" || user.role === "manager") && (
-                      <div className="mt-3">
-                        <Link
-                          href="/admin"
-                          onClick={() => setMenuOpen(false)}
-                          className="flex items-center px-3 py-2 text-sm font-medium rounded-lg bg-gradient-to-r from-cosmic-gold/20 to-sky-300/20 text-cosmic-gold hover:from-cosmic-gold/30 hover:to-sky-300/30 transition-all duration-200 border border-cosmic-gold/30"
-                        >
-                          <HiOutlineCog6Tooth className="h-4 w-4 mr-2" />
-                          <span>Panel de Administración</span>
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 {/* Account Section */}
                 {user && (
@@ -358,16 +339,61 @@ export default function Navbar() {
                 </div>
               </div>
 
-              {/* Login/Logout Button - At the very bottom */}
+              {/* User Section - At the very bottom */}
               <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 border-t border-slate-700/40 bg-white/5">
                 {user ? (
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center px-3 py-3 text-sm font-medium text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
-                  >
-                    <HiXMark className="h-5 w-5 mr-3" />
-                    {t("account.logout")}
-                  </button>
+                  <div className="space-y-3">
+                    {/* User Info - Avatar, Name and Role in same line */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        {/* Avatar */}
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-cosmic-gold/20 to-sky-300/20 border border-cosmic-gold/30 flex items-center justify-center">
+                          {user?.avatar_url ? (
+                            <Image
+                              src={user.avatar_url}
+                              alt={user?.full_name || user?.email?.split("@")[0] || "Usuario"}
+                              width={32}
+                              height={32}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <HiOutlineUser className="text-base text-cosmic-gold" />
+                          )}
+                        </div>
+                        
+                        {/* Name and Role */}
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-slate-100 font-medium">
+                            {user?.full_name || user?.email?.split("@")[0] || "Usuario"}
+                          </span>
+                          {user?.role && (
+                            <RoleBadge role={user.role} />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Admin Panel Button */}
+                    {(user.role === "admin" || user.role === "super_admin" || user.role === "staff" || user.role === "manager") && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center px-3 py-2 text-sm font-medium rounded-lg bg-white/10 text-slate-100 hover:bg-white/20 transition-all duration-200 border border-white/20"
+                      >
+                        <HiOutlineCog6Tooth className="h-4 w-4 mr-2" />
+                        <span>Panel de Administración</span>
+                      </Link>
+                    )}
+
+                    {/* Logout Button */}
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center px-3 py-3 text-sm font-medium text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                    >
+                      <HiXMark className="h-5 w-5 mr-3" />
+                      {t("account.logout")}
+                    </button>
+                  </div>
                 ) : (
                   <Link
                     href="/account"
@@ -472,32 +498,19 @@ export default function Navbar() {
                   >
                     <ShoppingCart className="w-5 h-5" />
                   </Link>
-                  
-                  {/* User Avatar and Admin Access */}
-                  {user ? (
-                    <div className="flex items-center space-x-3">
-                      <UserAvatar user={user} size="sm" showName={true} showRole={true} />
-                      
-                      {/* Admin/Staff Direct Access */}
-                      {(user.role === "admin" || user.role === "super_admin" || user.role === "staff" || user.role === "manager") && (
-                        <Link
-                          href="/admin"
-                          className="flex items-center px-3 py-1 text-xs font-medium rounded-full bg-gradient-to-r from-cosmic-gold/20 to-sky-300/20 text-cosmic-gold hover:from-cosmic-gold/30 hover:to-sky-300/30 transition-all duration-200 border border-cosmic-gold/30"
-                        >
-                          <HiOutlineCog6Tooth className="h-3 w-3 mr-1" />
-                          <span>Admin</span>
-                        </Link>
-                      )}
-                    </div>
-                  ) : (
-                    <Link
-                      href="/account"
-                      className="hover:text-cosmic-gold transition-colors duration-200"
-                      aria-label="User Account"
-                    >
-                      <User className="w-5 h-5" />
-                    </Link>
-                  )}
+
+                  {/* User Account Icon with Login Indicator */}
+                  <Link
+                    href={user ? "/account?tab=dashboard" : "/account"}
+                    className="hover:text-cosmic-gold transition-colors duration-200 relative"
+                    aria-label={user ? "User Dashboard" : "User Account"}
+                  >
+                    <User className="w-5 h-5" />
+                    {/* Login Indicator Circle */}
+                    {user && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-cosmic-gold rounded-full border border-slate-900"></div>
+                    )}
+                  </Link>
                 </div>
               </div>
             </div>
