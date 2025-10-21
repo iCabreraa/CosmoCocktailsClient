@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Image from "next/image";
 import { HiOutlineUser } from "react-icons/hi2";
 import RoleBadge from "./RoleBadge";
@@ -13,12 +12,12 @@ interface UserAvatarProps {
   className?: string;
 }
 
-export default function UserAvatar({ 
-  user, 
-  showName = true, 
-  showRole = true, 
+export default function UserAvatar({
+  user,
+  showName = true,
+  showRole = true,
   size = "md",
-  className = "" 
+  className = "",
 }: UserAvatarProps) {
   const getSizeClasses = () => {
     switch (size) {
@@ -50,21 +49,15 @@ export default function UserAvatar({
   };
 
   const sizeClasses = getSizeClasses();
-  const displayName = user?.full_name || user?.email?.split("@")[0] || "Usuario";
+  const displayName =
+    user?.full_name || user?.email?.split("@")[0] || "Usuario";
   const userRole = user?.role;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
-      className={`flex items-center space-x-2 ${className}`}
-    >
+    <div className={`flex items-center space-x-2 ${className}`}>
       {/* Avatar */}
-      <motion.div
-        whileHover={{ scale: 1.05 }}
-        transition={{ duration: 0.2 }}
-        className={`${sizeClasses.avatar} rounded-full overflow-hidden bg-gradient-to-br from-cosmic-gold/20 to-sky-300/20 border border-cosmic-gold/30 flex items-center justify-center`}
+      <div
+        className={`${sizeClasses.avatar} rounded-full overflow-hidden bg-gradient-to-br from-cosmic-gold/20 to-sky-300/20 border border-cosmic-gold/30 flex items-center justify-center hover:scale-105 transition-transform duration-200`}
       >
         {user?.avatar_url ? (
           <Image
@@ -77,7 +70,7 @@ export default function UserAvatar({
         ) : (
           <HiOutlineUser className={`${sizeClasses.text} text-cosmic-gold`} />
         )}
-      </motion.div>
+      </div>
 
       {/* Name and Role */}
       {showName && (
@@ -85,11 +78,9 @@ export default function UserAvatar({
           <span className={`${sizeClasses.name} text-slate-100 font-medium`}>
             {displayName}
           </span>
-          {showRole && userRole && (
-            <RoleBadge role={userRole} />
-          )}
+          {showRole && userRole && <RoleBadge role={userRole} />}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
