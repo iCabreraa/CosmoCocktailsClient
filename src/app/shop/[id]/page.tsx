@@ -56,7 +56,8 @@ export default function CocktailDetailPage({
           .eq("cocktail_id", params.id)
           .eq("available", true);
 
-        const sizeIds = rawSizes?.map(s => (s as any).sizes_id).filter(Boolean) ?? [];
+        const sizeIds =
+          rawSizes?.map(s => (s as any).sizes_id).filter(Boolean) ?? [];
 
         // Info de tamaños desde la tabla sizes
         const { data: sizeDetails } = await supabase
@@ -71,7 +72,9 @@ export default function CocktailDetailPage({
             price: (s as any).price,
             available: (s as any).available,
             sizes_id: (s as any).sizes_id,
-            size: sizeDetails?.find(d => (d as any).id === (s as any).sizes_id) ?? null,
+            size:
+              sizeDetails?.find(d => (d as any).id === (s as any).sizes_id) ??
+              null,
           })) ?? [];
 
         setCocktail(cocktailData);

@@ -387,4 +387,3 @@ export type RoleUpdateInput = z.infer<typeof roleUpdateSchema>;
 export type StockUpdateInput = z.infer<typeof stockUpdateSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
 export type ProductFiltersInput = z.infer<typeof productFiltersSchema>;
-

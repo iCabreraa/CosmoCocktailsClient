@@ -17,7 +17,7 @@ import {
   RATE_LIMIT_CONFIGS,
   RATE_LIMIT_MESSAGES,
 } from "./types";
-import { validateKVConfig, getKVConfigDebug } from "./config";
+import { validateKVConfig } from "./config";
 
 /**
  * Clase principal del servicio de Rate Limiting
@@ -31,8 +31,8 @@ export class RateLimitService {
 
     // Validar configuración de Vercel KV
     if (!validateKVConfig()) {
-      const debug = getKVConfigDebug();
-      console.error("🚨 Vercel KV no configurado correctamente:", debug);
+      // const debug = getKVConfigDebug();
+      // console.error("🚨 Vercel KV no configurado correctamente:", debug);
       throw new Error("Vercel KV configuration is invalid");
     }
   }
@@ -76,8 +76,8 @@ export class RateLimitService {
       this.logRateLimitCheck(identifier, endpoint, type, result, userId);
 
       return result;
-    } catch (error) {
-      console.error("🚨 Rate limiting error:", error);
+    } catch {
+      // console.error("🚨 Rate limiting error:", error);
 
       // En caso de error, permitir el request pero logear el error
       return {
@@ -140,7 +140,9 @@ export class RateLimitService {
     const windowStart = now - config.window * 1000;
 
     // Obtener requests existentes
-    const existingRequests = await kv.zrange(key, windowStart, "+inf", { byScore: true });
+    const existingRequests = await kv.zrange(key, windowStart, "+inf", {
+      byScore: true,
+    });
 
     // Si no hay requests previos, crear el primer registro
     if (existingRequests.length === 0) {
@@ -199,23 +201,23 @@ export class RateLimitService {
     result: RateLimitResult,
     userId?: string
   ): void {
-    const logData = {
-      timestamp: new Date().toISOString(),
-      identifier: this.maskIdentifier(identifier),
-      endpoint,
-      type,
-      userId: userId ? this.maskUserId(userId) : undefined,
-      allowed: result.allowed,
-      remaining: result.remaining,
-      resetTime: new Date(result.resetTime).toISOString(),
-      environment: process.env.NODE_ENV,
-    };
-
-    if (result.allowed) {
-      console.log("✅ Rate limit check passed:", logData);
-    } else {
-      console.warn("🚫 Rate limit exceeded:", logData);
-    }
+    // Logging deshabilitado para producción
+    // const logData = {
+    //   timestamp: new Date().toISOString(),
+    //   identifier: this.maskIdentifier(identifier),
+    //   endpoint,
+    //   type,
+    //   userId: userId ? this.maskUserId(userId) : undefined,
+    //   allowed: result.allowed,
+    //   remaining: result.remaining,
+    //   resetTime: new Date(result.resetTime).toISOString(),
+    //   environment: process.env.NODE_ENV,
+    // };
+    // if (result.allowed) {
+    //   console.log("✅ Rate limit check passed:", logData);
+    // } else {
+    //   console.warn("🚫 Rate limit exceeded:", logData);
+    // }
   }
 
   /**
@@ -251,11 +253,11 @@ export class RateLimitService {
         if (ttl === -1) {
           // Clave sin TTL, eliminarla
           await kv.del(key);
-          console.log("🧹 Cleaned up expired rate limit key:", key);
+          // console.log("🧹 Cleaned up expired rate limit key:", key);
         }
       }
-    } catch (error) {
-      console.error("🚨 Error cleaning up rate limits:", error);
+    } catch {
+      // console.error("🚨 Error cleaning up rate limits:", error);
     }
   }
 
@@ -285,8 +287,8 @@ export class RateLimitService {
         resetTime: now + config.window * 1000,
         remaining: Math.max(0, config.limit - currentCount),
       };
-    } catch (error) {
-      console.error("🚨 Error getting rate limit stats:", error);
+    } catch {
+      // console.error("🚨 Error getting rate limit stats:", error);
       return {
         currentCount: 0,
         limit: 0,
