@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-export type Favorite = { id: string };
+export type Favorite = { id: string; cocktail_id: string };
 
 export function useFavorites() {
   const queryClient = useQueryClient();
@@ -16,7 +16,7 @@ export function useFavorites() {
       return (data.favorites as Favorite[]) ?? [];
     },
     staleTime: 5 * 60 * 1000,
-    cacheTime: 30 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 

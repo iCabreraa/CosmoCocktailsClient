@@ -238,17 +238,17 @@ export default function UserSettings({ user, onUpdate }: UserSettingsProps) {
       <div className="bg-white/5 backdrop-blur-md border border-[#3b82f6]/30 hover:border-[#f59e0b]/40 shadow-[0_0_40px_rgba(59,130,246,.08)] rounded-xl p-6">
         <h3 className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] mb-4 flex items-center">
           <HiOutlineBell className="h-5 w-5 mr-2 text-yellow-400" />
-          Notificaciones
+          {t("settings.notifications.title")}
         </h3>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-white">
-                Notificaciones por email
+                {t("settings.notifications.email.title")}
               </p>
               <p className="text-sm text-gray-400">
-                Recibe actualizaciones sobre tus pedidos
+                {t("settings.notifications.email.description")}
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -267,10 +267,10 @@ export default function UserSettings({ user, onUpdate }: UserSettingsProps) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-white">
-                Notificaciones push
+                {t("settings.notifications.push.title")}
               </p>
               <p className="text-sm text-gray-400">
-                Recibe notificaciones en tu navegador
+                {t("settings.notifications.push.description")}
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -288,9 +288,11 @@ export default function UserSettings({ user, onUpdate }: UserSettingsProps) {
 
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-white">Marketing</p>
+              <p className="text-sm font-medium text-white">
+                {t("settings.notifications.marketing.title")}
+              </p>
               <p className="text-sm text-gray-400">
-                Recibe ofertas y promociones especiales
+                {t("settings.notifications.marketing.description")}
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -312,15 +314,17 @@ export default function UserSettings({ user, onUpdate }: UserSettingsProps) {
       <div className="bg-white/5 backdrop-blur-md border border-[#3b82f6]/30 hover:border-[#f59e0b]/40 shadow-[0_0_40px_rgba(59,130,246,.08)] rounded-xl p-6">
         <h3 className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] mb-4 flex items-center">
           <HiOutlineShieldCheck className="h-5 w-5 mr-2 text-red-400" />
-          Privacidad
+          {t("settings.privacy.title")}
         </h3>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-white">Perfil público</p>
+              <p className="text-sm font-medium text-white">
+                {t("settings.privacy.profile_public.title")}
+              </p>
               <p className="text-sm text-gray-400">
-                Permite que otros usuarios vean tu perfil
+                {t("settings.privacy.profile_public.description")}
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -338,9 +342,11 @@ export default function UserSettings({ user, onUpdate }: UserSettingsProps) {
 
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-white">Mostrar pedidos</p>
+              <p className="text-sm font-medium text-white">
+                {t("settings.privacy.show_orders.title")}
+              </p>
               <p className="text-sm text-gray-400">
-                Permite que otros vean tus pedidos públicos
+                {t("settings.privacy.show_orders.description")}
               </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">

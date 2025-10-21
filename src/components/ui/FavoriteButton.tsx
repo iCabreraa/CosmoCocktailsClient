@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useFavorites } from "@/hooks/queries/useFavorites";
+import { useFavorites, Favorite } from "@/hooks/queries/useFavorites";
 import { HiOutlineHeart, HiHeart } from "react-icons/hi2";
 
 interface FavoriteButtonProps {
@@ -15,7 +15,7 @@ export default function FavoriteButton({
 }: FavoriteButtonProps) {
   const { favoritesQuery, addFavorite, removeFavorite } = useFavorites();
   const isFavorite = useMemo(
-    () => (favoritesQuery.data ?? []).some(f => f.id === cocktailId),
+    () => (favoritesQuery.data ?? []).some(f => f.cocktail_id === cocktailId),
     [favoritesQuery.data, cocktailId]
   );
 

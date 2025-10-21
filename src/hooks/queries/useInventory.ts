@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/client";
 import { queryKeys, getQueryConfig } from "@/lib/query-client";
 import { CartItem } from "@/types/shared";
 import { CocktailSizesRow, InventoryCheckRow } from "@/types";
+import { CocktailSizeUpdate } from "@/types/supabase";
 
 const supabase = createClient();
 
@@ -170,7 +171,7 @@ export function useUpdateStock() {
       );
 
       // Actualizar stock
-      const updatePayload: { stock_quantity: number } = {
+      const updatePayload: CocktailSizeUpdate = {
         stock_quantity: newStock,
       };
 

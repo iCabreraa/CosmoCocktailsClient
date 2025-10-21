@@ -36,6 +36,15 @@ export async function POST(request: NextRequest) {
       unit_price: item.unit_price,
     }));
 
+    // Stripe limita cada valor de metadata a 500 chars aprox.
+    // Compactamos y acotamos el string para evitar 500s en carritos grandes
+    const itemsJson = JSON.stringify(simplifiedItems);
+    const MAX_METADATA_VALUE = 480; // margen de seguridad
+    const itemsMeta =
+      itemsJson.length > MAX_METADATA_VALUE
+        ? itemsJson.slice(0, MAX_METADATA_VALUE - 20) + "...__truncated"
+        : itemsJson;
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: total,
       currency: "eur",
@@ -44,7 +53,7 @@ export async function POST(request: NextRequest) {
         subtotal: subtotal.toString(),
         vat: vat.toString(),
         shipping: shipping.toString(),
-        items: JSON.stringify(simplifiedItems), // Solo datos esenciales
+        items: itemsMeta, // Compacto y truncado si excede límite
       },
     });
 

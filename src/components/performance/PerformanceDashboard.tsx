@@ -49,9 +49,10 @@ export default function PerformanceDashboard({
         const fidObserver = new PerformanceObserver(list => {
           const entries = list.getEntries();
           entries.forEach(entry => {
+            const firstInputEntry = entry as any; // PerformanceEventTiming no está disponible en todos los navegadores
             setMetrics(prev => ({
               ...prev,
-              fid: (entry as any).processingStart - entry.startTime,
+              fid: firstInputEntry.processingStart - entry.startTime,
             }));
           });
         });
@@ -62,8 +63,9 @@ export default function PerformanceDashboard({
         const clsObserver = new PerformanceObserver(list => {
           const entries = list.getEntries();
           entries.forEach(entry => {
-            if (!(entry as any).hadRecentInput) {
-              clsValue += (entry as any).value;
+            const layoutShiftEntry = entry as any; // LayoutShift no está disponible en todos los navegadores
+            if (!layoutShiftEntry.hadRecentInput) {
+              clsValue += layoutShiftEntry.value;
               setMetrics(prev => ({ ...prev, cls: clsValue }));
             }
           });

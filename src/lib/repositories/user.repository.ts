@@ -50,7 +50,7 @@ export class UserRepository {
     const supabase = this.getSupabase();
     const { data, error } = await supabase
       .from("users")
-      .insert(userData as UserInsert)
+      .insert(userData as any)
       .select()
       .single();
 
@@ -60,12 +60,12 @@ export class UserRepository {
 
   async update(id: string, updates: Partial<User>): Promise<User> {
     const supabase = this.getSupabase();
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("users")
       .update({
         ...updates,
         updated_at: new Date().toISOString(),
-      } as UserUpdate)
+      })
       .eq("id", id)
       .select()
       .single();
@@ -120,7 +120,7 @@ export class UserRepository {
   async updateRole(id: string, role: string): Promise<User> {
     const supabase = this.getSupabase();
     // 1. Actualizar rol en users (el trigger se encargará de sincronizar con auth.users)
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("users")
       .update({
         role: role as
@@ -131,7 +131,7 @@ export class UserRepository {
           | "customer"
           | "guest",
         updated_at: new Date().toISOString(),
-      } as UserUpdate)
+      })
       .eq("id", id)
       .select()
       .single();
@@ -152,7 +152,7 @@ export class UserRepository {
       created_at: new Date().toISOString(),
     };
 
-    await supabase.from("security_events").insert(securityEvent);
+    await (supabase as any).from("security_events").insert(securityEvent);
 
     return data;
   }

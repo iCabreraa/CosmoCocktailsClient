@@ -2,26 +2,47 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-
-const team = [
-  {
-    name: "Alex",
-    role: "Founder & Head Mixologist",
-    // img: "",
-  },
-  {
-    name: "Mickey",
-    role: "Co-founder & Head Mixologist",
-    // img: "",
-  },
-  {
-    name: "Ivan",
-    role: "Mixologist & Web Developer",
-    // img: "",
-  },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function TeamSection() {
+  const { t, isInitialized } = useLanguage();
+
+  const team = [
+    {
+      name: "Alex",
+      role: t("about.team_founder"),
+      // img: "",
+    },
+    {
+      name: "Mickey",
+      role: t("about.team_cofounder"),
+      // img: "",
+    },
+    {
+      name: "Ivan",
+      role: t("about.team_developer"),
+      // img: "",
+    },
+  ];
+
+  if (!isInitialized) {
+    return (
+      <section className="py-16 md:py-24 px-6" id="team">
+        <div className="max-w-5xl mx-auto flex flex-col gap-8 text-center">
+          <div className="h-12 bg-slate-700/30 rounded animate-pulse"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="flex flex-col items-center gap-3">
+                <div className="h-6 w-20 bg-slate-700/20 rounded animate-pulse"></div>
+                <div className="h-4 w-32 bg-slate-700/20 rounded animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-16 md:py-24 px-6" id="team">
       <div className="max-w-5xl mx-auto flex flex-col gap-8 text-center">
@@ -32,7 +53,7 @@ export default function TeamSection() {
           viewport={{ once: true }}
           className="text-3xl md:text-4xl font-[--font-unica] text-[#D8DAE3]"
         >
-          Meet the Team
+          {t("about.team_title")}
         </motion.h2>
         <motion.div
           initial={{ opacity: 0 }}

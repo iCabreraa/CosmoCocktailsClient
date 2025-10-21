@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { CocktailWithPrice } from "@/types";
 import dynamic from "next/dynamic";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const FeaturedBanner = dynamic(() => import("./components/FeaturedBanner"), {
   ssr: true,
@@ -20,6 +21,7 @@ const CocktailRow = dynamic(() => import("./components/CocktailRow"), {
 });
 
 export default function ShopPage() {
+  const { t } = useLanguage();
   const [cocktails, setCocktails] = useState<CocktailWithPrice[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -232,27 +234,33 @@ export default function ShopPage() {
         <FeaturedBanner />
 
         {/* Sección Principal - Todos los Cócteles */}
-        <CocktailRow title="All Cocktails" cocktails={cocktails} />
+        <CocktailRow title={t("shop.all_cocktails")} cocktails={cocktails} />
 
         {/* Secciones Agrupadas - Solo mostrar si hay cócteles */}
         {nonAlcoholicCocktails.length > 0 && (
           <CocktailRow
-            title="Non-Alcoholic Magic"
+            title={t("shop.non_alcoholic")}
             cocktails={nonAlcoholicCocktails}
           />
         )}
 
         {strongCocktails.length > 0 && (
-          <CocktailRow title="Strong Drinks" cocktails={strongCocktails} />
+          <CocktailRow
+            title={t("shop.strong_drinks")}
+            cocktails={strongCocktails}
+          />
         )}
 
         {lightCocktails.length > 0 && (
-          <CocktailRow title="Light & Fresh" cocktails={lightCocktails} />
+          <CocktailRow
+            title={t("shop.light_fresh")}
+            cocktails={lightCocktails}
+          />
         )}
 
         {tropicalCocktails.length > 0 && (
           <CocktailRow
-            title="Tropical Delights"
+            title={t("shop.tropical")}
             cocktails={tropicalCocktails}
           />
         )}

@@ -73,7 +73,7 @@ export function useClientData() {
   ): Promise<ClientData | null> => {
     try {
       // Intentar guardar en la base de datos primero
-      const { data: existingClient } = await (supabase as any)
+      const { data: existingClient } = await supabase
         .from("clients")
         .select("id")
         .eq("email", data.email)
@@ -92,7 +92,7 @@ export function useClientData() {
             is_guest: data.is_guest,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", existingClient.id)
+          .eq("id", (existingClient as any).id)
           .select()
           .single();
 

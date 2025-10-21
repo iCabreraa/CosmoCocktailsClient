@@ -3,8 +3,10 @@ import CartItem from "./CartItem";
 import { useCart } from "@/store/cart";
 import Link from "next/link";
 import { ShoppingCart, Trash2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function CartClient() {
+  const { t, isInitialized } = useLanguage();
   const {
     items,
     subtotal,
@@ -17,12 +19,24 @@ export default function CartClient() {
     error,
   } = useCart();
 
+  // Wait for language context to be initialized
+  if (!isInitialized) {
+    return (
+      <main className="py-20 px-6 min-h-[70vh] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cosmic-gold mx-auto mb-4"></div>
+          <p className="text-cosmic-fog">{t("cart.loading")}</p>
+        </div>
+      </main>
+    );
+  }
+
   if (isLoading) {
     return (
       <main className="py-20 px-6 min-h-[70vh] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cosmic-gold mx-auto mb-4"></div>
-          <p className="text-cosmic-fog">Loading cart...</p>
+          <p className="text-cosmic-fog">{t("cart.loading_cart")}</p>
         </div>
       </main>
     );
@@ -32,12 +46,14 @@ export default function CartClient() {
     return (
       <main className="py-20 px-6 min-h-[70vh] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-500 mb-4">Error loading cart: {error}</p>
+          <p className="text-red-500 mb-4">
+            {t("cart.error_loading")}: {error}
+          </p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-cosmic-gold text-black rounded-full hover:bg-cosmic-gold/80 transition"
           >
-            Retry
+            {t("cart.retry")}
           </button>
         </div>
       </main>
@@ -50,17 +66,15 @@ export default function CartClient() {
         <div className="text-center">
           <ShoppingCart className="w-16 h-16 text-cosmic-fog mx-auto mb-4" />
           <h1 className="text-3xl font-[--font-unica] text-cosmic-text mb-2">
-            Your cart is empty
+            {t("cart.empty_title")}
           </h1>
-          <p className="text-cosmic-fog mb-6">
-            Add some delicious cocktails to get started!
-          </p>
+          <p className="text-cosmic-fog mb-6">{t("cart.empty_subtitle")}</p>
           <Link
             href="/shop"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-cosmic-gold text-black hover:bg-cosmic-gold/80 transition font-medium"
           >
             <ShoppingCart className="w-4 h-4" />
-            Start Shopping
+            {t("cart.start_shopping")}
           </Link>
         </div>
       </main>
@@ -71,10 +85,12 @@ export default function CartClient() {
     <main className="py-20 px-6 max-w-4xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-[--font-unica] text-cosmic-gold mb-2">
-          Shopping Cart
+          {t("cart.title")}
         </h1>
         <p className="text-cosmic-fog">
-          {item_count} {item_count === 1 ? "item" : "items"} in your cart
+          {item_count}{" "}
+          {item_count === 1 ? t("cart.item_singular") : t("cart.item_plural")}{" "}
+          {t("cart.in_cart")}
         </p>
       </div>
 
@@ -95,30 +111,38 @@ export default function CartClient() {
         <div className="lg:col-span-1">
           <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10 sticky top-6">
             <h2 className="text-xl font-[--font-unica] text-cosmic-gold mb-4">
-              Order Summary
+              {t("cart.order_summary")}
             </h2>
 
             <div className="space-y-3 mb-6">
               <div className="flex justify-between text-cosmic-text">
-                <span>Subtotal ({item_count} items)</span>
+                <span>
+                  {t("cart.subtotal")} ({item_count}{" "}
+                  {item_count === 1
+                    ? t("cart.item_singular")
+                    : t("cart.item_plural")}
+                  )
+                </span>
                 <span>€{subtotal.toFixed(2)}</span>
               </div>
 
               <div className="flex justify-between text-cosmic-text">
-                <span>VAT (21%)</span>
+                <span>{t("cart.tax")} (21%)</span>
                 <span>€{vat_amount.toFixed(2)}</span>
               </div>
 
               <div className="flex justify-between text-cosmic-text">
-                <span>Shipping</span>
+                <span>{t("cart.shipping")}</span>
                 <span>
-                  {shipping_cost > 0 ? `€${shipping_cost.toFixed(2)}` : "Free"}
+                  {shipping_cost > 0
+                    ? `€${shipping_cost.toFixed(2)}`
+                    : t("cart.free_shipping")}
                 </span>
               </div>
 
               <div className="border-t border-cosmic-fog/30 pt-3">
                 <div className="flex justify-between text-lg font-semibold text-cosmic-gold">
-                  <span>Total</span>
+                  <span>{t("cart.total")}</span>
                   <span>€{total.toFixed(2)}</span>
                 </div>
               </div>
@@ -130,7 +154,7 @@ export default function CartClient() {
                 className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-cosmic-gold text-black hover:bg-cosmic-gold/80 transition font-medium"
               >
                 <ShoppingCart className="w-4 h-4" />
-                Proceed to Checkout
+                {t("cart.checkout_button")}
               </Link>
 
               <button
@@ -138,13 +162,13 @@ export default function CartClient() {
                 className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition"
               >
                 <Trash2 className="w-4 h-4" />
-                Clear Cart
+                {t("cart.clear_cart")}
               </button>
             </div>
 
             {shipping_cost > 0 && (
               <p className="text-xs text-cosmic-fog mt-4 text-center">
-                Free shipping on orders over €50
+                {t("cart.free_shipping_note")}
               </p>
             )}
           </div>

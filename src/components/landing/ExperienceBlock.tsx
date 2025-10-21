@@ -2,8 +2,26 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ExperienceBlock() {
+  const { t, isInitialized } = useLanguage();
+
+  if (!isInitialized) {
+    return (
+      <section
+        id="experience"
+        className="py-20 md:py-28 px-6 relative overflow-hidden"
+      >
+        <div className="max-w-6xl mx-auto text-center flex flex-col items-center gap-10">
+          <div className="h-12 w-96 animate-pulse bg-cosmic-silver/10 rounded-xl" />
+          <div className="h-6 w-full max-w-2xl animate-pulse bg-cosmic-silver/10 rounded-xl" />
+          <div className="h-12 w-48 animate-pulse bg-cosmic-silver/10 rounded-xl" />
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
       id="experience"
@@ -18,7 +36,7 @@ export default function ExperienceBlock() {
           viewport={{ once: true }}
           className="text-4xl md:text-5xl font-[--font-unica] text-[#D8DAE3]"
         >
-          More than a drink — it’s an experience
+          {t("home.experience_title")}
         </motion.h2>
 
         {/* Párrafo */}
@@ -29,9 +47,7 @@ export default function ExperienceBlock() {
           viewport={{ once: true }}
           className="text-cosmic-silver text-base md:text-lg font-[--font-josefin] max-w-2xl leading-relaxed"
         >
-          Crafted with the finest ingredients, designed for those who demand
-          more than just a drink — an unforgettable moment. Delivered with
-          elegance, savored with style.
+          {t("home.experience_description")}
         </motion.p>
 
         {/* Botón Quiz */}
@@ -46,7 +62,7 @@ export default function ExperienceBlock() {
             href="/quiz"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black font-[--font-josefin] tracking-wide text-base md:text-lg shadow-md hover:shadow-lg hover:shadow-cosmic-gold/30 hover:scale-105 transition-all duration-300 ease-in-out"
           >
-            <span>✨</span> Take our Cocktail Quiz
+            <span>✨</span> {t("home.quiz_button")}
           </Link>
         </motion.div>
       </div>

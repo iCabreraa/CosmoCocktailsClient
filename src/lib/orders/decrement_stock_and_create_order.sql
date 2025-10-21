@@ -1,0 +1,42 @@
+-- SQL stored procedure to be installed in Supabase (run via scripts folder normally)
+-- This is a reference; run in database to create the RPC:
+--
+-- create or replace function public.decrement_stock_and_create_order(
+--   p_payment_intent_id text,
+--   p_total_amount numeric,
+--   p_items jsonb
+-- ) returns void language plpgsql as $$
+-- declare
+--   v_order_id bigint;
+-- begin
+--   perform pg_advisory_xact_lock(hashtextextended(p_payment_intent_id, 0));
+--
+--   -- Check stock first
+--   if exists (
+--     select 1
+--     from jsonb_to_recordset(p_items) as it(cocktail_id bigint, size_id bigint, quantity int)
+--     join public.cocktail_sizes cs on cs.cocktail_id = it.cocktail_id and cs.sizes_id = it.size_id
+--     where cs.stock_quantity < it.quantity
+--   ) then
+--     raise exception 'Insufficient stock';
+--   end if;
+--
+--   -- Create order
+--   insert into public.orders(total_amount, status, is_paid, payment_intent_id)
+--   values (p_total_amount, 'paid', true, p_payment_intent_id)
+--   returning id into v_order_id;
+--
+--   -- Insert items and decrement stock
+--   insert into public.order_items(order_id, cocktail_id, size_id, quantity, unit_price, item_total)
+--   select v_order_id, it.cocktail_id, it.size_id, it.quantity, 0, 0
+--   from jsonb_to_recordset(p_items) as it(cocktail_id bigint, size_id bigint, quantity int);
+--
+--   update public.cocktail_sizes cs
+--   set stock_quantity = cs.stock_quantity - it.quantity
+--   from jsonb_to_recordset(p_items) as it(cocktail_id bigint, size_id bigint, quantity int)
+--   where cs.cocktail_id = it.cocktail_id and cs.sizes_id = it.size_id;
+-- end;
+-- $$;
+
+
+

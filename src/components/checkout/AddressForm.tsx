@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MapPin, Plus, Edit2, Trash2, Check } from "lucide-react";
 import { Address } from "@/types/shared";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AddressFormProps {
   onAddressSelect: (address: Address) => void;
@@ -23,16 +24,17 @@ export default function AddressForm({
   onAddressSelect,
   selectedAddress,
 }: AddressFormProps) {
+  const { t } = useLanguage();
   const [addresses, setAddresses] = useState<Address[]>([
     // Dirección por defecto
     {
       id: "default-1",
       user_id: "current-user",
-      name: "Casa",
+      name: t("checkout.home"),
       street: "Calle Principal 123",
       city: "Madrid",
       postal_code: "28001",
-      country: "España",
+      country: t("checkout.spain"),
       phone: "+34 123 456 789",
       is_default: true,
       created_at: new Date().toISOString(),
@@ -47,7 +49,7 @@ export default function AddressForm({
     street: "",
     city: "",
     postalCode: "",
-    country: "España",
+    country: t("checkout.spain"),
     phone: "",
     isDefault: false,
   });
@@ -95,7 +97,7 @@ export default function AddressForm({
       street: "",
       city: "",
       postalCode: "",
-      country: "España",
+      country: t("checkout.spain"),
       phone: "",
       isDefault: false,
     });
@@ -134,7 +136,7 @@ export default function AddressForm({
       <div className="space-y-3">
         <h3 className="text-lg font-[--font-unica] text-cosmic-gold flex items-center gap-2">
           <MapPin className="w-5 h-5" />
-          Direcciones de Envío
+          {t("checkout.shipping_addresses")}
         </h3>
 
         {addresses.map(address => (
@@ -155,7 +157,7 @@ export default function AddressForm({
                   </h4>
                   {address.is_default && (
                     <span className="px-2 py-1 text-xs bg-cosmic-gold text-black rounded-full">
-                      Por defecto
+                      {t("checkout.default")}
                     </span>
                   )}
                   {selectedAddress?.id === address.id && (
@@ -202,7 +204,7 @@ export default function AddressForm({
           className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-cosmic-fog/30 rounded-lg text-cosmic-fog hover:border-cosmic-gold hover:text-cosmic-gold transition"
         >
           <Plus className="w-5 h-5" />
-          Agregar Nueva Dirección
+          {t("checkout.add_new_address")}
         </button>
       )}
 
@@ -210,19 +212,21 @@ export default function AddressForm({
       {showForm && (
         <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
           <h3 className="text-lg font-[--font-unica] text-cosmic-gold mb-4">
-            {editingAddress ? "Editar Dirección" : "Nueva Dirección"}
+            {editingAddress
+              ? t("checkout.edit_address")
+              : t("checkout.new_address")}
           </h3>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm text-cosmic-fog mb-2">
-                  Nombre de la dirección *
+                  {t("checkout.address_name")} *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Casa, Oficina, etc."
+                  placeholder={t("checkout.address_name_placeholder")}
                   className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
                   value={formData.name}
                   onChange={e => handleInputChange("name", e.target.value)}
@@ -230,12 +234,12 @@ export default function AddressForm({
               </div>
               <div>
                 <label className="block text-sm text-cosmic-fog mb-2">
-                  Teléfono *
+                  {t("checkout.phone")} *
                 </label>
                 <input
                   type="tel"
                   required
-                  placeholder="+34 123 456 789"
+                  placeholder={t("checkout.phone_placeholder")}
                   className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
                   value={formData.phone}
                   onChange={e => handleInputChange("phone", e.target.value)}
@@ -245,12 +249,12 @@ export default function AddressForm({
 
             <div>
               <label className="block text-sm text-cosmic-fog mb-2">
-                Dirección *
+                {t("checkout.address")} *
               </label>
               <input
                 type="text"
                 required
-                placeholder="Calle, número, piso, puerta"
+                placeholder={t("checkout.address_placeholder")}
                 className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
                 value={formData.street}
                 onChange={e => handleInputChange("street", e.target.value)}
@@ -260,12 +264,12 @@ export default function AddressForm({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm text-cosmic-fog mb-2">
-                  Ciudad *
+                  {t("checkout.city")} *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Madrid"
+                  placeholder={t("checkout.city_placeholder")}
                   className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
                   value={formData.city}
                   onChange={e => handleInputChange("city", e.target.value)}
@@ -273,12 +277,12 @@ export default function AddressForm({
               </div>
               <div>
                 <label className="block text-sm text-cosmic-fog mb-2">
-                  Código Postal *
+                  {t("checkout.postal_code")} *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="28001"
+                  placeholder={t("checkout.postal_code_placeholder")}
                   className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
                   value={formData.postalCode}
                   onChange={e =>
@@ -288,12 +292,12 @@ export default function AddressForm({
               </div>
               <div>
                 <label className="block text-sm text-cosmic-fog mb-2">
-                  País *
+                  {t("checkout.country")} *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="España"
+                  placeholder={t("checkout.country_placeholder")}
                   className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
                   value={formData.country}
                   onChange={e => handleInputChange("country", e.target.value)}
@@ -310,7 +314,7 @@ export default function AddressForm({
                 className="w-4 h-4 text-cosmic-gold bg-transparent border-cosmic-fog rounded focus:ring-cosmic-gold focus:ring-2"
               />
               <label htmlFor="isDefault" className="text-sm text-cosmic-fog">
-                Establecer como dirección por defecto
+                {t("checkout.set_as_default")}
               </label>
             </div>
 
@@ -319,7 +323,8 @@ export default function AddressForm({
                 type="submit"
                 className="px-6 py-3 rounded-full bg-cosmic-gold text-black hover:bg-cosmic-gold/80 transition font-medium"
               >
-                {editingAddress ? "Actualizar" : "Guardar"} Dirección
+                {editingAddress ? t("checkout.update") : t("checkout.save")}{" "}
+                {t("checkout.address")}
               </button>
               <button
                 type="button"
@@ -331,14 +336,14 @@ export default function AddressForm({
                     street: "",
                     city: "",
                     postalCode: "",
-                    country: "España",
+                    country: t("checkout.spain"),
                     phone: "",
                     isDefault: false,
                   });
                 }}
                 className="px-6 py-3 rounded-full border border-cosmic-fog text-cosmic-fog hover:border-cosmic-gold hover:text-cosmic-gold transition"
               >
-                Cancelar
+                {t("checkout.cancel")}
               </button>
             </div>
           </form>

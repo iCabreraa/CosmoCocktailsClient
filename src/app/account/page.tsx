@@ -364,8 +364,10 @@ export default function AccountPage() {
                   <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin mr-2" />
                   {t("common.loading")}
                 </div>
+              ) : isLogin ? (
+                t("auth.login_button")
               ) : (
-                isLogin ? t("auth.login_button") : t("auth.register_button")
+                t("auth.register_button")
               )}
             </motion.button>
 
@@ -383,7 +385,12 @@ export default function AccountPage() {
                   onClick={() => {
                     setIsLogin(!isLogin);
                     setError("");
-                    setFormData({ email: "", password: "", full_name: "", phone: "" });
+                    setFormData({
+                      email: "",
+                      password: "",
+                      full_name: "",
+                      phone: "",
+                    });
                   }}
                   className="text-cosmic-gold hover:text-sky-300 transition-colors font-medium"
                 >

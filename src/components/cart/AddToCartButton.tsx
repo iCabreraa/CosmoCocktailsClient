@@ -5,6 +5,8 @@ import { useCart } from "@/store/cart";
 import { CocktailSize, Cocktail } from "@/types/shared";
 import { ShoppingCart, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { CocktailSize as SupabaseCocktailSize, Size } from "@/types/supabase";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AddToCartButtonProps {
   cocktail: Cocktail;
@@ -17,6 +19,7 @@ export default function AddToCartButton({
   minPrice,
   minSizeId,
 }: AddToCartButtonProps) {
+  const { t } = useLanguage();
   const addToCart = useCart(state => state.addToCart);
   const [open, setOpen] = useState(false);
   const [sizes, setSizes] = useState<CocktailSize[]>([]);
@@ -36,7 +39,7 @@ export default function AddToCartButton({
     setLoading(true);
     console.log("🔍 Fetching sizes for cocktail:", cocktail.id);
 
-    const { data: rawSizes, error: sizeErr } = await (supabase as any)
+    const { data: rawSizes, error: sizeErr } = await supabase
       .from("cocktail_sizes")
       .select("id, price, available, sizes_id, stock_quantity")
       .eq("cocktail_id", cocktail.id);
@@ -50,7 +53,7 @@ export default function AddToCartButton({
       return;
     }
 
-    const typedRawSizes = rawSizes as any[];
+    const typedRawSizes = rawSizes as SupabaseCocktailSize[];
     if (!typedRawSizes || typedRawSizes.length === 0) {
       console.log("⚠️ No sizes found for cocktail:", cocktail.id);
       setError("No sizes available");
@@ -59,40 +62,42 @@ export default function AddToCartButton({
     }
 
     const sizeIds = typedRawSizes.map(s => s.sizes_id).filter(Boolean);
-    const { data: sizeDetails } = await (supabase as any)
+    const { data: sizeDetails } = await supabase
       .from("sizes")
       .select("id, name, volume_ml")
       .in("id", sizeIds);
 
-    const finalSizes: CocktailSize[] = typedRawSizes.map(s => {
-      const sizeDetail = (sizeDetails as any)?.find(
-        (d: any) => d.id === s.sizes_id
-      );
-      console.log("🔍 Mapping size:", {
-        cocktail_id: cocktail.id,
-        sizes_id: s.sizes_id,
-        sizeDetail: sizeDetail,
-        stock_quantity: s.stock_quantity,
-      });
+    const finalSizes: CocktailSize[] = (typedRawSizes as any[])
+      .filter(s => s.sizes_id !== null)
+      .map(s => {
+        const sizeDetail = (sizeDetails as Size[])?.find(
+          (d: Size) => d.id === s.sizes_id
+        );
+        console.log("🔍 Mapping size:", {
+          cocktail_id: cocktail.id,
+          sizes_id: s.sizes_id,
+          sizeDetail: sizeDetail,
+          stock_quantity: s.stock_quantity,
+        });
 
-      return {
-        ...s,
-        cocktail_id: cocktail.id,
-        size_id: s.sizes_id, // Asegurar que size_id = sizes_id
-        stock_quantity: s.stock_quantity || 0,
-        created_at: new Date().toISOString(), // Generar timestamp ya que no existe en BD
-        updated_at: new Date().toISOString(), // Generar timestamp ya que no existe en BD
-        size: sizeDetail
-          ? {
-              id: sizeDetail.id,
-              name: sizeDetail.name,
-              volume_ml: sizeDetail.volume_ml,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            }
-          : undefined,
-      };
-    });
+        return {
+          ...s,
+          cocktail_id: cocktail.id,
+          size_id: s.sizes_id, // Asegurar que size_id = sizes_id
+          stock_quantity: s.stock_quantity || 0,
+          created_at: new Date().toISOString(), // Generar timestamp ya que no existe en BD
+          updated_at: new Date().toISOString(), // Generar timestamp ya que no existe en BD
+          size: sizeDetail
+            ? {
+                id: sizeDetail.id,
+                name: sizeDetail.name,
+                volume_ml: sizeDetail.volume_ml,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              }
+            : undefined,
+        };
+      });
 
     setSizes(finalSizes);
     setError(null);
@@ -133,7 +138,7 @@ export default function AddToCartButton({
         className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black focus:outline-none focus:ring-2 focus:ring-cosmic-gold transition-all text-sm"
       >
         <ShoppingCart className="w-4 h-4" />
-        Add to Cart
+        {t("shop.add_to_cart")}
       </button>
 
       {open && (
@@ -153,13 +158,15 @@ export default function AddToCartButton({
               <X size={18} />
             </button>
             <h2 className="text-lg font-[--font-unica] text-cosmic-gold mb-4">
-              Choose a size
+              {t("shop.choose_size")}
             </h2>
 
-            {loading && <p className="text-cosmic-fog">Loading...</p>}
+            {loading && (
+              <p className="text-cosmic-fog">{t("common.loading")}</p>
+            )}
             {error && <p className="text-red-500 text-sm">{error}</p>}
             {!loading && sizes.length === 0 && (
-              <p className="text-cosmic-fog">No sizes available.</p>
+              <p className="text-cosmic-fog">{t("shop.no_sizes_available")}</p>
             )}
 
             <div className="space-y-2">

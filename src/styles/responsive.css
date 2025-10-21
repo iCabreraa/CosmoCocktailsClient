@@ -1,0 +1,290 @@
+/**
+ * Responsive Design Base Styles
+ * 
+ * Base CSS styles for responsive design system
+ * Provides CSS custom properties and utility classes
+ */
+
+/* CSS Custom Properties for Responsive Design */
+:root {
+  /* Base responsive values */
+  --responsive-font-size: 16px;
+  --responsive-spacing: 16px;
+  --responsive-padding: 1rem;
+  --responsive-margin: 0.5rem;
+  --responsive-gap: 0.75rem;
+  --responsive-border-radius: 0.375rem;
+  --responsive-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --responsive-max-width: 100%;
+  --responsive-grid-columns: 1;
+}
+
+/* Mobile-first responsive breakpoints */
+@media (min-width: 768px) {
+  :root {
+    --responsive-font-size: 18px;
+    --responsive-spacing: 20px;
+    --responsive-padding: 1.5rem;
+    --responsive-margin: 1rem;
+    --responsive-gap: 1rem;
+    --responsive-border-radius: 0.5rem;
+    --responsive-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --responsive-max-width: 768px;
+    --responsive-grid-columns: 2;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --responsive-font-size: 20px;
+    --responsive-spacing: 24px;
+    --responsive-padding: 2rem;
+    --responsive-margin: 1.5rem;
+    --responsive-gap: 1.25rem;
+    --responsive-border-radius: 0.625rem;
+    --responsive-shadow:
+      0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --responsive-max-width: 1024px;
+    --responsive-grid-columns: 3;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --responsive-font-size: 22px;
+    --responsive-spacing: 28px;
+    --responsive-padding: 2.5rem;
+    --responsive-margin: 2rem;
+    --responsive-gap: 1.5rem;
+    --responsive-border-radius: 0.75rem;
+    --responsive-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --responsive-max-width: 1280px;
+    --responsive-grid-columns: 4;
+  }
+}
+
+/* Responsive Container */
+.responsive-container {
+  width: 100%;
+  max-width: var(--responsive-max-width);
+  margin: 0 auto;
+  padding: 0 var(--responsive-padding);
+}
+
+/* Responsive Grid */
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--responsive-grid-columns), 1fr);
+  gap: var(--responsive-gap);
+}
+
+/* Responsive Flex */
+.responsive-flex {
+  display: flex;
+  flex-direction: column;
+  gap: var(--responsive-gap);
+}
+
+@media (min-width: 768px) {
+  .responsive-flex {
+    flex-direction: row;
+  }
+}
+
+/* Responsive Text */
+.responsive-text {
+  font-size: var(--responsive-font-size);
+  line-height: 1.5;
+}
+
+/* Responsive Spacing */
+.responsive-spacing {
+  padding: var(--responsive-padding);
+  margin: var(--responsive-margin);
+}
+
+/* Responsive Border Radius */
+.responsive-border-radius {
+  border-radius: var(--responsive-border-radius);
+}
+
+/* Responsive Shadow */
+.responsive-shadow {
+  box-shadow: var(--responsive-shadow);
+}
+
+/* Responsive Image */
+.responsive-image {
+  width: 100%;
+  height: auto;
+  border-radius: var(--responsive-border-radius);
+}
+
+/* Responsive Button */
+.responsive-button {
+  padding: calc(var(--responsive-padding) * 0.5) var(--responsive-padding);
+  font-size: var(--responsive-font-size);
+  border-radius: var(--responsive-border-radius);
+  box-shadow: var(--responsive-shadow);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Responsive Card */
+.responsive-card {
+  padding: var(--responsive-padding);
+  border-radius: var(--responsive-border-radius);
+  box-shadow: var(--responsive-shadow);
+  background: white;
+}
+
+/* Responsive Form */
+.responsive-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--responsive-gap);
+}
+
+.responsive-form input,
+.responsive-form textarea,
+.responsive-form select {
+  padding: calc(var(--responsive-padding) * 0.5);
+  font-size: var(--responsive-font-size);
+  border-radius: var(--responsive-border-radius);
+  border: 1px solid #e5e7eb;
+}
+
+/* Responsive Navigation */
+.responsive-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--responsive-gap);
+  padding: var(--responsive-padding);
+}
+
+@media (min-width: 768px) {
+  .responsive-nav {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+/* Responsive Modal */
+.responsive-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--responsive-padding);
+}
+
+.responsive-modal-content {
+  background: white;
+  border-radius: var(--responsive-border-radius);
+  box-shadow: var(--responsive-shadow);
+  max-width: 100%;
+  max-height: 100%;
+  overflow: auto;
+}
+
+/* Responsive Table */
+.responsive-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--responsive-font-size);
+}
+
+.responsive-table th,
+.responsive-table td {
+  padding: calc(var(--responsive-padding) * 0.5);
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+@media (max-width: 767px) {
+  .responsive-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+/* Responsive Utilities */
+.responsive-hidden-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .responsive-hidden-mobile {
+    display: block;
+  }
+}
+
+.responsive-hidden-tablet {
+  display: block;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .responsive-hidden-tablet {
+    display: none;
+  }
+}
+
+.responsive-hidden-desktop {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .responsive-hidden-desktop {
+    display: none;
+  }
+}
+
+/* Responsive Animation */
+.responsive-animate {
+  transition: all 0.3s ease-in-out;
+}
+
+.responsive-animate:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--responsive-shadow);
+}
+
+/* Responsive Focus States */
+.responsive-focus:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Responsive Touch Targets */
+.responsive-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive Print Styles */
+@media print {
+  .responsive-container {
+    max-width: none;
+    padding: 0;
+  }
+
+  .responsive-shadow {
+    box-shadow: none;
+  }
+
+  .responsive-hidden-print {
+    display: none !important;
+  }
+}

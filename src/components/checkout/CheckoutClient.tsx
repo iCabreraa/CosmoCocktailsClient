@@ -18,8 +18,10 @@ import StripePaymentComplete from "./StripePaymentComplete";
 import { Address } from "@/types/shared";
 import { useClientData } from "@/hooks/useClientData";
 import { useAuthUnified } from "@/hooks/useAuthUnified";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function CheckoutClient() {
+  const { t } = useLanguage();
   const {
     items,
     subtotal,
@@ -179,8 +181,7 @@ export default function CheckoutClient() {
     }
 
     clearCart();
-    // Redirigir a página de éxito
-    window.location.href = "/checkout/success";
+    // La redirección al detalle del pedido la realiza StripePaymentComplete
   };
 
   const handlePaymentError = (error: string) => {
@@ -239,7 +240,7 @@ export default function CheckoutClient() {
       <main className="py-20 px-6 min-h-[70vh] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cosmic-gold mx-auto mb-4"></div>
-          <p className="text-cosmic-fog">Loading checkout...</p>
+          <p className="text-cosmic-fog">{t("checkout.loading")}</p>
         </div>
       </main>
     );
@@ -249,12 +250,14 @@ export default function CheckoutClient() {
     return (
       <main className="py-20 px-6 min-h-[70vh] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-500 mb-4">Error loading checkout: {error}</p>
+          <p className="text-red-500 mb-4">
+            {t("checkout.error_loading")}: {error}
+          </p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-cosmic-gold text-black rounded-full hover:bg-cosmic-gold/80 transition"
           >
-            Retry
+            {t("common.retry")}
           </button>
         </div>
       </main>
@@ -266,13 +269,13 @@ export default function CheckoutClient() {
       <main className="py-20 px-6 min-h-[70vh] flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-[--font-unica] text-cosmic-fog mb-4">
-            Your cart is empty
+            {t("checkout.empty_cart")}
           </h1>
           <Link
             href="/shop"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-cosmic-gold text-black hover:bg-cosmic-gold/80 transition font-medium"
           >
-            Start Shopping
+            {t("checkout.start_shopping")}
           </Link>
         </div>
       </main>
@@ -284,9 +287,9 @@ export default function CheckoutClient() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-[--font-unica] text-cosmic-gold mb-2">
-            Checkout
+            {t("checkout.title")}
           </h1>
-          <p className="text-cosmic-fog">Complete your order securely</p>
+          <p className="text-cosmic-fog">{t("checkout.subtitle")}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -296,18 +299,18 @@ export default function CheckoutClient() {
             <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
               <h2 className="text-xl font-[--font-unica] text-cosmic-gold mb-4 flex items-center gap-2">
                 <User className="w-5 h-5" />
-                Información de Contacto
+                {t("checkout.contact_info")}
               </h2>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-cosmic-fog mb-2">
-                      Nombre Completo *
+                      {t("checkout.full_name")} *
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Tu nombre completo"
+                      placeholder={t("checkout.full_name_placeholder")}
                       className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
                       value={form.name}
                       onChange={e => handleChange("name", e.target.value)}
@@ -315,12 +318,12 @@ export default function CheckoutClient() {
                   </div>
                   <div>
                     <label className="block text-sm text-cosmic-fog mb-2">
-                      Email *
+                      {t("checkout.email")} *
                     </label>
                     <input
                       type="email"
                       required
-                      placeholder="tu@email.com"
+                      placeholder={t("checkout.email_placeholder")}
                       className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
                       value={form.email}
                       onChange={e => handleChange("email", e.target.value)}
@@ -330,12 +333,12 @@ export default function CheckoutClient() {
 
                 <div>
                   <label className="block text-sm text-cosmic-fog mb-2">
-                    Teléfono *
+                    {t("checkout.phone")} *
                   </label>
                   <input
                     type="tel"
                     required
-                    placeholder="+34 123 456 789"
+                    placeholder={t("checkout.phone_placeholder")}
                     className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
                     value={form.phone}
                     onChange={e => handleChange("phone", e.target.value)}
@@ -348,7 +351,7 @@ export default function CheckoutClient() {
             <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
               <h2 className="text-xl font-[--font-unica] text-cosmic-gold mb-4 flex items-center gap-2">
                 <MapPin className="w-5 h-5" />
-                Dirección de Envío
+                {t("checkout.shipping_address")}
               </h2>
               <AddressForm
                 onAddressSelect={handleAddressSelect}
@@ -366,7 +369,7 @@ export default function CheckoutClient() {
             <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
               <h2 className="text-xl font-[--font-unica] text-cosmic-gold mb-4 flex items-center gap-2">
                 <CreditCard className="w-5 h-5" />
-                Payment Information
+                {t("checkout.payment_info")}
               </h2>
 
               {paymentError && (
@@ -390,7 +393,7 @@ export default function CheckoutClient() {
                 <div className="bg-cosmic-fog/10 rounded-lg p-4 text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cosmic-gold mx-auto mb-2"></div>
                   <p className="text-cosmic-fog text-sm">
-                    Preparando pago seguro...
+                    {t("checkout.preparing_payment")}
                   </p>
                 </div>
               )}
@@ -403,7 +406,7 @@ export default function CheckoutClient() {
                 <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500">
                   <AlertTriangle className="w-5 h-5" />
                   <span className="text-sm">
-                    Algunos productos no están disponibles. Revisa tu carrito.
+                    {t("checkout.products_unavailable")}
                   </span>
                 </div>
               )}
@@ -412,7 +415,7 @@ export default function CheckoutClient() {
                 <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-500">
                   <AlertTriangle className="w-5 h-5" />
                   <span className="text-sm">
-                    Por favor, selecciona una dirección de envío.
+                    {t("checkout.select_address")}
                   </span>
                 </div>
               )}
@@ -425,7 +428,7 @@ export default function CheckoutClient() {
           <div className="lg:col-span-1">
             <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10 sticky top-6">
               <h2 className="text-xl font-[--font-unica] text-cosmic-gold mb-4">
-                Order Summary
+                {t("checkout.order_summary")}
               </h2>
 
               <div className="space-y-3 mb-6">
@@ -454,24 +457,27 @@ export default function CheckoutClient() {
 
               <div className="space-y-2 text-sm pt-4 border-t border-cosmic-fog/30">
                 <div className="flex justify-between text-cosmic-text">
-                  <span>Subtotal ({item_count} items)</span>
+                  <span>
+                    {t("checkout.subtotal")} ({item_count} {t("checkout.items")}
+                    )
+                  </span>
                   <span>€{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-cosmic-text">
-                  <span>VAT (21%)</span>
+                  <span>{t("checkout.vat")} (21%)</span>
                   <span>€{vat_amount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-cosmic-text">
-                  <span>Shipping</span>
+                  <span>{t("checkout.shipping")}</span>
                   <span>
                     {shipping_cost > 0
                       ? `€${shipping_cost.toFixed(2)}`
-                      : "Free"}
+                      : t("checkout.free")}
                   </span>
                 </div>
                 <div className="border-t border-cosmic-fog/30 pt-2">
                   <div className="flex justify-between text-lg font-semibold text-cosmic-gold">
-                    <span>Total</span>
+                    <span>{t("checkout.total")}</span>
                     <span>€{total.toFixed(2)}</span>
                   </div>
                 </div>
@@ -479,7 +485,7 @@ export default function CheckoutClient() {
 
               {shipping_cost > 0 && (
                 <p className="text-xs text-cosmic-fog mt-4 text-center">
-                  Free shipping on orders over €50
+                  {t("checkout.free_shipping_note")}
                 </p>
               )}
             </div>

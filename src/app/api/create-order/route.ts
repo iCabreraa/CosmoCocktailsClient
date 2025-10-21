@@ -10,8 +10,33 @@ const supabase = createClient(
 export async function POST(request: NextRequest) {
   try {
     console.log("🔍 Creating order...");
-    const { items, total, user_id, shipping_address, payment_intent_id } =
-      await request.json();
+
+    const body = await request.json();
+    console.log("📦 Request body:", body);
+
+    const { items, total, user_id, shipping_address, payment_intent_id } = body;
+
+    // Validaciones básicas
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return NextResponse.json(
+        { error: "Items are required" },
+        { status: 400 }
+      );
+    }
+
+    if (!total || total <= 0) {
+      return NextResponse.json(
+        { error: "Valid total is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!shipping_address) {
+      return NextResponse.json(
+        { error: "Shipping address is required" },
+        { status: 400 }
+      );
+    }
 
     console.log("📦 Order data:", {
       items,
@@ -21,23 +46,16 @@ export async function POST(request: NextRequest) {
       payment_intent_id,
     });
 
-    if (!items || items.length === 0) {
-      console.log("❌ No items provided");
-      return NextResponse.json({ error: "No items provided" }, { status: 400 });
-    }
-
     // Crear el pedido
     console.log("💳 Creating order in database...");
-    const { data: order, error: orderError } = await (supabase as any)
+    const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
         user_id: user_id || null,
         total_amount: total,
-        status: "pending",
+        status: "paid", // Pago confirmado directamente
         payment_intent_id: payment_intent_id || null,
-        shipping_address: shipping_address
-          ? JSON.stringify(shipping_address)
-          : null,
+        shipping_address: JSON.stringify(shipping_address),
       })
       .select()
       .single();
@@ -57,15 +75,15 @@ export async function POST(request: NextRequest) {
     const orderItems = items.map((item: any) => ({
       order_id: order.id,
       cocktail_id: item.cocktail_id,
-      size_id: item.sizes_id,
+      size_id: item.sizes_id, // CartItem usa sizes_id, pero la BD usa size_id
       quantity: item.quantity,
       unit_price: item.unit_price,
-      item_total: item.unit_price * item.quantity, // Usar item_total que es el nombre correcto
+      item_total: item.unit_price * item.quantity,
     }));
 
     console.log("📦 Order items to insert:", orderItems);
 
-    const { error: itemsError } = await (supabase as any)
+    const { error: itemsError } = await supabase
       .from("order_items")
       .insert(orderItems);
 
@@ -106,7 +124,7 @@ export async function POST(request: NextRequest) {
         `📊 Stock update: ${currentStock.stock_quantity} - ${item.quantity} = ${newStock} (available: ${isAvailable})`
       );
 
-      const { error: stockError } = await (supabase as any)
+      const { error: stockError } = await supabase
         .from("cocktail_sizes")
         .update({
           stock_quantity: newStock,
@@ -123,11 +141,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("🎉 Order creation completed successfully");
-    return NextResponse.json({
-      success: true,
-      order_id: order.id,
-      message: "Order created successfully",
-    });
+    return NextResponse.json({ id: order.id, order_ref: order.order_ref });
   } catch (error) {
     console.error("❌ Error creating order:", error);
     return NextResponse.json(

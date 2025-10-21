@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { UserUpdate, UserPreferenceInsert } from "@/types/supabase";
 
 export async function GET() {
   try {
@@ -16,9 +17,9 @@ export async function GET() {
       .eq("user_id", user.id)
       .single();
 
-    // Theme vive en users_new.preferences JSONB
+    // Theme vive en users.preferences JSONB
     const { data: usersRow } = await supabase
-      .from("users_new")
+      .from("users")
       .select("preferences")
       .eq("id", user.id)
       .single();
@@ -46,34 +47,33 @@ export async function PUT(request: NextRequest) {
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // 1) Guardar theme en users_new.preferences JSONB (merge)
+    // 1) Guardar theme en users.preferences JSONB (merge)
     if (theme) {
       const { data: current } = await supabase
-        .from("users_new")
+        .from("users")
         .select("preferences")
         .eq("id", user.id)
         .single();
 
       const merged = { ...(current?.preferences || {}), theme };
-      const { error: upErr1 } = await (supabase as any)
-        .from("users_new")
-        .update({ preferences: merged })
+      const { error: upErr1 } = await supabase
+        .from("users")
+        .update({ preferences: merged } as UserUpdate)
         .eq("id", user.id);
       if (upErr1)
         return NextResponse.json({ error: upErr1.message }, { status: 500 });
     }
 
     // 2) Guardar language/currency en user_preferences (currency fijo a EUR)
-    const { error: upErr2 } = await (supabase as any)
+    const preferenceData: UserPreferenceInsert = {
+      user_id: user.id,
+      language: language ?? "es",
+      currency: "EUR",
+    };
+
+    const { error: upErr2 } = await supabase
       .from("user_preferences")
-      .upsert(
-        {
-          user_id: user.id,
-          language: language ?? "es",
-          currency: "EUR",
-        },
-        { onConflict: "user_id" }
-      );
+      .upsert(preferenceData, { onConflict: "user_id" });
     if (upErr2)
       return NextResponse.json({ error: upErr2.message }, { status: 500 });
 

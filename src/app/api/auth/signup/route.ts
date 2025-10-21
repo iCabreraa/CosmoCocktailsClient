@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Crear perfil en users_new
+    // 2. Crear perfil en users
     try {
       const userProfile = await userService.createUser({
         id: authData.user.id,

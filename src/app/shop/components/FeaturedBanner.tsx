@@ -6,29 +6,31 @@ import "swiper/css";
 import "swiper/css/pagination";
 import Image from "next/image";
 import Link from "next/link";
-
-const featuredCocktails = [
-  {
-    title: "Tropical Delights",
-    description: "Taste summer in every sip. Explore our tropical cocktails.",
-    image: "/images/featured/tropical.webp",
-    href: "/shop",
-  },
-  {
-    title: "Cosmic Classics",
-    description: "Legendary recipes, now bottled for your events.",
-    image: "/images/featured/classics.webp",
-    href: "/shop",
-  },
-  {
-    title: "Non-Alcoholic Magic",
-    description: "Cocktails that impress — without the alcohol.",
-    image: "/images/featured/nonalcoholic.webp",
-    href: "/shop",
-  },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function FeaturedBanner() {
+  const { t } = useLanguage();
+
+  const featuredCocktails = [
+    {
+      title: t("shop.tropical"),
+      description: t("shop.tropical_description"),
+      image: "/images/featured/tropical.webp",
+      href: "/shop",
+    },
+    {
+      title: t("shop.cosmic_classics"),
+      description: t("shop.cosmic_classics_description"),
+      image: "/images/featured/classics.webp",
+      href: "/shop",
+    },
+    {
+      title: t("shop.non_alcoholic"),
+      description: t("shop.non_alcoholic_description"),
+      image: "/images/featured/nonalcoholic.webp",
+      href: "/shop",
+    },
+  ];
   return (
     <div className="relative w-full rounded-xl overflow-hidden shadow-lg bg-[url('/images/hero-bg.webp')] bg-cover bg-center border border-cosmic-gold/20">
       {" "}
@@ -60,7 +62,7 @@ export default function FeaturedBanner() {
                   href={cocktail.href}
                   className="px-6 py-3 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black focus:outline-none focus:ring-2 focus:ring-cosmic-gold transition-all duration-300 font-[--font-josefin]"
                 >
-                  Explore now
+                  {t("shop.explore_now")}
                 </Link>
               </div>
             </div>

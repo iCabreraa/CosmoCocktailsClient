@@ -11,6 +11,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { CreditCard, Lock, AlertTriangle, CheckCircle } from "lucide-react";
 import { CartItem } from "@/types/shared";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const stripePromise = loadStripe(envClient.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
@@ -33,6 +34,7 @@ function PaymentForm({
   onPaymentSuccess,
   onPaymentError,
 }: StripePaymentCompleteProps) {
+  const { t } = useLanguage();
   const stripe = useStripe();
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
@@ -60,17 +62,19 @@ function PaymentForm({
 
       if (error) {
         const errorMessage =
-          error instanceof Error ? error.message : "Error inesperado";
+          error instanceof Error
+            ? error.message
+            : t("checkout.unexpected_error");
         setError(errorMessage);
         onPaymentError(errorMessage);
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
-        // Crear pedido después del pago exitoso
+        // Crear pedido después del pago exitoso y redirigir al detalle
         await createOrder(paymentIntent);
         onPaymentSuccess(paymentIntent);
       }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Error inesperado";
+        err instanceof Error ? err.message : t("checkout.unexpected_error");
       setError(errorMessage);
       onPaymentError(errorMessage);
     } finally {
@@ -99,11 +103,16 @@ function PaymentForm({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create order");
+        throw new Error(t("checkout.failed_create_order"));
       }
 
       const orderResult = await response.json();
       console.log("Order created successfully:", orderResult);
+      if (orderResult?.id) {
+        window.location.href = `/order/${orderResult.id}`;
+      } else if (orderResult?.order?.id) {
+        window.location.href = `/order/${orderResult.order.id}`;
+      }
     } catch (error) {
       console.error("Error creating order:", error);
       throw error;
@@ -120,7 +129,7 @@ function PaymentForm({
             <CreditCard className="w-5 h-5 text-purple-400" />
           </div>
           <h3 className="text-lg font-semibold text-white">
-            Información de Pago
+            {t("checkout.payment_info")}
           </h3>
         </div>
 
@@ -140,10 +149,7 @@ function PaymentForm({
 
           <div className="flex items-center gap-2 text-sm text-purple-300">
             <Lock className="w-4 h-4" />
-            <span>
-              Tu información de pago está protegida con encriptación de nivel
-              bancario
-            </span>
+            <span>{t("checkout.payment_protected")}</span>
           </div>
         </div>
       </div>
@@ -152,7 +158,7 @@ function PaymentForm({
         <div className="text-sm text-purple-300">
           <div className="flex items-center gap-2">
             <Lock className="w-4 h-4" />
-            <span>Procesado de forma segura por Stripe</span>
+            <span>{t("checkout.processed_stripe")}</span>
           </div>
         </div>
 
@@ -164,17 +170,17 @@ function PaymentForm({
           {isCreatingOrder ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Creando pedido...
+              {t("checkout.creating_order")}
             </>
           ) : isLoading ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Procesando pago...
+              {t("checkout.processing_payment")}
             </>
           ) : (
             <>
               <CheckCircle className="w-4 h-4" />
-              Completar Pago - €{total.toFixed(2)}
+              {t("checkout.complete_payment")} - €{total.toFixed(2)}
             </>
           )}
         </button>

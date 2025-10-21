@@ -1,23 +1,94 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { rateLimitMiddleware } from "@/lib/rate-limiting";
 
-// Minimal middleware (temporary) – passthrough without CSP or Edge-side auth.
-// Purpose: avoid Edge runtime + CSP script/style blocking during production deploy.
-export async function middleware(_request: NextRequest) {
-  return NextResponse.next();
+// Secure middleware with minimal, Stripe/Supabase-compatible CSP and security headers
+export async function middleware(request: NextRequest) {
+  // Apply rate limiting first for API routes
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    const rateLimitResponse = await rateLimitMiddleware(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+  }
+
+  const response = NextResponse.next();
+
+  // Build a minimal CSP compatible with Stripe and Supabase
+  // We use a nonce placeholder for future inline scripts support via layout if needed
+  const nonce = "static-nonce"; // can be replaced by per-request nonce when wiring with layout
+
+  const stripeJs = "https://js.stripe.com";
+  const stripeApi = "https://api.stripe.com";
+  const vercelInsightsScript = "https://va.vercel-scripts.com";
+  const vercelInsightsConnect = "https://vitals.vercel-insights.com";
+  const supabaseProjectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+
+  const connectSrc = [
+    "'self'",
+    stripeApi,
+    vercelInsightsConnect,
+    supabaseProjectUrl,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const isDev = process.env.NODE_ENV === "development";
+  const scriptSrcParts = [
+    "'self'",
+    `'nonce-${nonce}'`,
+    stripeJs,
+    vercelInsightsScript,
+  ];
+  // Next.js dev server uses eval for source maps; permit only in development
+  if (isDev) scriptSrcParts.push("'unsafe-eval'");
+  const scriptSrc = scriptSrcParts.join(" ");
+
+  const imgSrc = "'self' data: https: blob:";
+
+  const csp = [
+    "default-src 'self'",
+    `script-src ${scriptSrc}`,
+    "style-src 'self' 'unsafe-inline'",
+    `connect-src ${connectSrc}`,
+    "img-src " + imgSrc,
+    "font-src 'self' data:",
+    `frame-src ${stripeJs}`,
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join("; ");
+
+  // Security headers
+  response.headers.set("Content-Security-Policy", csp);
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "origin-when-cross-origin");
+  response.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=()"
+  );
+  response.headers.set(
+    "Strict-Transport-Security",
+    "max-age=15552000; includeSubDomains; preload"
+  );
+
+  return response;
 }
 
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - robots.txt (robots file)
      * - sitemap.xml (sitemap file)
+     *
+     * Note: API routes are now included for rate limiting
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
   ],
 };

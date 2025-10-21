@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { AlertTriangle, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { useInventoryValidationServer } from "@/hooks/useInventoryValidationServer";
 import { CartItem } from "@/types/shared";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface InventoryValidationProps {
   items: CartItem[];
@@ -25,6 +26,7 @@ export default function InventoryValidation({
   items,
   onValidationComplete,
 }: InventoryValidationProps) {
+  const { t } = useLanguage();
   const { validateInventory, isLoading, error } =
     useInventoryValidationServer();
   const [validationResults, setValidationResults] = useState<
@@ -96,20 +98,21 @@ export default function InventoryValidation({
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-[--font-unica] text-cosmic-gold flex items-center gap-2">
           <AlertTriangle className="w-5 h-5" />
-          Validación de Inventario
+          {t("checkout.inventory_validation")}
         </h3>
 
         <div className="flex items-center gap-2">
           {lastValidated && (
             <span className="text-xs text-cosmic-fog">
-              Última verificación: {lastValidated.toLocaleTimeString()}
+              {t("checkout.last_verification")}:{" "}
+              {lastValidated.toLocaleTimeString()}
             </span>
           )}
           <button
             onClick={performValidation}
             disabled={isLoading}
             className="p-2 text-cosmic-fog hover:text-cosmic-gold transition disabled:opacity-50"
-            title="Verificar inventario"
+            title={t("checkout.verify_inventory")}
           >
             <RefreshCw
               className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
@@ -123,28 +126,30 @@ export default function InventoryValidation({
         {status === "validating" && (
           <div className="flex items-center gap-2 text-cosmic-fog">
             <RefreshCw className="w-4 h-4 animate-spin" />
-            <span>Verificando disponibilidad...</span>
+            <span>{t("checkout.verifying_availability")}</span>
           </div>
         )}
 
         {status === "error" && (
           <div className="flex items-center gap-2 text-red-500">
             <XCircle className="w-4 h-4" />
-            <span>Error al verificar inventario: {error}</span>
+            <span>
+              {t("checkout.inventory_error")}: {error}
+            </span>
           </div>
         )}
 
         {status === "available" && (
           <div className="flex items-center gap-2 text-green-500">
             <CheckCircle className="w-4 h-4" />
-            <span>Todos los productos están disponibles</span>
+            <span>{t("checkout.all_products_available")}</span>
           </div>
         )}
 
         {status === "unavailable" && (
           <div className="flex items-center gap-2 text-red-500">
             <XCircle className="w-4 h-4" />
-            <span>Algunos productos no están disponibles</span>
+            <span>{t("checkout.some_products_unavailable")}</span>
           </div>
         )}
       </div>
@@ -168,7 +173,8 @@ export default function InventoryValidation({
                     {result.cocktail_name} - {result.size_name}
                   </h4>
                   <p className="text-sm text-cosmic-fog">
-                    Solicitado: {result.requested_quantity} unidades
+                    {t("checkout.requested")}: {result.requested_quantity}{" "}
+                    {t("checkout.units")}
                   </p>
                 </div>
 
@@ -177,22 +183,23 @@ export default function InventoryValidation({
                   result.requested_quantity <= result.max_available ? (
                     <div className="flex items-center gap-1 text-green-500">
                       <CheckCircle className="w-4 h-4" />
-                      <span className="text-sm">Disponible</span>
+                      <span className="text-sm">{t("checkout.available")}</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1 text-red-500">
                       <XCircle className="w-4 h-4" />
                       <span className="text-sm">
                         {!result.available
-                          ? "No disponible"
-                          : `Máximo: ${result.max_available}`}
+                          ? t("checkout.not_available")
+                          : `${t("checkout.maximum")}: ${result.max_available}`}
                       </span>
                     </div>
                   )}
 
                   {result.stock_quantity > 0 && (
                     <p className="text-xs text-cosmic-fog mt-1">
-                      Stock: {result.stock_quantity} unidades
+                      {t("checkout.stock")}: {result.stock_quantity}{" "}
+                      {t("checkout.units")}
                     </p>
                   )}
                 </div>
@@ -205,9 +212,7 @@ export default function InventoryValidation({
       {/* Información adicional */}
       <div className="mt-4 p-3 bg-cosmic-fog/10 rounded-lg">
         <p className="text-xs text-cosmic-fog">
-          <strong>Nota:</strong> El inventario se verifica en tiempo real. Si un
-          producto no está disponible, será eliminado automáticamente del
-          carrito.
+          <strong>{t("checkout.note")}:</strong> {t("checkout.inventory_note")}
         </p>
       </div>
     </div>

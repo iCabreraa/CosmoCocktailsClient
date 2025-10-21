@@ -1,20 +1,26 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { envServer } from "@/lib/env-server";
 import { checkRateLimit } from "@/lib/rateLimiter";
+import {
+  userLoginSchema,
+  validateRequestBody,
+  createValidationErrorResponse,
+} from "@/lib/validation";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password required" },
-        { status: 400 }
-      );
+    // Validar datos de entrada con Zod
+    const validation = await validateRequestBody(userLoginSchema, request);
+
+    if (!validation.success) {
+      return createValidationErrorResponse(validation.errors!);
     }
+
+    const { email, password } = validation.data!;
 
     // Rate limiting
     const rateLimit = checkRateLimit(email);
