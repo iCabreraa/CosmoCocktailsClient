@@ -2,14 +2,25 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useAuthRefresh } from "@/hooks/useAuthRefresh";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   ErrorNotification,
   useNotifications,
 } from "@/components/ErrorNotification";
 import AccountTabs from "@/components/account/AccountTabs";
+import CosmicBackground from "@/components/ui/CosmicBackground";
+import {
+  HiOutlineEye,
+  HiOutlineEyeSlash,
+  HiOutlineEnvelope,
+  HiOutlineLockClosed,
+  HiOutlineUser,
+  HiOutlinePhone,
+} from "react-icons/hi2";
 
 export default function AccountPage() {
   const {
@@ -25,7 +36,10 @@ export default function AccountPage() {
   const { refreshError, clearRefreshError } = useAuthRefresh();
   const { notifications, addNotification, removeNotification } =
     useNotifications();
+  const { t } = useLanguage();
   const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -41,7 +55,7 @@ export default function AccountPage() {
     if (authError) {
       addNotification({
         type: "error",
-        title: "Error de autenticación",
+        title: t("common.error"),
         message: authError,
         duration: 5000,
       });
@@ -53,8 +67,8 @@ export default function AccountPage() {
     if (refreshError) {
       addNotification({
         type: "warning",
-        title: "Sesión expirada",
-        message: "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.",
+        title: t("auth.session_expired"),
+        message: t("auth.session_expired_message"),
         duration: 7000,
       });
       clearRefreshError();
@@ -73,15 +87,15 @@ export default function AccountPage() {
           setError(error.message);
           addNotification({
             type: "error",
-            title: "Error de inicio de sesión",
+            title: t("auth.login_error"),
             message: error.message,
             duration: 5000,
           });
         } else {
           addNotification({
             type: "success",
-            title: "Sesión iniciada",
-            message: "Has iniciado sesión correctamente.",
+            title: t("auth.login_success"),
+            message: t("auth.login_success_message"),
             duration: 3000,
           });
           // Permanecer en /account; el listener de auth actualizará el dashboard sin forzar navegación
@@ -99,15 +113,15 @@ export default function AccountPage() {
           setError(error.message);
           addNotification({
             type: "error",
-            title: "Error de registro",
+            title: t("auth.register_error"),
             message: error.message,
             duration: 5000,
           });
         } else {
           addNotification({
             type: "success",
-            title: "Cuenta creada",
-            message: "Revisa tu email para confirmar tu cuenta.",
+            title: t("auth.register_success"),
+            message: t("auth.register_success_message"),
             duration: 5000,
           });
           setIsLogin(true);
@@ -116,11 +130,11 @@ export default function AccountPage() {
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Ocurrió un error inesperado";
+        error instanceof Error ? error.message : t("common.error");
       setError(errorMessage);
       addNotification({
         type: "error",
-        title: "Error inesperado",
+        title: t("common.error"),
         message: errorMessage,
         duration: 5000,
       });
@@ -136,9 +150,9 @@ export default function AccountPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
+      <CosmicBackground className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cosmic-gold"></div>
+      </CosmicBackground>
     );
   }
 
@@ -166,23 +180,61 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md mx-auto">
-        <div className="bg-white shadow rounded-lg p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">
-            {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
-          </h1>
+    <CosmicBackground className="flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-md"
+      >
+        {/* Header */}
+        <div className="text-center mb-8">
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="mb-6"
+          >
+            <h1 className="text-4xl font-bold text-cosmic-gold font-major-mono mb-2">
+              COSMOCOCKTAILS
+            </h1>
+            <div className="w-24 h-1 bg-gradient-to-r from-cosmic-gold to-sky-300 mx-auto rounded-full" />
+          </motion.div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+          >
+            <h2 className="text-2xl font-semibold text-slate-100 mb-2">
+              {isLogin ? t("auth.welcome_back") : t("auth.welcome_new")}
+            </h2>
+            <p className="text-slate-300 text-sm">
+              {isLogin ? t("auth.welcome_message") : t("auth.join_community")}
+            </p>
+          </motion.div>
+        </div>
+
+        {/* Auth Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          className="bg-white/5 backdrop-blur-md border border-slate-700/40 rounded-2xl p-8 shadow-2xl"
+        >
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Full Name Field (Register only) */}
             {!isLogin && (
-              <>
-                <div>
-                  <label
-                    htmlFor="full_name"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Nombre Completo
-                  </label>
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+              >
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  {t("profile.full_name")}
+                </label>
+                <div className="relative">
+                  <HiOutlineUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                   <input
                     type="text"
                     id="full_name"
@@ -191,17 +243,25 @@ export default function AccountPage() {
                     onChange={e =>
                       setFormData({ ...formData, full_name: e.target.value })
                     }
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-800/50 border border-slate-600/50 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50 focus:border-cosmic-gold/50 transition-all duration-200"
+                    placeholder={t("profile.full_name_placeholder")}
                   />
                 </div>
+              </motion.div>
+            )}
 
-                <div>
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Teléfono
-                  </label>
+            {/* Phone Field (Register only) */}
+            {!isLogin && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.9, duration: 0.5 }}
+              >
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  {t("profile.phone")}
+                </label>
+                <div className="relative">
+                  <HiOutlinePhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
                   <input
                     type="tel"
                     id="phone"
@@ -209,95 +269,155 @@ export default function AccountPage() {
                     onChange={e =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-800/50 border border-slate-600/50 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50 focus:border-cosmic-gold/50 transition-all duration-200"
+                    placeholder={t("profile.phone_placeholder")}
                   />
                 </div>
-              </>
+              </motion.div>
             )}
 
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Email
+            {/* Email Field */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: isLogin ? 0.8 : 1.0, duration: 0.5 }}
+            >
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                {t("auth.email")}
               </label>
-              <input
-                type="email"
-                id="email"
-                required
-                value={formData.email}
-                onChange={e =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
+              <div className="relative">
+                <HiOutlineEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input
+                  type="email"
+                  id="email"
+                  required
+                  value={formData.email}
+                  onChange={e =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className="w-full pl-10 pr-4 py-3 bg-slate-800/50 border border-slate-600/50 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50 focus:border-cosmic-gold/50 transition-all duration-200"
+                  placeholder={t("auth.email_placeholder")}
+                />
+              </div>
+            </motion.div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Contraseña
+            {/* Password Field */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: isLogin ? 0.9 : 1.1, duration: 0.5 }}
+            >
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                {t("auth.password")}
               </label>
-              <input
-                type="password"
-                id="password"
-                required
-                value={formData.password}
-                onChange={e =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
+              <div className="relative">
+                <HiOutlineLockClosed className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  required
+                  value={formData.password}
+                  onChange={e =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  className="w-full pl-10 pr-12 py-3 bg-slate-800/50 border border-slate-600/50 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50 focus:border-cosmic-gold/50 transition-all duration-200"
+                  placeholder={t("auth.password_placeholder")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                >
+                  {showPassword ? (
+                    <HiOutlineEyeSlash className="w-5 h-5" />
+                  ) : (
+                    <HiOutlineEye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            </motion.div>
 
-            {error && <div className="text-red-600 text-sm">{error}</div>}
+            {/* Error Message */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3"
+              >
+                {error}
+              </motion.div>
+            )}
 
-            <button
+            {/* Submit Button */}
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: isLogin ? 1.0 : 1.2, duration: 0.5 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={loadingAction}
-              className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-gradient-to-r from-cosmic-gold to-sky-300 text-slate-900 font-semibold py-3 px-6 rounded-lg hover:from-cosmic-gold/90 hover:to-sky-300/90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loadingAction
-                ? "Procesando..."
-                : isLogin
-                  ? "Iniciar Sesión"
-                  : "Crear Cuenta"}
-            </button>
+              {loadingAction ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin mr-2" />
+                  {t("common.loading")}
+                </div>
+              ) : (
+                isLogin ? t("auth.login_button") : t("auth.register_button")
+              )}
+            </motion.button>
+
+            {/* Toggle Login/Register */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: isLogin ? 1.1 : 1.3, duration: 0.5 }}
+              className="text-center"
+            >
+              <p className="text-slate-400 text-sm">
+                {isLogin ? t("auth.no_account") : t("auth.have_account")}{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setError("");
+                    setFormData({ email: "", password: "", full_name: "", phone: "" });
+                  }}
+                  className="text-cosmic-gold hover:text-sky-300 transition-colors font-medium"
+                >
+                  {isLogin ? t("auth.register_title") : t("auth.login_title")}
+                </button>
+              </p>
+            </motion.div>
           </form>
+        </motion.div>
 
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-indigo-600 hover:text-indigo-500 text-sm"
-            >
-              {isLogin
-                ? "¿No tienes cuenta? Crear una"
-                : "¿Ya tienes cuenta? Iniciar sesión"}
-            </button>
-          </div>
+        {/* Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.4, duration: 0.6 }}
+          className="text-center mt-8"
+        >
+          <Link
+            href="/"
+            className="text-slate-500 hover:text-slate-300 transition-colors text-sm"
+          >
+            ← {t("auth.back_to_home")}
+          </Link>
+        </motion.div>
 
-          <div className="mt-4 text-center">
-            <Link
-              href="/"
-              className="text-gray-600 hover:text-gray-500 text-sm"
-            >
-              ← Volver al inicio
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Notificaciones */}
-      {notifications.map(notification => (
-        <ErrorNotification
-          key={notification.id}
-          {...notification}
-          onClose={() => removeNotification(notification.id!)}
-        />
-      ))}
-    </div>
+        {/* Notificaciones */}
+        {notifications.map(notification => (
+          <ErrorNotification
+            key={notification.id}
+            {...notification}
+            onClose={() => removeNotification(notification.id!)}
+          />
+        ))}
+      </motion.div>
+    </CosmicBackground>
   );
 }
