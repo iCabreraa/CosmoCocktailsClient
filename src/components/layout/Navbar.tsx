@@ -45,7 +45,7 @@ export default function Navbar() {
   console.log("Navbar Debug:", {
     canAccessAdmin,
     user: user?.role,
-    userEmail: user?.email
+    userEmail: user?.email,
   });
 
   const showBg = scrolled || hovered;
@@ -500,6 +500,18 @@ export default function Navbar() {
                   >
                     <ShoppingCart className="w-5 h-5" />
                   </Link>
+
+                  {/* Admin Panel Button - Only for admins */}
+                  {canAccessAdmin && (
+                    <Link
+                      href="/admin"
+                      className="hover:text-cosmic-gold transition-colors duration-200"
+                      aria-label="Admin Panel"
+                      title="Panel de Administración"
+                    >
+                      <HiOutlineCog6Tooth className="w-5 h-5" />
+                    </Link>
+                  )}
 
                   {/* User Account Icon with Login Indicator */}
                   <Link
