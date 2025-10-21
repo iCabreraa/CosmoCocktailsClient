@@ -38,8 +38,15 @@ export default function Navbar() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
-  const { canAccessAdmin } = useAdminAccess();
+  const { canAccess: canAccessAdmin } = useAdminAccess();
   const pathname = usePathname();
+
+  // Debug logs
+  console.log("Navbar Debug:", {
+    canAccessAdmin,
+    user: user?.role,
+    userEmail: user?.email
+  });
 
   const showBg = scrolled || hovered;
 
