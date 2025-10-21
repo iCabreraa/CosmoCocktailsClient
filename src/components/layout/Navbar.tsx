@@ -223,9 +223,8 @@ export default function Navbar() {
               className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
               onClick={() => setMenuOpen(false)}
             />
-            <div className="fixed left-0 top-0 h-full w-72 sm:w-80 bg-white/5 backdrop-blur-md shadow-xl z-[101] flex flex-col">
-              {/* Scrollable content area */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-40">
+            <div className="fixed left-0 top-0 h-full w-72 sm:w-80 bg-white/5 backdrop-blur-md shadow-xl z-[101]">
+              <div className="p-4 sm:p-6 pb-40">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-lg font-semibold text-slate-100">
@@ -332,85 +331,60 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* User Section - Fixed at bottom */}
-              <div className="p-4 sm:p-6 pt-8 border-t border-slate-700/40 bg-gradient-to-t from-slate-900/50 to-white/5 backdrop-blur-md">
+              {/* User Section - Minimalist design */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 border-t border-slate-700/40 bg-gradient-to-t from-slate-900/50 to-white/5 backdrop-blur-md">
                 {user ? (
-                  <div className="space-y-4">
-                    {/* Language Selector - Above user card */}
-                    <div className="flex justify-center mb-2">
+                  <div className="space-y-3">
+                    {/* Language Selector - Above user info */}
+                    <div className="flex justify-center pb-2 border-b border-slate-700/30">
                       <LanguageSelector />
                     </div>
 
-                    {/* User Profile Card - Elegant */}
-                    <div className="bg-white/5 rounded-xl p-4 border border-white/10 backdrop-blur-sm">
-                      {/* User Info - Avatar, Name and Role */}
-                      <div className="flex items-center justify-between">
-                        {/* Left side: Avatar and Name */}
-                        <div className="flex items-center space-x-3">
-                          {/* Avatar */}
-                          <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-cosmic-gold/30 to-sky-300/30 border-2 border-cosmic-gold/40 flex items-center justify-center shadow-lg">
-                            {user?.avatar_url ? (
-                              <Image
-                                src={user.avatar_url}
-                                alt={
-                                  user?.full_name ||
-                                  user?.email?.split("@")[0] ||
-                                  "Usuario"
-                                }
-                                width={40}
-                                height={40}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <HiOutlineUser className="text-lg text-cosmic-gold" />
-                            )}
-                          </div>
-
-                          {/* Name */}
-                          <div className="flex-1 min-w-0">
-                            <span className="text-sm font-semibold text-slate-100 truncate">
-                              {user?.full_name ||
+                    {/* User Info - Minimalist inline design */}
+                    <div className="flex items-center justify-between">
+                      {/* User Profile - Avatar and Name */}
+                      <div className="flex items-center space-x-3 bg-white/5 rounded-lg p-3 border border-white/10 backdrop-blur-sm flex-1 mr-3">
+                        {/* Avatar */}
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-cosmic-gold/30 to-sky-300/30 border border-cosmic-gold/40 flex items-center justify-center">
+                          {user?.avatar_url ? (
+                            <Image
+                              src={user.avatar_url}
+                              alt={
+                                user?.full_name ||
                                 user?.email?.split("@")[0] ||
-                                "Usuario"}
-                            </span>
-                          </div>
+                                "Usuario"
+                              }
+                              width={32}
+                              height={32}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <HiOutlineUser className="text-sm text-cosmic-gold" />
+                          )}
                         </div>
 
-                        {/* Right side: Role Badge */}
-                        <div className="flex-shrink-0">
-                          {user?.role && <RoleBadge role={user.role} />}
-                        </div>
+                        {/* Name */}
+                        <span className="text-sm font-medium text-slate-100 truncate">
+                          {user?.full_name ||
+                            user?.email?.split("@")[0] ||
+                            "Usuario"}
+                        </span>
                       </div>
 
-                      {/* Admin Panel Button */}
-                      {(user.role === "admin" ||
-                        user.role === "super_admin" ||
-                        user.role === "staff" ||
-                        user.role === "manager") && (
-                        <Link
-                          href="/admin"
-                          onClick={() => setMenuOpen(false)}
-                          className="w-full flex items-center justify-center px-4 py-3 mt-3 text-sm font-medium rounded-lg bg-gradient-to-r from-cosmic-gold/20 to-sky-300/20 text-cosmic-gold hover:from-cosmic-gold/30 hover:to-sky-300/30 transition-all duration-200 border border-cosmic-gold/30 shadow-lg hover:shadow-cosmic-gold/25"
-                        >
-                          <HiOutlineCog6Tooth className="h-4 w-4 mr-2" />
-                          <span>Panel de Administración</span>
-                        </Link>
-                      )}
+                      {/* Logout Button - Red square with X */}
+                      <button
+                        onClick={handleLogout}
+                        className="w-12 h-12 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 hover:border-red-400/60 rounded-lg flex items-center justify-center transition-all duration-200 hover:shadow-lg hover:shadow-red-500/25"
+                        title="Cerrar Sesión"
+                      >
+                        <HiXMark className="h-5 w-5 text-red-300 hover:text-red-200" />
+                      </button>
                     </div>
-
-                    {/* Logout Button */}
-                    <button
-                      onClick={handleLogout}
-                      className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-red-300 hover:bg-red-500/10 hover:text-red-200 rounded-lg transition-all duration-200 border border-red-500/20 hover:border-red-400/40"
-                    >
-                      <HiXMark className="h-4 w-4 mr-2" />
-                      <span>Cerrar Sesión</span>
-                    </button>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {/* Language Selector - Above login */}
-                    <div className="flex justify-center">
+                    <div className="flex justify-center pb-2 border-b border-slate-700/30">
                       <LanguageSelector />
                     </div>
 
