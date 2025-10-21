@@ -478,6 +478,7 @@ const translations = {
         orders: "Pedidos",
         favorites: "Favoritos",
         settings: "Configuración",
+        admin: "Panel de Administración",
       },
     },
     orders: {
@@ -1058,6 +1059,7 @@ const translations = {
         orders: "Orders",
         favorites: "Favorites",
         settings: "Settings",
+        admin: "Admin Panel",
       },
     },
     orders: {
@@ -1509,6 +1511,7 @@ const translations = {
         orders: "Bestellingen",
         favorites: "Favorieten",
         settings: "Instellingen",
+        admin: "Beheerpaneel",
       },
     },
     common: {
