@@ -174,7 +174,7 @@ export default function Navbar() {
   };
 
   const getAccountTabs = () => {
-    const baseTabs = [
+    return [
       {
         id: "dashboard",
         name: t("account.tabs.dashboard"),
@@ -206,17 +206,6 @@ export default function Navbar() {
         href: "/account?tab=settings",
       },
     ];
-
-    if (canAccessAdmin) {
-      baseTabs.push({
-        id: "admin",
-        name: t("account.tabs.admin"),
-        icon: HiOutlineCog6Tooth,
-        href: "/admin",
-      });
-    }
-
-    return baseTabs;
   };
 
   return (
@@ -333,6 +322,26 @@ export default function Navbar() {
                           );
                         })}
                       </nav>
+                    )}
+
+                    {/* Admin Panel Button - Standalone, highlighted */}
+                    {canAccessAdmin && (
+                      <div className="mt-4 ml-6">
+                        <Link
+                          href="/admin"
+                          onClick={() => {
+                            setMenuOpen(false);
+                            setAccountDropdownOpen(false);
+                          }}
+                          className="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 bg-gradient-to-r from-cosmic-gold/20 to-sky-300/20 border border-cosmic-gold/40 text-cosmic-gold hover:from-cosmic-gold/30 hover:to-sky-300/30 hover:border-cosmic-gold/60 hover:scale-105 shadow-lg shadow-cosmic-gold/10"
+                        >
+                          <HiOutlineCog6Tooth className="h-5 w-5 mr-3" />
+                          <span>{t("account.tabs.admin")}</span>
+                          <div className="ml-auto">
+                            <div className="w-2 h-2 bg-cosmic-gold rounded-full animate-pulse"></div>
+                          </div>
+                        </Link>
+                      </div>
                     )}
                   </div>
                 )}
