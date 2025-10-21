@@ -331,8 +331,8 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Language Selector - Above logout */}
-              <div className="absolute bottom-20 left-0 right-0 px-4 sm:px-6">
+              {/* Language Selector - Above user section */}
+              <div className="absolute bottom-32 left-0 right-0 px-4 sm:px-6">
                 <div className="flex justify-start">
                   <LanguageSelector />
                 </div>
@@ -341,13 +341,13 @@ export default function Navbar() {
               {/* User Section - At the very bottom */}
               <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 border-t border-slate-700/40 bg-gradient-to-t from-slate-900/50 to-white/5 backdrop-blur-md">
                 {user ? (
-                  <div className="space-y-4">
-                    {/* User Profile Card */}
-                    <div className="bg-white/5 rounded-xl p-4 border border-white/10 backdrop-blur-sm">
+                  <div className="space-y-3">
+                    {/* User Profile Card - Compact */}
+                    <div className="bg-white/5 rounded-lg p-3 border border-white/10 backdrop-blur-sm">
                       {/* User Info - Avatar, Name and Role */}
-                      <div className="flex items-center space-x-3 mb-3">
-                        {/* Avatar */}
-                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-cosmic-gold/30 to-sky-300/30 border-2 border-cosmic-gold/40 flex items-center justify-center shadow-lg">
+                      <div className="flex items-center space-x-3">
+                        {/* Avatar - Smaller */}
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-cosmic-gold/30 to-sky-300/30 border border-cosmic-gold/40 flex items-center justify-center shadow-md">
                           {user?.avatar_url ? (
                             <Image
                               src={user.avatar_url}
@@ -356,32 +356,29 @@ export default function Navbar() {
                                 user?.email?.split("@")[0] ||
                                 "Usuario"
                               }
-                              width={40}
-                              height={40}
+                              width={32}
+                              height={32}
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <HiOutlineUser className="text-lg text-cosmic-gold" />
+                            <HiOutlineUser className="text-sm text-cosmic-gold" />
                           )}
                         </div>
 
-                        {/* Name and Role */}
+                        {/* Name and Role - Compact */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className="text-sm font-semibold text-slate-100 truncate">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-slate-100 truncate">
                               {user?.full_name ||
                                 user?.email?.split("@")[0] ||
                                 "Usuario"}
                             </span>
                             {user?.role && <RoleBadge role={user.role} />}
                           </div>
-                          <p className="text-xs text-slate-400">
-                            {user?.email}
-                          </p>
                         </div>
                       </div>
 
-                      {/* Admin Panel Button */}
+                      {/* Admin Panel Button - Compact */}
                       {(user.role === "admin" ||
                         user.role === "super_admin" ||
                         user.role === "staff" ||
@@ -389,18 +386,18 @@ export default function Navbar() {
                         <Link
                           href="/admin"
                           onClick={() => setMenuOpen(false)}
-                          className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium rounded-lg bg-gradient-to-r from-cosmic-gold/20 to-sky-300/20 text-cosmic-gold hover:from-cosmic-gold/30 hover:to-sky-300/30 transition-all duration-200 border border-cosmic-gold/30 shadow-lg hover:shadow-cosmic-gold/25"
+                          className="w-full flex items-center justify-center px-3 py-2 mt-2 text-xs font-medium rounded-lg bg-gradient-to-r from-cosmic-gold/20 to-sky-300/20 text-cosmic-gold hover:from-cosmic-gold/30 hover:to-sky-300/30 transition-all duration-200 border border-cosmic-gold/30 shadow-md hover:shadow-cosmic-gold/25"
                         >
-                          <HiOutlineCog6Tooth className="h-4 w-4 mr-2" />
+                          <HiOutlineCog6Tooth className="h-3 w-3 mr-2" />
                           <span>Panel de Administración</span>
                         </Link>
                       )}
                     </div>
 
-                    {/* Logout Button */}
+                    {/* Logout Button - Compact */}
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-red-300 hover:bg-red-500/10 hover:text-red-200 rounded-lg transition-all duration-200 border border-red-500/20 hover:border-red-400/40"
+                      className="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-500/10 hover:text-red-200 rounded-lg transition-all duration-200 border border-red-500/20 hover:border-red-400/40"
                     >
                       <HiXMark className="h-4 w-4 mr-2" />
                       <span>Cerrar Sesión</span>
@@ -410,7 +407,7 @@ export default function Navbar() {
                   <Link
                     href="/account"
                     onClick={() => setMenuOpen(false)}
-                    className="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-slate-100 rounded-lg transition-colors border border-white/10"
+                    className="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-slate-100 rounded-lg transition-colors border border-white/10"
                   >
                     <HiOutlineUser className="h-4 w-4 mr-2" />
                     {t("nav.login")}
