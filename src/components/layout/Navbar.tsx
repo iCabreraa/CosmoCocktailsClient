@@ -22,6 +22,8 @@ import clsx from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSelector from "@/components/ui/LanguageSelector";
+import UserAvatar from "@/components/ui/UserAvatar";
+import RoleBadge from "@/components/ui/RoleBadge";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { createClient } from "@/lib/supabase/client";
 import { usePathname } from "next/navigation";
@@ -114,7 +116,7 @@ export default function Navbar() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
+      if (event === "SIGNED_IN" && session?.user) {
         // User signed in, fetch user data
         try {
           const { data: userData } = await supabase
@@ -127,7 +129,7 @@ export default function Navbar() {
           console.error("Error fetching user data after sign in:", error);
           setUser(session.user);
         }
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === "SIGNED_OUT") {
         // User signed out
         setUser(null);
       }
@@ -258,9 +260,30 @@ export default function Navbar() {
                   })}
                 </nav>
 
+                {/* User Info Section */}
+                {user && (
+                  <div className="mt-8 p-4 bg-white/5 rounded-lg border border-white/10">
+                    <UserAvatar user={user} size="md" showName={true} showRole={true} />
+                    
+                    {/* Admin/Staff Direct Access */}
+                    {(user.role === "admin" || user.role === "super_admin" || user.role === "staff" || user.role === "manager") && (
+                      <div className="mt-3">
+                        <Link
+                          href="/admin"
+                          onClick={() => setMenuOpen(false)}
+                          className="flex items-center px-3 py-2 text-sm font-medium rounded-lg bg-gradient-to-r from-cosmic-gold/20 to-sky-300/20 text-cosmic-gold hover:from-cosmic-gold/30 hover:to-sky-300/30 transition-all duration-200 border border-cosmic-gold/30"
+                        >
+                          <HiOutlineCog6Tooth className="h-4 w-4 mr-2" />
+                          <span>Panel de Administración</span>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Account Section */}
                 {user && (
-                  <div className="mt-8">
+                  <div className="mt-4">
                     <button
                       onClick={() => {
                         if (!isInAccountSection) {
@@ -449,13 +472,32 @@ export default function Navbar() {
                   >
                     <ShoppingCart className="w-5 h-5" />
                   </Link>
-                  <Link
-                    href={user ? "/account?tab=dashboard" : "/account"}
-                    className="hover:text-cosmic-gold transition-colors duration-200"
-                    aria-label={user ? "User Dashboard" : "User Account"}
-                  >
-                    <User className="w-5 h-5" />
-                  </Link>
+                  
+                  {/* User Avatar and Admin Access */}
+                  {user ? (
+                    <div className="flex items-center space-x-3">
+                      <UserAvatar user={user} size="sm" showName={true} showRole={true} />
+                      
+                      {/* Admin/Staff Direct Access */}
+                      {(user.role === "admin" || user.role === "super_admin" || user.role === "staff" || user.role === "manager") && (
+                        <Link
+                          href="/admin"
+                          className="flex items-center px-3 py-1 text-xs font-medium rounded-full bg-gradient-to-r from-cosmic-gold/20 to-sky-300/20 text-cosmic-gold hover:from-cosmic-gold/30 hover:to-sky-300/30 transition-all duration-200 border border-cosmic-gold/30"
+                        >
+                          <HiOutlineCog6Tooth className="h-3 w-3 mr-1" />
+                          <span>Admin</span>
+                        </Link>
+                      )}
+                    </div>
+                  ) : (
+                    <Link
+                      href="/account"
+                      className="hover:text-cosmic-gold transition-colors duration-200"
+                      aria-label="User Account"
+                    >
+                      <User className="w-5 h-5" />
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
