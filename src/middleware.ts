@@ -15,8 +15,8 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   // Build a minimal CSP compatible with Stripe and Supabase
-  // We use a nonce placeholder for future inline scripts support via layout if needed
-  const nonce = "static-nonce"; // can be replaced by per-request nonce when wiring with layout
+  // Use a simple nonce for now (will be improved later)
+  const nonce = "nextjs-nonce";
 
   const stripeJs = "https://js.stripe.com";
   const stripeApi = "https://api.stripe.com";
@@ -34,14 +34,20 @@ export async function middleware(request: NextRequest) {
     .join(" ");
 
   const isDev = process.env.NODE_ENV === "development";
+  
+  // SOLUCIÓN TEMPORAL: Permitir scripts inline en producción para Next.js
   const scriptSrcParts = [
     "'self'",
-    `'nonce-${nonce}'`,
+    "'unsafe-inline'", // Temporal: permitir scripts inline
     stripeJs,
     vercelInsightsScript,
   ];
+  
   // Next.js dev server uses eval for source maps; permit only in development
-  if (isDev) scriptSrcParts.push("'unsafe-eval'");
+  if (isDev) {
+    scriptSrcParts.push("'unsafe-eval'");
+  }
+  
   const scriptSrc = scriptSrcParts.join(" ");
 
   const imgSrc = "'self' data: https: blob:";
@@ -73,6 +79,9 @@ export async function middleware(request: NextRequest) {
     "Strict-Transport-Security",
     "max-age=15552000; includeSubDomains; preload"
   );
+  
+  // Pass nonce to the response for use in layout
+  response.headers.set("X-Nonce", nonce);
 
   return response;
 }
