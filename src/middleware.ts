@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
     .join(" ");
 
   const isDev = process.env.NODE_ENV === "development";
-  
+
   // SOLUCIÓN TEMPORAL: Permitir scripts inline en producción para Next.js
   const scriptSrcParts = [
     "'self'",
@@ -42,12 +42,12 @@ export async function middleware(request: NextRequest) {
     stripeJs,
     vercelInsightsScript,
   ];
-  
+
   // Next.js dev server uses eval for source maps; permit only in development
   if (isDev) {
     scriptSrcParts.push("'unsafe-eval'");
   }
-  
+
   const scriptSrc = scriptSrcParts.join(" ");
 
   const imgSrc = "'self' data: https: blob:";
@@ -79,7 +79,7 @@ export async function middleware(request: NextRequest) {
     "Strict-Transport-Security",
     "max-age=15552000; includeSubDomains; preload"
   );
-  
+
   // Pass nonce to the response for use in layout
   response.headers.set("X-Nonce", nonce);
 
