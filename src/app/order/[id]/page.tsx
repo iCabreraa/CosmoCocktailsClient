@@ -7,6 +7,7 @@ import OrderTitle from "@/components/order/OrderTitle";
 import OrderStatusTimeline from "@/components/order/OrderStatusTimeline";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect, useState } from "react";
+import { fromOrderItemRow, orderItemSelect } from "@/types/order-item-utils";
 
 async function getOrder(id: string) {
   const supabase = createClient();
@@ -51,21 +52,10 @@ async function getOrder(id: string) {
 
   const { data: rawItems } = await supabase
     .from("order_items")
-    .select(
-      "cocktail_id, size_id, quantity, unit_price, item_total, cocktails:cocktail_id(name, image_url), sizes:size_id(name)"
-    )
+    .select(orderItemSelect)
     .eq("order_id", id);
 
-  const items = (rawItems || []).map((it: any) => ({
-    cocktail_id: it.cocktail_id,
-    size_id: it.size_id,
-    quantity: it.quantity,
-    unit_price: it.unit_price,
-    item_total: it.item_total,
-    cocktail_name: it.cocktails?.name ?? "",
-    cocktail_image: it.cocktails?.image_url ?? null,
-    size_name: it.sizes?.name ?? "",
-  }));
+  const items = (rawItems || []).map((it: any) => fromOrderItemRow(it));
 
   return {
     order: {
@@ -195,7 +185,7 @@ export default function OrderDetailPage({
                     <div>
                       <div className="font-[--font-josefin]">
                         {it.cocktail_name || it.cocktail_id} ·{" "}
-                        {it.size_name || it.size_id}
+                        {it.size_name || it.sizes_id}
                       </div>
                       <div className="text-sm opacity-75">
                         {t("order.quantity")}: {it.quantity}

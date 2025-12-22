@@ -315,7 +315,7 @@ export const roleUpdateSchema = z.object({
  */
 export const stockUpdateSchema = z.object({
   cocktail_id: uuidSchema,
-  size_id: uuidSchema,
+  sizes_id: uuidSchema,
   quantity: z
     .number()
     .int("Cantidad debe ser un número entero")

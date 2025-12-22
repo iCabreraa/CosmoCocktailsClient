@@ -45,6 +45,9 @@ export type OrderItemDetail = {
   size_name: string;
 };
 
+export const orderItemSelect =
+  "cocktail_id, size_id, quantity, unit_price, item_total, cocktails:cocktail_id(name, image_url), sizes:size_id(name)";
+
 export const normalizeOrderItemInput = (
   item: OrderItemInput
 ): NormalizedOrderItem => {
