@@ -1687,9 +1687,20 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Cargar idioma guardado
     try {
-      const savedLanguage = localStorage.getItem("cosmic-language") as Language;
-      if (savedLanguage && ["es", "en", "nl"].includes(savedLanguage)) {
-        setLanguageState(savedLanguage);
+      const savedLanguage = localStorage.getItem("cosmic-language") as
+        | Language
+        | null;
+      const legacyLanguage = localStorage.getItem("language") as
+        | Language
+        | null;
+      const initialLanguage = savedLanguage || legacyLanguage;
+
+      if (initialLanguage && ["es", "en", "nl"].includes(initialLanguage)) {
+        setLanguageState(initialLanguage);
+        if (!savedLanguage && legacyLanguage) {
+          localStorage.setItem("cosmic-language", initialLanguage);
+          localStorage.removeItem("language");
+        }
       }
     } catch (error) {
       console.warn("Error loading language from localStorage:", error);
@@ -1698,9 +1709,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  useEffect(() => {
+    document.documentElement.setAttribute("lang", language);
+  }, [language]);
+
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem("cosmic-language", lang);
+    localStorage.removeItem("language");
   };
 
   const t = (key: string, params?: Record<string, string | number>): string => {

@@ -4,25 +4,18 @@ import { useState, useEffect } from "react";
 
 export function useTheme() {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
-  const [language, setLanguage] = useState<"es" | "en" | "nl">("es");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Cargar tema e idioma desde localStorage o preferencias del usuario
+    // Cargar tema desde localStorage o preferencias del usuario
     const loadPreferences = async () => {
       try {
         // Primero intentar cargar desde localStorage
         const savedTheme = localStorage.getItem("theme") as "light" | "dark";
-        const savedLanguage = localStorage.getItem("language") as
-          | "es"
-          | "en"
-          | "nl";
 
-        if (savedTheme && savedLanguage) {
+        if (savedTheme) {
           setTheme(savedTheme);
-          setLanguage(savedLanguage);
           applyTheme(savedTheme);
-          applyLanguage(savedLanguage);
           setLoading(false);
           return;
         }
@@ -32,13 +25,9 @@ export function useTheme() {
         if (response.ok) {
           const data = await response.json();
           const userTheme = data.preferences?.theme || "dark";
-          const userLanguage = data.preferences?.language || "es";
           setTheme(userTheme);
-          setLanguage(userLanguage);
           applyTheme(userTheme);
-          applyLanguage(userLanguage);
           localStorage.setItem("theme", userTheme);
-          localStorage.setItem("language", userLanguage);
         } else {
           // Fallback al tema del sistema
           const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
@@ -46,9 +35,7 @@ export function useTheme() {
             ? "dark"
             : "light";
           setTheme(systemTheme);
-          setLanguage("es");
           applyTheme(systemTheme);
-          applyLanguage("es");
         }
       } catch (error) {
         console.error("Error loading preferences:", error);
@@ -58,9 +45,7 @@ export function useTheme() {
           ? "dark"
           : "light";
         setTheme(systemTheme);
-        setLanguage("es");
         applyTheme(systemTheme);
-        applyLanguage("es");
       } finally {
         setLoading(false);
       }
@@ -79,11 +64,6 @@ export function useTheme() {
       root.classList.add("light");
       root.classList.remove("dark");
     }
-  };
-
-  const applyLanguage = (newLanguage: "es" | "en" | "nl") => {
-    const root = document.documentElement;
-    root.setAttribute("lang", newLanguage);
   };
 
   const changeTheme = async (newTheme: "light" | "dark") => {
@@ -105,30 +85,9 @@ export function useTheme() {
     }
   };
 
-  const changeLanguage = async (newLanguage: "es" | "en" | "nl") => {
-    setLanguage(newLanguage);
-    applyLanguage(newLanguage);
-    localStorage.setItem("language", newLanguage);
-
-    // Guardar en la base de datos
-    try {
-      await fetch("/api/preferences", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ language: newLanguage }),
-      });
-    } catch (error) {
-      console.error("Error saving language:", error);
-    }
-  };
-
   return {
     theme,
-    language,
     loading,
     changeTheme,
-    changeLanguage,
   };
 }
