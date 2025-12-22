@@ -16,6 +16,17 @@ Este documento valida que las politicas RLS existen y bloquean el acceso a datos
      - orders: ver/insertar propio usuario, admin update/delete
      - user_favorites: ver/insertar/eliminar propio usuario
 
+## Hallazgos y correccion
+Si aparecen politicas como:
+- `Enable read access for authenticated users`
+- `Enable insert for authenticated users`
+- `Enable update for users authenticated`
+- `Enable delete for users authenticated`
+
+Significa que cualquier usuario autenticado puede leer o modificar pedidos de otros usuarios.
+Para corregirlo, ejecutar:
+- `scripts/08-testing/fix-orders-rls.sql`
+
 ## Nota sobre auth.uid() vs auth.user_id()
 - En `rls-policies.sql` existe un helper `auth.user_id()` que lee el `sub` del JWT.
 - `auth.user_id()` es equivalente a `auth.uid()` para este uso.
