@@ -58,7 +58,7 @@ const languages: LanguageOption[] = [
 // ============================================================================
 
 export default function LanguageSelector() {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState<"top" | "bottom">(
     "bottom"
@@ -133,7 +133,7 @@ export default function LanguageSelector() {
       <button
         onClick={handleToggle}
         className="flex items-center gap-2 text-slate-300 hover:text-sky-300 hover:bg-white/5 px-3 py-2 rounded-lg transition-colors duration-200"
-        aria-label="Select language"
+        aria-label={t("settings.language_label")}
       >
         <Globe className="w-4 h-4" />
         <span className="text-sm font-medium uppercase">
