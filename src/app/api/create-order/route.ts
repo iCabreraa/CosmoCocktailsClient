@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { envServer } from "@/lib/env-server";
+import {
+  normalizeOrderItems,
+  toOrderItemInserts,
+} from "@/types/order-item-utils";
 
 const supabase = createClient(
   envServer.NEXT_PUBLIC_SUPABASE_URL,
@@ -34,6 +38,16 @@ export async function POST(request: NextRequest) {
     if (!shipping_address) {
       return NextResponse.json(
         { error: "Shipping address is required" },
+        { status: 400 }
+      );
+    }
+
+    let normalizedItems;
+    try {
+      normalizedItems = normalizeOrderItems(items);
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Invalid order items" },
         { status: 400 }
       );
     }
@@ -72,14 +86,7 @@ export async function POST(request: NextRequest) {
 
     // Crear los items del pedido
     console.log("📝 Creating order items...");
-    const orderItems = items.map((item: any) => ({
-      order_id: order.id,
-      cocktail_id: item.cocktail_id,
-      size_id: item.sizes_id, // CartItem usa sizes_id, pero la BD usa size_id
-      quantity: item.quantity,
-      unit_price: item.unit_price,
-      item_total: item.unit_price * item.quantity,
-    }));
+    const orderItems = toOrderItemInserts(normalizedItems, order.id);
 
     console.log("📦 Order items to insert:", orderItems);
 
@@ -99,7 +106,7 @@ export async function POST(request: NextRequest) {
 
     // Actualizar stock - método correcto para Supabase
     console.log("📦 Updating stock...");
-    for (const item of items) {
+    for (const item of normalizedItems) {
       console.log(
         `🔄 Updating stock for cocktail ${item.cocktail_id}, size ${item.sizes_id}, quantity ${item.quantity}`
       );

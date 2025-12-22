@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { createClient } from "@/lib/supabase/server";
+import {
+  normalizeOrderItems,
+  toOrderItemMetadata,
+} from "@/types/order-item-utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +16,16 @@ export async function POST(request: NextRequest) {
     if (!items || items.length === 0) {
       console.log("❌ No items provided");
       return NextResponse.json({ error: "No items provided" }, { status: 400 });
+    }
+
+    let normalizedItems;
+    try {
+      normalizedItems = normalizeOrderItems(items);
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Invalid order items" },
+        { status: 400 }
+      );
     }
 
     // Calcular total
@@ -29,12 +43,9 @@ export async function POST(request: NextRequest) {
     console.log("💳 Creating Stripe payment intent...");
 
     // Simplificar metadatos para evitar el límite de 500 caracteres
-    const simplifiedItems = items.map((item: any) => ({
-      cocktail_id: item.cocktail_id,
-      size_id: item.sizes_id,
-      quantity: item.quantity,
-      unit_price: item.unit_price,
-    }));
+    const simplifiedItems = normalizedItems.map(item =>
+      toOrderItemMetadata(item)
+    );
 
     // Stripe limita cada valor de metadata a 500 chars aprox.
     // Compactamos y acotamos el string para evitar 500s en carritos grandes
