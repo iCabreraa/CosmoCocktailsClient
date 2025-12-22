@@ -84,7 +84,7 @@ export interface OrderItem {
   id: string;
   order_id: string;
   cocktail_id: string;
-  size_id: string;
+  sizes_id: string;
   quantity: number;
   unit_price: number;
   item_total: number;

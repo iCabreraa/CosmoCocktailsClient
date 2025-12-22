@@ -83,7 +83,6 @@ export default function AddToCartButton({
         return {
           ...s,
           cocktail_id: cocktail.id,
-          size_id: s.sizes_id, // Asegurar que size_id = sizes_id
           stock_quantity: s.stock_quantity || 0,
           created_at: new Date().toISOString(), // Generar timestamp ya que no existe en BD
           updated_at: new Date().toISOString(), // Generar timestamp ya que no existe en BD
@@ -112,7 +111,7 @@ export default function AddToCartButton({
   function handleSelect(size: CocktailSize) {
     console.log("🛒 Adding to cart:", {
       cocktail_id: cocktail.id,
-      size_id: size.sizes_id, // Usar sizes_id que es el campo real de la BD
+      sizes_id: size.sizes_id,
       cocktail_name: cocktail.name,
       size_name: size.size?.name ?? `${size.size?.volume_ml ?? 0}ml`,
       price: size.price,
