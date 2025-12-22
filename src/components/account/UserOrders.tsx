@@ -29,11 +29,7 @@ interface Order {
   }>;
 }
 
-interface UserOrdersProps {
-  userId: string;
-}
-
-export default function UserOrders({ userId }: UserOrdersProps) {
+export default function UserOrders() {
   const router = useRouter();
   const { t } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -42,12 +38,12 @@ export default function UserOrders({ userId }: UserOrdersProps) {
 
   useEffect(() => {
     fetchUserOrders();
-  }, [userId]);
+  }, [t]);
 
   const fetchUserOrders = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/orders?user_id=${userId}`);
+      const response = await fetch("/api/orders");
       if (!response.ok) throw new Error(t("common.error"));
 
       const data = await response.json();

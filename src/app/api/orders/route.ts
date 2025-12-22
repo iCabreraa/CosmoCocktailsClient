@@ -1,19 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("user_id");
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "user_id is required" },
-        { status: 400 }
-      );
-    }
-
     const supabase = createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     // Fetch orders and their items for this user
     const { data: orders, error } = await supabase
@@ -26,7 +24,7 @@ export async function GET(request: NextRequest) {
            sizes ( name )
          )`
       )
-      .eq("user_id", userId)
+      .eq("user_id", user.id)
       .order("order_date", { ascending: false });
 
     if (error) {

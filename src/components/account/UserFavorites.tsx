@@ -27,11 +27,7 @@ interface FavoriteCocktail {
   }>;
 }
 
-interface UserFavoritesProps {
-  userId: string;
-}
-
-export default function UserFavorites({ userId }: UserFavoritesProps) {
+export default function UserFavorites() {
   const [favorites, setFavorites] = useState<FavoriteCocktail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -39,7 +35,7 @@ export default function UserFavorites({ userId }: UserFavoritesProps) {
 
   useEffect(() => {
     fetchFavorites();
-  }, [userId]);
+  }, [t]);
 
   const fetchFavorites = async () => {
     try {
