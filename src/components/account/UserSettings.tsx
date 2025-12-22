@@ -213,7 +213,7 @@ export default function UserSettings({ user, onUpdate }: UserSettingsProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Moneda
+              {t("settings.currency")}
             </label>
             <select
               value={settings.preferences.currency}

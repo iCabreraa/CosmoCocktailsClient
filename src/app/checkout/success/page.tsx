@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { CheckCircle, Package, Home, ShoppingBag } from "lucide-react";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function CheckoutSuccess() {
   const [orderId, setOrderId] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Obtener el ID del pedido de la URL o localStorage
@@ -27,10 +29,10 @@ export default function CheckoutSuccess() {
               <CheckCircle className="w-12 h-12 text-green-400" />
             </div>
             <h1 className="text-3xl font-bold text-white mb-2">
-              ¡Pago Exitoso!
+              {t("checkout.success.title")}
             </h1>
             <p className="text-purple-300 text-lg">
-              Tu pedido ha sido procesado correctamente
+              {t("checkout.success.subtitle")}
             </p>
           </div>
 
@@ -39,26 +41,28 @@ export default function CheckoutSuccess() {
             <div className="flex items-center justify-center gap-2 mb-4">
               <Package className="w-5 h-5 text-purple-400" />
               <h2 className="text-xl font-semibold text-white">
-                Detalles del Pedido
+                {t("checkout.success.order_details_title")}
               </h2>
             </div>
 
             {orderId && (
               <div className="text-sm text-purple-300 mb-2">
-                <span className="font-medium">ID del Pedido:</span> {orderId}
+                <span className="font-medium">
+                  {t("checkout.success.order_id_label")}
+                </span>{" "}
+                {orderId}
               </div>
             )}
 
             <div className="text-sm text-purple-300">
-              Recibirás un email de confirmación en breve con todos los detalles
-              de tu pedido.
+              {t("checkout.success.confirmation_note")}
             </div>
           </div>
 
           {/* Next Steps */}
           <div className="bg-white/5 rounded-xl p-6 mb-8">
             <h3 className="text-lg font-semibold text-white mb-4">
-              Próximos Pasos
+              {t("checkout.success.next_steps_title")}
             </h3>
             <div className="space-y-3 text-left">
               <div className="flex items-start gap-3">
@@ -66,9 +70,11 @@ export default function CheckoutSuccess() {
                   <span className="text-xs font-bold text-purple-400">1</span>
                 </div>
                 <div>
-                  <p className="text-white font-medium">Confirmación</p>
+                  <p className="text-white font-medium">
+                    {t("checkout.success.step1_title")}
+                  </p>
                   <p className="text-purple-300 text-sm">
-                    Recibirás un email de confirmación
+                    {t("checkout.success.step1_description")}
                   </p>
                 </div>
               </div>
@@ -78,9 +84,11 @@ export default function CheckoutSuccess() {
                   <span className="text-xs font-bold text-purple-400">2</span>
                 </div>
                 <div>
-                  <p className="text-white font-medium">Preparación</p>
+                  <p className="text-white font-medium">
+                    {t("checkout.success.step2_title")}
+                  </p>
                   <p className="text-purple-300 text-sm">
-                    Preparamos tu pedido con cuidado
+                    {t("checkout.success.step2_description")}
                   </p>
                 </div>
               </div>
@@ -90,9 +98,11 @@ export default function CheckoutSuccess() {
                   <span className="text-xs font-bold text-purple-400">3</span>
                 </div>
                 <div>
-                  <p className="text-white font-medium">Envío</p>
+                  <p className="text-white font-medium">
+                    {t("checkout.success.step3_title")}
+                  </p>
                   <p className="text-purple-300 text-sm">
-                    Te notificaremos cuando esté en camino
+                    {t("checkout.success.step3_description")}
                   </p>
                 </div>
               </div>
@@ -106,7 +116,7 @@ export default function CheckoutSuccess() {
               className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200"
             >
               <ShoppingBag className="w-4 h-4" />
-              Seguir Comprando
+              {t("checkout.success.continue_shopping")}
             </Link>
 
             <Link
@@ -114,19 +124,19 @@ export default function CheckoutSuccess() {
               className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-all duration-200 border border-white/20"
             >
               <Home className="w-4 h-4" />
-              Ir al Inicio
+              {t("checkout.success.go_home")}
             </Link>
           </div>
 
           {/* Support Info */}
           <div className="mt-8 pt-6 border-t border-white/10">
             <p className="text-sm text-purple-300">
-              ¿Tienes alguna pregunta?{" "}
+              {t("checkout.success.support_text")}{" "}
               <a
                 href="mailto:support@cosmococktails.com"
                 className="text-purple-400 hover:text-purple-300 underline"
               >
-                Contáctanos
+                {t("checkout.success.contact_us")}
               </a>
             </p>
           </div>

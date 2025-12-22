@@ -87,13 +87,15 @@ export default function UserFavorites() {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
         <HiOutlineHeart className="h-12 w-12 text-red-400 mx-auto mb-4" />
-        <p className="text-red-800 font-medium">Error al cargar favoritos</p>
+        <p className="text-red-800 font-medium">
+          {t("favorites.error_loading")}
+        </p>
         <p className="text-red-600 text-sm mt-2">{error}</p>
         <button
           onClick={fetchFavorites}
           className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
         >
-          Reintentar
+          {t("common.retry")}
         </button>
       </div>
     );
@@ -173,7 +175,7 @@ export default function UserFavorites() {
                       </span>
                       <div className="flex items-center text-sm text-gray-500">
                         <HiOutlineStar className="h-4 w-4 text-yellow-500 mr-1" />
-                        <span>Favorito</span>
+                        <span>{t("favorites.badge")}</span>
                       </div>
                     </div>
                   )}
