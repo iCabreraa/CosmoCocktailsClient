@@ -40,15 +40,13 @@ export default function UserStatsProvider({
       setError("");
 
       // Fetch orders
-      const ordersResponse = await fetch(`/api/orders?user_id=${user.id}`);
+      const ordersResponse = await fetch("/api/orders");
       if (!ordersResponse.ok) throw new Error("Error al cargar pedidos");
       const ordersData = await ordersResponse.json();
       const orders = ordersData.orders || [];
 
       // Fetch favorites
-      const favoritesResponse = await fetch(
-        `/api/favorites?user_id=${user.id}`
-      );
+      const favoritesResponse = await fetch("/api/favorites");
       const favoritesData = favoritesResponse.ok
         ? await favoritesResponse.json()
         : { favorites: [] };
@@ -84,4 +82,7 @@ export default function UserStatsProvider({
 
   return <>{children({ ...stats, loading, error })}</>;
 }
+
+
+
 
