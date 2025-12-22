@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { translations } from "@/i18n/translations";
 
 export default function HeroSection() {
   const { t, isInitialized, language } = useLanguage();
@@ -19,42 +20,8 @@ export default function HeroSection() {
     );
   }
 
-  // Get words array directly from translations
-  const getHeroWords = () => {
-    const translations = {
-      es: [
-        "Cócteles",
-        "de",
-        "calidad",
-        "_LINE_BREAK_",
-        "Entregados",
-        "en",
-        "tu",
-        "órbita.",
-      ],
-      en: [
-        "Quality",
-        "cocktails.",
-        "_LINE_BREAK_",
-        "Delivered",
-        "to",
-        "your",
-        "orbit.",
-      ],
-      nl: [
-        "Kwaliteit",
-        "cocktails.",
-        "_LINE_BREAK_",
-        "Bezorgd",
-        "op",
-        "jouw",
-        "baan.",
-      ],
-    };
-    return translations[language] || translations.es;
-  };
-
-  const words = getHeroWords();
+  const words =
+    translations[language]?.home?.hero_words || translations.es.home.hero_words;
 
   return (
     <section className="pt-20 md:pt-16 min-h-[85vh] flex items-center justify-center relative px-6">

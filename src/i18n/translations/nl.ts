@@ -28,7 +28,8 @@ const nl = {
     "choose_size": "Kies een maat",
     "no_sizes_available": "Geen maten beschikbaar",
     "view_details": "Bekijk Details",
-    "explore_now": "Nu verkennen"
+    "explore_now": "Nu verkennen",
+    "loading": "Cocktails laden..."
   },
   "sizes": {
     "small_bottle": "Kleine fles",
@@ -69,7 +70,9 @@ const nl = {
     "subtitle": "Je favoriete ruimte cocktails voor altijd bewaard",
     "empty": "Je hebt nog geen favorieten",
     "explore": "Verken Catalogus",
-    "added_on": "Toegevoegd op {date}"
+    "added_on": "Toegevoegd op {date}",
+    "error_loading": "Fout bij laden van favorieten",
+    "badge": "Favoriet"
   },
   "settings": {
     "title": "Instellingen",
@@ -333,7 +336,25 @@ const nl = {
     "processed_stripe": "Veilig verwerkt door Stripe",
     "creating_order": "Bestelling maken...",
     "processing_payment": "Betaling verwerken...",
-    "complete_payment": "Betaling Voltooien"
+    "complete_payment": "Betaling Voltooien",
+    "success": {
+      "title": "Betaling geslaagd!",
+      "subtitle": "Je bestelling is succesvol verwerkt",
+      "order_details_title": "Bestelgegevens",
+      "order_id_label": "Bestel-ID:",
+      "confirmation_note": "Je ontvangt binnenkort een bevestigingsmail met alle bestelgegevens.",
+      "next_steps_title": "Volgende stappen",
+      "step1_title": "Bevestiging",
+      "step1_description": "Je ontvangt een bevestigingsmail",
+      "step2_title": "Voorbereiding",
+      "step2_description": "We bereiden je bestelling met zorg voor",
+      "step3_title": "Verzending",
+      "step3_description": "We laten het weten zodra het onderweg is",
+      "continue_shopping": "Verder Winkelen",
+      "go_home": "Naar Home",
+      "support_text": "Heb je vragen?",
+      "contact_us": "Neem contact op"
+    }
   },
   "admin": {
     "panel_title": "Admin Panel",
@@ -341,7 +362,8 @@ const nl = {
     "verified": "Geverifieerd",
     "refresh_permissions": "Machtigingen vernieuwen",
     "redirecting": "Doorverwijzen…",
-    "access": "Toegang"
+    "access": "Toegang",
+    "short": "Admin"
   },
   "account": {
     "my_account": "Mijn Account",
@@ -363,12 +385,14 @@ const nl = {
     "cancel": "Annuleren",
     "close": "Sluiten",
     "back": "Terug",
-    "reload": "Herladen"
+    "reload": "Herladen",
+    "user": "Gebruiker"
   },
   "home": {
     "hero_words": [
       "Bar-kwaliteit",
       "cocktails.",
+      "_LINE_BREAK_",
       "Bezorgd",
       "op",
       "jouw",

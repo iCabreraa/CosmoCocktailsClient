@@ -28,7 +28,8 @@ const en = {
     "choose_size": "Choose a size",
     "no_sizes_available": "No sizes available",
     "view_details": "View Details",
-    "explore_now": "Explore now"
+    "explore_now": "Explore now",
+    "loading": "Loading cocktails..."
   },
   "sizes": {
     "small_bottle": "Small bottle",
@@ -69,7 +70,9 @@ const en = {
     "subtitle": "Your favorite space cocktails saved forever",
     "empty": "You don't have favorites yet",
     "explore": "Explore Catalog",
-    "added_on": "Added on {date}"
+    "added_on": "Added on {date}",
+    "error_loading": "Error loading favorites",
+    "badge": "Favorite"
   },
   "settings": {
     "title": "Settings",
@@ -128,12 +131,14 @@ const en = {
     "cancel": "Cancel",
     "close": "Close",
     "back": "Back",
-    "reload": "Reload"
+    "reload": "Reload",
+    "user": "User"
   },
   "home": {
     "hero_words": [
       "Bar-quality",
       "cocktails.",
+      "_LINE_BREAK_",
       "Delivered",
       "to",
       "your",
@@ -326,6 +331,24 @@ const en = {
     "creating_order": "Creating order...",
     "processing_payment": "Processing payment...",
     "complete_payment": "Complete Payment",
+    "success": {
+      "title": "Payment Successful!",
+      "subtitle": "Your order has been processed successfully",
+      "order_details_title": "Order Details",
+      "order_id_label": "Order ID:",
+      "confirmation_note": "You will receive a confirmation email shortly with all order details.",
+      "next_steps_title": "Next Steps",
+      "step1_title": "Confirmation",
+      "step1_description": "You will receive a confirmation email",
+      "step2_title": "Preparation",
+      "step2_description": "We prepare your order with care",
+      "step3_title": "Shipping",
+      "step3_description": "We will notify you when it's on the way",
+      "continue_shopping": "Continue Shopping",
+      "go_home": "Go Home",
+      "support_text": "Have any questions?",
+      "contact_us": "Contact us"
+    },
     "billing_title": "Billing Information",
     "shipping_title": "Shipping Information",
     "payment_title": "Payment Information",
@@ -464,7 +487,8 @@ const en = {
     "verified": "Verified",
     "refresh_permissions": "Refresh permissions",
     "redirecting": "Redirecting…",
-    "access": "Access"
+    "access": "Access",
+    "short": "Admin"
   },
   "account": {
     "my_account": "My Account",

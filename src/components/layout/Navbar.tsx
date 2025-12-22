@@ -336,7 +336,7 @@ export default function Navbar() {
                           className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 bg-gradient-to-r from-cosmic-gold/20 to-sky-300/20 border border-cosmic-gold/40 text-cosmic-gold hover:from-cosmic-gold/30 hover:to-sky-300/30 hover:border-cosmic-gold/60 hover:scale-105 shadow-lg shadow-cosmic-gold/10"
                         >
                           <HiOutlineCog6Tooth className="h-4 w-4 mr-3" />
-                          <span>Admin</span>
+                          <span>{t("admin.short")}</span>
                         </Link>
                       </div>
                     )}
@@ -365,7 +365,7 @@ export default function Navbar() {
                               alt={
                                 user?.full_name ||
                                 user?.email?.split("@")[0] ||
-                                "Usuario"
+                                t("common.user")
                               }
                               width={32}
                               height={32}

@@ -206,7 +206,9 @@ export default function ShopPage() {
     return (
       <div className="min-h-[60vh] flex justify-center items-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cosmic-gold"></div>
-        <p className="text-cosmic-silver text-lg ml-4">Loading cocktails...</p>
+        <p className="text-cosmic-silver text-lg ml-4">
+          {t("shop.loading")}
+        </p>
       </div>
     );
   }

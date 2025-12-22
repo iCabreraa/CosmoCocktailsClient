@@ -28,7 +28,8 @@ const es = {
     "choose_size": "Elige un tamaño",
     "no_sizes_available": "No hay tamaños disponibles",
     "view_details": "Ver Detalles",
-    "explore_now": "Explorar ahora"
+    "explore_now": "Explorar ahora",
+    "loading": "Cargando cócteles..."
   },
   "sizes": {
     "small_bottle": "Botella pequeña",
@@ -69,7 +70,9 @@ const es = {
     "subtitle": "Tus cocktails espaciales favoritos guardados para siempre",
     "empty": "No tienes favoritos aún",
     "explore": "Explorar Catálogo",
-    "added_on": "Añadido el {date}"
+    "added_on": "Añadido el {date}",
+    "error_loading": "Error al cargar favoritos",
+    "badge": "Favorito"
   },
   "settings": {
     "title": "Configuración",
@@ -128,7 +131,8 @@ const es = {
     "cancel": "Cancelar",
     "close": "Cerrar",
     "back": "Volver",
-    "reload": "Recargar"
+    "reload": "Recargar",
+    "user": "Usuario"
   },
   "home": {
     "hero_words": [
@@ -137,6 +141,7 @@ const es = {
       "calidad",
       "de",
       "bar.",
+      "_LINE_BREAK_",
       "Entregados",
       "a",
       "tu",
@@ -328,7 +333,25 @@ const es = {
     "processed_stripe": "Procesado de forma segura por Stripe",
     "creating_order": "Creando pedido...",
     "processing_payment": "Procesando pago...",
-    "complete_payment": "Completar Pago"
+    "complete_payment": "Completar Pago",
+    "success": {
+      "title": "¡Pago Exitoso!",
+      "subtitle": "Tu pedido ha sido procesado correctamente",
+      "order_details_title": "Detalles del Pedido",
+      "order_id_label": "ID del Pedido:",
+      "confirmation_note": "Recibirás un email de confirmación en breve con todos los detalles de tu pedido.",
+      "next_steps_title": "Próximos Pasos",
+      "step1_title": "Confirmación",
+      "step1_description": "Recibirás un email de confirmación",
+      "step2_title": "Preparación",
+      "step2_description": "Preparamos tu pedido con cuidado",
+      "step3_title": "Envío",
+      "step3_description": "Te notificaremos cuando esté en camino",
+      "continue_shopping": "Seguir Comprando",
+      "go_home": "Ir al Inicio",
+      "support_text": "¿Tienes alguna pregunta?",
+      "contact_us": "Contáctanos"
+    }
   },
   "order": {
     "success_title": "¡Pedido Realizado!",
@@ -418,7 +441,8 @@ const es = {
     "verified": "Verificado",
     "refresh_permissions": "Refrescar permisos",
     "redirecting": "Redirigiendo…",
-    "access": "Acceder"
+    "access": "Acceder",
+    "short": "Admin"
   },
   "account": {
     "my_account": "Mi Cuenta",
