@@ -37,14 +37,11 @@ export default function AddToCartButton({
 
   async function fetchSizes() {
     setLoading(true);
-    console.log("🔍 Fetching sizes for cocktail:", cocktail.id);
 
     const { data: rawSizes, error: sizeErr } = await supabase
       .from("cocktail_sizes")
       .select("id, price, available, sizes_id, stock_quantity")
       .eq("cocktail_id", cocktail.id);
-
-    console.log("📦 Raw sizes response:", { rawSizes, sizeErr });
 
     if (sizeErr) {
       console.error("❌ Error fetching sizes:", sizeErr);
@@ -55,7 +52,6 @@ export default function AddToCartButton({
 
     const typedRawSizes = rawSizes as SupabaseCocktailSize[];
     if (!typedRawSizes || typedRawSizes.length === 0) {
-      console.log("⚠️ No sizes found for cocktail:", cocktail.id);
       setError("No sizes available");
       setLoading(false);
       return;
@@ -73,12 +69,6 @@ export default function AddToCartButton({
         const sizeDetail = (sizeDetails as Size[])?.find(
           (d: Size) => d.id === s.sizes_id
         );
-        console.log("🔍 Mapping size:", {
-          cocktail_id: cocktail.id,
-          sizes_id: s.sizes_id,
-          sizeDetail: sizeDetail,
-          stock_quantity: s.stock_quantity,
-        });
 
         return {
           ...s,
@@ -110,14 +100,6 @@ export default function AddToCartButton({
   }
 
   function handleSelect(size: CocktailSize) {
-    console.log("🛒 Adding to cart:", {
-      cocktail_id: cocktail.id,
-      size_id: size.sizes_id, // Usar sizes_id que es el campo real de la BD
-      cocktail_name: cocktail.name,
-      size_name: size.size?.name ?? `${size.size?.volume_ml ?? 0}ml`,
-      price: size.price,
-    });
-
     addToCart({
       cocktail_id: cocktail.id,
       sizes_id: size.sizes_id, // Usar sizes_id que es el campo real de la BD
