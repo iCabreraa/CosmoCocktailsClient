@@ -6,6 +6,14 @@ import { CocktailWithPrice } from "@/types";
 import dynamic from "next/dynamic";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ShopLoadingState from "./components/ShopLoadingState";
+import CocktailGrid from "./components/CocktailGrid";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsDown,
+  LayoutGrid,
+  Rows2,
+} from "lucide-react";
 
 const FeaturedBanner = dynamic(() => import("./components/FeaturedBanner"), {
   ssr: true,
@@ -265,93 +273,149 @@ export default function ShopPage() {
         {/* Banner Principal */}
         <FeaturedBanner />
 
-        <div className="flex flex-wrap items-center justify-end gap-3 text-sm text-cosmic-silver">
-          <span className="uppercase tracking-[0.2em] text-xs">
-            {t("shop.view_mode")}
-          </span>
-          <div className="inline-flex rounded-full border border-cosmic-gold/20 bg-white/5 p-1">
-            <button
-              type="button"
-              onClick={() => handleViewModeChange("lazy")}
-              className={`px-3 py-1 rounded-full transition ${
-                viewMode === "lazy"
-                  ? "bg-cosmic-gold text-black"
-                  : "text-cosmic-silver hover:text-white"
-              }`}
-            >
-              {t("shop.view_mode_lazy")}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleViewModeChange("pagination")}
-              className={`px-3 py-1 rounded-full transition ${
-                viewMode === "pagination"
-                  ? "bg-cosmic-gold text-black"
-                  : "text-cosmic-silver hover:text-white"
-              }`}
-            >
-              {t("shop.view_mode_pagination")}
-            </button>
+        <div className="flex flex-wrap items-center justify-end gap-4 text-sm text-cosmic-silver">
+          <div className="flex flex-col items-end gap-2">
+            <span className="uppercase tracking-[0.2em] text-xs">
+              {t("shop.view_mode")}
+            </span>
+            <div className="w-[180px]">
+              <div className="inline-flex w-full justify-between rounded-full border border-cosmic-gold/20 bg-white/5 p-1">
+                <button
+                  type="button"
+                  onClick={() => handleViewModeChange("lazy")}
+                  aria-pressed={viewMode === "lazy"}
+                  title={t("shop.view_mode_lazy")}
+                  className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
+                    viewMode === "lazy"
+                      ? "bg-cosmic-gold text-black"
+                      : "text-cosmic-silver hover:text-white"
+                  }`}
+                >
+                  <Rows2 className="h-4 w-4" />
+                  <span className="sr-only">
+                    {t("shop.view_mode_lazy")}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleViewModeChange("pagination")}
+                  aria-pressed={viewMode === "pagination"}
+                  title={t("shop.view_mode_pagination")}
+                  className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
+                    viewMode === "pagination"
+                      ? "bg-cosmic-gold text-black"
+                      : "text-cosmic-silver hover:text-white"
+                  }`}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  <span className="sr-only">
+                    {t("shop.view_mode_pagination")}
+                  </span>
+                </button>
+              </div>
+              <div className="mt-2 grid grid-cols-2 text-[10px] uppercase tracking-[0.16em] text-center">
+                <span
+                  className={
+                    viewMode === "lazy"
+                      ? "text-cosmic-gold"
+                      : "text-cosmic-silver/70"
+                  }
+                >
+                  {t("shop.view_mode_lazy")}
+                </span>
+                <span
+                  className={
+                    viewMode === "pagination"
+                      ? "text-cosmic-gold"
+                      : "text-cosmic-silver/70"
+                  }
+                >
+                  {t("shop.view_mode_pagination")}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Sección Principal - Todos los Cócteles */}
-        <CocktailRow title={t("shop.all_cocktails")} cocktails={cocktails} />
+        {viewMode === "pagination" ? (
+          <div className="space-y-8">
+            <h2 className="text-2xl md:text-3xl font-[--font-unica] text-cosmic-gold">
+              {t("shop.all_cocktails")}
+            </h2>
+            <CocktailGrid cocktails={cocktails} />
+          </div>
+        ) : (
+          <>
+            {/* Sección Principal - Todos los Cócteles */}
+            <CocktailRow
+              title={t("shop.all_cocktails")}
+              cocktails={cocktails}
+            />
 
-        {/* Secciones Agrupadas - Solo mostrar si hay cócteles */}
-        {nonAlcoholicCocktails.length > 0 && (
-          <CocktailRow
-            title={t("shop.non_alcoholic")}
-            cocktails={nonAlcoholicCocktails}
-          />
-        )}
+            {/* Secciones Agrupadas - Solo mostrar si hay cócteles */}
+            {nonAlcoholicCocktails.length > 0 && (
+              <CocktailRow
+                title={t("shop.non_alcoholic")}
+                cocktails={nonAlcoholicCocktails}
+              />
+            )}
 
-        {strongCocktails.length > 0 && (
-          <CocktailRow
-            title={t("shop.strong_drinks")}
-            cocktails={strongCocktails}
-          />
-        )}
+            {strongCocktails.length > 0 && (
+              <CocktailRow
+                title={t("shop.strong_drinks")}
+                cocktails={strongCocktails}
+              />
+            )}
 
-        {lightCocktails.length > 0 && (
-          <CocktailRow
-            title={t("shop.light_fresh")}
-            cocktails={lightCocktails}
-          />
-        )}
+            {lightCocktails.length > 0 && (
+              <CocktailRow
+                title={t("shop.light_fresh")}
+                cocktails={lightCocktails}
+              />
+            )}
 
-        {tropicalCocktails.length > 0 && (
-          <CocktailRow
-            title={t("shop.tropical")}
-            cocktails={tropicalCocktails}
-          />
+            {tropicalCocktails.length > 0 && (
+              <CocktailRow
+                title={t("shop.tropical")}
+                cocktails={tropicalCocktails}
+              />
+            )}
+          </>
         )}
 
         {viewMode === "lazy" && hasMore && (
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-2">
             <button
               type="button"
               onClick={handleLoadMore}
               disabled={loadingMore}
-              className="inline-flex items-center gap-3 rounded-full border border-cosmic-gold px-6 py-2 text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              title={t("shop.load_more")}
+              aria-label={t("shop.load_more")}
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loadingMore && (
+              {loadingMore ? (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              ) : (
+                <ChevronsDown className="h-5 w-5" />
               )}
-              {loadingMore ? t("shop.loading_more") : t("shop.load_more")}
             </button>
+            <span className="text-xs uppercase tracking-[0.2em] text-cosmic-silver">
+              {loadingMore ? t("shop.loading_more") : t("shop.load_more")}
+            </span>
           </div>
         )}
 
         {viewMode === "pagination" && totalPages > 1 && (
-          <div className="flex flex-wrap items-center justify-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-6">
             <button
               type="button"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1 || loading}
-              className="inline-flex items-center gap-2 rounded-full border border-cosmic-gold px-4 py-2 text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              title={t("shop.prev_page")}
+              aria-label={t("shop.prev_page")}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {t("shop.prev_page")}
+              <ChevronLeft className="h-5 w-5" />
             </button>
             <span className="text-sm text-cosmic-silver">
               {t("shop.pagination_status", {
@@ -363,9 +427,11 @@ export default function ShopPage() {
               type="button"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages || loading}
-              className="inline-flex items-center gap-2 rounded-full border border-cosmic-gold px-4 py-2 text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              title={t("shop.next_page")}
+              aria-label={t("shop.next_page")}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {t("shop.next_page")}
+              <ChevronRight className="h-5 w-5" />
             </button>
           </div>
         )}
