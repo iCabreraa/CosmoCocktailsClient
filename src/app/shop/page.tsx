@@ -507,125 +507,131 @@ export default function ShopPage() {
         {/* Banner Principal */}
         <FeaturedBanner />
 
-        <div className="flex flex-col items-center gap-4 text-sm text-cosmic-silver">
-          <h2 className="text-2xl md:text-3xl font-[--font-unica] text-cosmic-gold">
-            {t("shop.all_cocktails")}
-          </h2>
-          <div className="flex w-full flex-col items-center gap-4">
-            <div className="relative w-full max-w-xl">
-              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cosmic-silver" />
-              <input
-                type="text"
-                value={searchInput}
-                onChange={event => setSearchInput(event.target.value)}
-                onKeyDown={handleSearchKeyDown}
-                placeholder={t("shop.search_placeholder")}
-                aria-label={t("shop.search_label")}
-                className="w-full rounded-full border border-cosmic-gold/20 bg-white/5 py-3 pl-11 pr-12 text-sm text-cosmic-silver placeholder:text-cosmic-silver/60 transition focus:border-cosmic-gold focus:outline-none focus:ring-2 focus:ring-cosmic-gold/20"
-              />
-              <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
-                {searching && (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-cosmic-gold border-t-transparent" />
-                )}
-                {searchInput.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleSearchClear}
-                    aria-label={t("shop.clear_search")}
-                    title={t("shop.clear_search")}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border border-cosmic-gold/20 text-cosmic-silver transition hover:border-cosmic-gold hover:text-white"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
+        <div className="rounded-3xl border border-cosmic-gold/10 bg-white/5 px-6 py-8 text-sm text-cosmic-silver md:px-8">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col items-center gap-4 md:flex-row md:items-center md:justify-between">
+              <h2 className="text-center text-2xl md:text-left md:text-3xl font-[--font-unica] text-cosmic-gold">
+                {t("shop.all_cocktails")}
+              </h2>
+              <div className="inline-flex items-center gap-2 rounded-full border border-cosmic-gold/20 bg-white/5 p-1">
+                <button
+                  type="button"
+                  onClick={() => handleViewModeChange("pagination")}
+                  aria-pressed={viewMode === "pagination"}
+                  title={t("shop.view_mode_pagination")}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
+                    viewMode === "pagination"
+                      ? "bg-cosmic-gold text-black"
+                      : "text-cosmic-silver hover:text-white"
+                  }`}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  <span className="sr-only">
+                    {t("shop.view_mode_pagination")}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleViewModeChange("lazy")}
+                  aria-pressed={viewMode === "lazy"}
+                  title={t("shop.view_mode_lazy")}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
+                    viewMode === "lazy"
+                      ? "bg-cosmic-gold text-black"
+                      : "text-cosmic-silver hover:text-white"
+                  }`}
+                >
+                  <Rows2 className="h-4 w-4" />
+                  <span className="sr-only">{t("shop.view_mode_lazy")}</span>
+                </button>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] uppercase tracking-[0.18em] text-cosmic-silver/70">
-              <span className="mr-2 text-[10px] text-cosmic-silver/50">
-                {t("shop.filter_category")}
-              </span>
-              {categoryFilters.map(filter => {
-                const isActive = activeCategories.includes(filter.id);
-                return (
+            <div className="flex flex-col gap-4">
+              <div className="relative w-full">
+                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cosmic-silver" />
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={event => setSearchInput(event.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  placeholder={t("shop.search_placeholder")}
+                  aria-label={t("shop.search_label")}
+                  className="w-full rounded-full border border-cosmic-gold/20 bg-white/5 py-3 pl-11 pr-12 text-sm text-cosmic-silver placeholder:text-cosmic-silver/60 transition focus:border-cosmic-gold focus:outline-none focus:ring-2 focus:ring-cosmic-gold/20"
+                />
+                <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
+                  {searching && (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-cosmic-gold border-t-transparent" />
+                  )}
+                  {searchInput.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleSearchClear}
+                      aria-label={t("shop.clear_search")}
+                      title={t("shop.clear_search")}
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-cosmic-gold/20 text-cosmic-silver transition hover:border-cosmic-gold hover:text-white"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-cosmic-silver/70">
+                  <span className="text-[10px] text-cosmic-silver/50">
+                    {t("shop.filter_category")}
+                  </span>
+                  {categoryFilters.map(filter => {
+                    const isActive = activeCategories.includes(filter.id);
+                    return (
+                      <button
+                        key={filter.id}
+                        type="button"
+                        onClick={() => handleCategoryToggle(filter.id)}
+                        className={`rounded-full border px-3 py-1 transition ${
+                          isActive
+                            ? "border-cosmic-gold bg-cosmic-gold/20 text-white"
+                            : "border-cosmic-gold/20 text-cosmic-silver hover:border-cosmic-gold hover:text-white"
+                        }`}
+                      >
+                        {filter.label}
+                      </button>
+                    );
+                  })}
+
+                  <span className="text-[10px] text-cosmic-silver/50">
+                    {t("shop.filter_type")}
+                  </span>
+                  {typeFilters.map(filter => {
+                    const isActive = activeCategories.includes(filter.id);
+                    return (
+                      <button
+                        key={filter.id}
+                        type="button"
+                        onClick={() => handleCategoryToggle(filter.id)}
+                        className={`rounded-full border px-3 py-1 transition ${
+                          isActive
+                            ? "border-cosmic-gold bg-cosmic-gold/20 text-white"
+                            : "border-cosmic-gold/20 text-cosmic-silver hover:border-cosmic-gold hover:text-white"
+                        }`}
+                      >
+                        {filter.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {hasCategoryFilters && (
                   <button
-                    key={filter.id}
                     type="button"
-                    onClick={() => handleCategoryToggle(filter.id)}
-                    className={`rounded-full border px-3 py-1 transition ${
-                      isActive
-                        ? "border-cosmic-gold bg-cosmic-gold/20 text-white"
-                        : "border-cosmic-gold/20 text-cosmic-silver hover:border-cosmic-gold hover:text-white"
-                    }`}
+                    onClick={handleClearFilters}
+                    className="self-start rounded-full border border-cosmic-gold/20 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-cosmic-silver transition hover:border-cosmic-gold hover:text-white md:self-auto"
                   >
-                    {filter.label}
+                    {t("shop.clear_filters")}
                   </button>
-                );
-              })}
-
-              <span className="mx-2 text-[10px] text-cosmic-silver/50">
-                {t("shop.filter_type")}
-              </span>
-              {typeFilters.map(filter => {
-                const isActive = activeCategories.includes(filter.id);
-                return (
-                  <button
-                    key={filter.id}
-                    type="button"
-                    onClick={() => handleCategoryToggle(filter.id)}
-                    className={`rounded-full border px-3 py-1 transition ${
-                      isActive
-                        ? "border-cosmic-gold bg-cosmic-gold/20 text-white"
-                        : "border-cosmic-gold/20 text-cosmic-silver hover:border-cosmic-gold hover:text-white"
-                    }`}
-                  >
-                    {filter.label}
-                  </button>
-                );
-              })}
-
-              {hasCategoryFilters && (
-                <button
-                  type="button"
-                  onClick={handleClearFilters}
-                  className="rounded-full border border-cosmic-gold/20 px-3 py-1 text-[10px] text-cosmic-silver transition hover:border-cosmic-gold hover:text-white"
-                >
-                  {t("shop.clear_filters")}
-                </button>
-              )}
-            </div>
-
-            <div className="inline-flex items-center gap-2 rounded-full border border-cosmic-gold/20 bg-white/5 p-1">
-              <button
-                type="button"
-                onClick={() => handleViewModeChange("pagination")}
-                aria-pressed={viewMode === "pagination"}
-                title={t("shop.view_mode_pagination")}
-                className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
-                  viewMode === "pagination"
-                    ? "bg-cosmic-gold text-black"
-                    : "text-cosmic-silver hover:text-white"
-                }`}
-              >
-                <LayoutGrid className="h-4 w-4" />
-                <span className="sr-only">
-                  {t("shop.view_mode_pagination")}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleViewModeChange("lazy")}
-                aria-pressed={viewMode === "lazy"}
-                title={t("shop.view_mode_lazy")}
-                className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
-                  viewMode === "lazy"
-                    ? "bg-cosmic-gold text-black"
-                    : "text-cosmic-silver hover:text-white"
-                }`}
-              >
-                <Rows2 className="h-4 w-4" />
-                <span className="sr-only">{t("shop.view_mode_lazy")}</span>
-              </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
