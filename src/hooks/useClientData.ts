@@ -19,12 +19,11 @@ export function useClientData() {
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
-  // Obtener datos del cliente por email
+  // Obtener datos del cliente por email (solo servidor)
   const getClientByEmail = async (
     email: string
   ): Promise<ClientData | null> => {
     try {
-      // Intentar obtener de la base de datos primero
       const { data, error } = await supabase
         .from("clients")
         .select("*")
@@ -32,37 +31,16 @@ export function useClientData() {
         .single();
 
       if (error && error.code !== "PGRST116") {
-        // PGRST116 = no rows found, intentar localStorage como fallback
-        console.log(
-          "📦 Tabla clients no disponible, usando localStorage fallback"
-        );
-        const storedData = localStorage.getItem(`client_${email}`);
-        if (storedData) {
-          return JSON.parse(storedData);
-        }
-        return null;
+        throw error;
       }
 
-      // Si encontramos datos en la base de datos, también guardar en localStorage para backup
       if (data) {
-        localStorage.setItem(`client_${email}`, JSON.stringify(data));
         return data;
-      }
-
-      // Si no hay datos en BD, intentar localStorage
-      const storedData = localStorage.getItem(`client_${email}`);
-      if (storedData) {
-        return JSON.parse(storedData);
       }
 
       return null;
     } catch (err) {
       console.error("Error fetching client data:", err);
-      // Fallback a localStorage en caso de error
-      const storedData = localStorage.getItem(`client_${email}`);
-      if (storedData) {
-        return JSON.parse(storedData);
-      }
       return null;
     }
   };
@@ -110,24 +88,11 @@ export function useClientData() {
         savedClient = newClient;
       }
 
-      // También guardar en localStorage como backup
-      localStorage.setItem(`client_${data.email}`, JSON.stringify(savedClient));
-      console.log("✅ Client data saved to database and localStorage");
+      console.log("✅ Client data saved to database");
       return savedClient;
     } catch (err) {
       console.error("Error saving client data to database:", err);
-
-      // Fallback: guardar solo en localStorage
-      const clientData = {
-        id: `local_${Date.now()}`,
-        ...data,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      localStorage.setItem(`client_${data.email}`, JSON.stringify(clientData));
-      console.log("📦 Client data saved to localStorage fallback");
-      return clientData;
+      return null;
     }
   };
 
