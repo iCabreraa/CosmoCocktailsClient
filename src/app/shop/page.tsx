@@ -1,8 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useEffect, useRef, useState } from "react";
-import type { KeyboardEvent } from "react";
+import { useEffect, useState } from "react";
 import { CocktailWithPrice } from "@/types";
 import dynamic from "next/dynamic";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -15,8 +14,6 @@ import {
   ChevronsDown,
   LayoutGrid,
   Rows2,
-  Search,
-  X,
 } from "lucide-react";
 
 const FeaturedBanner = dynamic(() => import("./components/FeaturedBanner"), {
@@ -38,52 +35,25 @@ export default function ShopPage() {
   const [cocktails, setCocktails] = useState<CocktailWithPrice[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchInput, setSearchInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"lazy" | "pagination">(
     "pagination"
   );
   const supabase = createClient();
-  const hasFetchedRef = useRef(false);
 
   const PAGE_SIZE = 12;
-  const categoryFilters = [
-    { id: "classic", label: t("shop.filter_classic") },
-    { id: "tropical", label: t("shop.filter_tropical") },
-  ];
-  const typeFilters = [
-    { id: "non-alcoholic", label: t("shop.filter_non_alcoholic") },
-  ];
 
-  async function fetchCocktailsPage(
-    page: number,
-    append: boolean,
-    options: {
-      query?: string;
-      categories?: string[];
-      silent?: boolean;
-    } = {}
-  ) {
-    const query = options.query ?? searchQuery;
-    const categories = options.categories ?? activeCategories;
+  async function fetchCocktailsPage(page: number, append: boolean) {
     try {
       if (append) {
         setLoadingMore(true);
       } else {
         setError(null);
-        if (options.silent) {
-          setSearching(true);
-        } else {
-          setLoading(true);
-        }
+        setLoading(true);
       }
       // Intentar conectar con Supabase primero
-      const trimmedQuery = query.trim();
       let queryBuilder = supabase.from("cocktails").select(
         `
           id,
@@ -96,41 +66,6 @@ export default function ShopPage() {
         `,
         { count: "exact" }
       );
-
-      if (trimmedQuery) {
-        queryBuilder = queryBuilder.ilike("name", `%${trimmedQuery}%`);
-      }
-
-      if (categories.length > 0) {
-        const orFilters: string[] = [];
-        const keywordFilters = {
-          classic: ["classic", "martini", "negroni", "margarita"],
-          tropical: ["tropical", "tiki", "pina", "coconut", "colada"],
-        } satisfies Record<string, string[]>;
-
-        if (categories.includes("classic")) {
-          keywordFilters.classic.forEach(keyword => {
-            orFilters.push(`name.ilike.%${keyword}%`);
-            orFilters.push(`description.ilike.%${keyword}%`);
-          });
-        }
-
-        if (categories.includes("tropical")) {
-          keywordFilters.tropical.forEach(keyword => {
-            orFilters.push(`name.ilike.%${keyword}%`);
-            orFilters.push(`description.ilike.%${keyword}%`);
-          });
-        }
-
-        if (categories.includes("non-alcoholic")) {
-          orFilters.push("alcohol_percentage.eq.0");
-          orFilters.push("has_non_alcoholic_version.eq.true");
-        }
-
-        if (orFilters.length > 0) {
-          queryBuilder = queryBuilder.or(orFilters.join(","));
-        }
-      }
 
       const { data: cocktailRows, error, count } = await queryBuilder
         .eq("is_available", true)
@@ -294,43 +229,17 @@ export default function ShopPage() {
     } finally {
       setLoading(false);
       setLoadingMore(false);
-      setSearching(false);
     }
   }
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      setSearchQuery(searchInput.trim());
-    }, 300);
-
-    return () => {
-      window.clearTimeout(timeout);
-    };
-  }, [searchInput]);
-
-  useEffect(() => {
-    if (!hasFetchedRef.current) {
-      hasFetchedRef.current = true;
-      fetchCocktailsPage(1, false, { query: searchQuery });
-      return;
-    }
-
-    setCurrentPage(1);
-    setTotalCount(0);
-    fetchCocktailsPage(1, false, {
-      query: searchQuery,
-      categories: activeCategories,
-      silent: true,
-    });
-  }, [searchQuery, activeCategories]);
+    fetchCocktailsPage(1, false);
+  }, []);
 
   const handleRetry = () => {
     setCurrentPage(1);
     setCocktails([]);
-    fetchCocktailsPage(1, false, {
-      query: searchQuery,
-      categories: activeCategories,
-    });
+    fetchCocktailsPage(1, false);
   };
 
   const handleViewModeChange = (mode: "lazy" | "pagination") => {
@@ -338,10 +247,7 @@ export default function ShopPage() {
     setViewMode(mode);
     setCurrentPage(1);
     setCocktails([]);
-    fetchCocktailsPage(1, false, {
-      query: searchQuery,
-      categories: activeCategories,
-    });
+    fetchCocktailsPage(1, false);
   };
 
   const handleLoadMore = () => {
@@ -354,50 +260,8 @@ export default function ShopPage() {
   const handlePageChange = (page: number) => {
     if (page === currentPage || loading) return;
     setCurrentPage(page);
-    fetchCocktailsPage(page, false, {
-      query: searchQuery,
-      categories: activeCategories,
-    });
+    fetchCocktailsPage(page, false);
   };
-
-  const handleSearchClear = () => {
-    setSearchInput("");
-    setSearchQuery("");
-  };
-
-  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      setSearchQuery(searchInput.trim());
-    }
-    if (event.key === "Escape") {
-      event.preventDefault();
-      handleSearchClear();
-    }
-  };
-
-  const handleCategoryToggle = (category: string) => {
-    setActiveCategories(prev =>
-      prev.includes(category)
-        ? prev.filter(item => item !== category)
-        : [...prev, category]
-    );
-  };
-
-  const handleClearFilters = () => {
-    setActiveCategories([]);
-  };
-
-  const handleClearAll = () => {
-    setActiveCategories([]);
-    setSearchInput("");
-    setSearchQuery("");
-  };
-
-  const normalizedSearch = searchQuery.trim();
-  const hasSearch = normalizedSearch.length > 0;
-  const hasCategoryFilters = activeCategories.length > 0;
-  const hasActiveFilters = hasSearch || hasCategoryFilters;
 
   if (loading) {
     return (
@@ -445,31 +309,14 @@ export default function ShopPage() {
       >
         <div className="max-w-xl space-y-4">
           <h1 className="text-3xl font-[--font-unica] text-[#D8DAE3]">
-            {hasSearch
-              ? t("shop.search_empty_title")
-              : hasCategoryFilters
-                ? t("shop.filter_empty_title")
-                : t("shop.empty_title")}
+            {t("shop.empty_title")}
           </h1>
-          <p className="text-cosmic-silver">
-            {hasSearch
-              ? t("shop.search_empty_description", {
-                  query: normalizedSearch,
-                })
-              : hasCategoryFilters
-                ? t("shop.filter_empty_description")
-                : t("shop.empty_description")}
-          </p>
-          {hasSearch && (
-            <p className="text-sm text-cosmic-silver">
-              {t("shop.search_empty_hint")}
-            </p>
-          )}
+          <p className="text-cosmic-silver">{t("shop.empty_description")}</p>
           <button
-            onClick={hasActiveFilters ? handleClearAll : handleRetry}
+            onClick={handleRetry}
             className="inline-flex items-center justify-center px-5 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors"
           >
-            {hasActiveFilters ? t("shop.clear_filters") : t("common.retry")}
+            {t("common.retry")}
           </button>
         </div>
       </motion.section>
@@ -507,132 +354,41 @@ export default function ShopPage() {
         {/* Banner Principal */}
         <FeaturedBanner />
 
-        <div className="rounded-3xl border border-cosmic-gold/10 bg-white/5 px-6 py-8 text-sm text-cosmic-silver md:px-8">
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col items-center gap-4 md:flex-row md:items-center md:justify-between">
-              <h2 className="text-center text-2xl md:text-left md:text-3xl font-[--font-unica] text-cosmic-gold">
-                {t("shop.all_cocktails")}
-              </h2>
-              <div className="inline-flex items-center gap-2 rounded-full border border-cosmic-gold/20 bg-white/5 p-1">
-                <button
-                  type="button"
-                  onClick={() => handleViewModeChange("pagination")}
-                  aria-pressed={viewMode === "pagination"}
-                  title={t("shop.view_mode_pagination")}
-                  className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
-                    viewMode === "pagination"
-                      ? "bg-cosmic-gold text-black"
-                      : "text-cosmic-silver hover:text-white"
-                  }`}
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                  <span className="sr-only">
-                    {t("shop.view_mode_pagination")}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleViewModeChange("lazy")}
-                  aria-pressed={viewMode === "lazy"}
-                  title={t("shop.view_mode_lazy")}
-                  className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
-                    viewMode === "lazy"
-                      ? "bg-cosmic-gold text-black"
-                      : "text-cosmic-silver hover:text-white"
-                  }`}
-                >
-                  <Rows2 className="h-4 w-4" />
-                  <span className="sr-only">{t("shop.view_mode_lazy")}</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <div className="relative w-full">
-                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cosmic-silver" />
-                <input
-                  type="text"
-                  value={searchInput}
-                  onChange={event => setSearchInput(event.target.value)}
-                  onKeyDown={handleSearchKeyDown}
-                  placeholder={t("shop.search_placeholder")}
-                  aria-label={t("shop.search_label")}
-                  className="w-full rounded-full border border-cosmic-gold/20 bg-white/5 py-3 pl-11 pr-12 text-sm text-cosmic-silver placeholder:text-cosmic-silver/60 transition focus:border-cosmic-gold focus:outline-none focus:ring-2 focus:ring-cosmic-gold/20"
-                />
-                <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
-                  {searching && (
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-cosmic-gold border-t-transparent" />
-                  )}
-                  {searchInput.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={handleSearchClear}
-                      aria-label={t("shop.clear_search")}
-                      title={t("shop.clear_search")}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border border-cosmic-gold/20 text-cosmic-silver transition hover:border-cosmic-gold hover:text-white"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-cosmic-silver/70">
-                  <span className="text-[10px] text-cosmic-silver/50">
-                    {t("shop.filter_category")}
-                  </span>
-                  {categoryFilters.map(filter => {
-                    const isActive = activeCategories.includes(filter.id);
-                    return (
-                      <button
-                        key={filter.id}
-                        type="button"
-                        onClick={() => handleCategoryToggle(filter.id)}
-                        className={`rounded-full border px-3 py-1 transition ${
-                          isActive
-                            ? "border-cosmic-gold bg-cosmic-gold/20 text-white"
-                            : "border-cosmic-gold/20 text-cosmic-silver hover:border-cosmic-gold hover:text-white"
-                        }`}
-                      >
-                        {filter.label}
-                      </button>
-                    );
-                  })}
-
-                  <span className="text-[10px] text-cosmic-silver/50">
-                    {t("shop.filter_type")}
-                  </span>
-                  {typeFilters.map(filter => {
-                    const isActive = activeCategories.includes(filter.id);
-                    return (
-                      <button
-                        key={filter.id}
-                        type="button"
-                        onClick={() => handleCategoryToggle(filter.id)}
-                        className={`rounded-full border px-3 py-1 transition ${
-                          isActive
-                            ? "border-cosmic-gold bg-cosmic-gold/20 text-white"
-                            : "border-cosmic-gold/20 text-cosmic-silver hover:border-cosmic-gold hover:text-white"
-                        }`}
-                      >
-                        {filter.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {hasCategoryFilters && (
-                  <button
-                    type="button"
-                    onClick={handleClearFilters}
-                    className="self-start rounded-full border border-cosmic-gold/20 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-cosmic-silver transition hover:border-cosmic-gold hover:text-white md:self-auto"
-                  >
-                    {t("shop.clear_filters")}
-                  </button>
-                )}
-              </div>
-            </div>
+        <div className="flex flex-col items-center gap-4 text-sm text-cosmic-silver">
+          <h2 className="text-2xl md:text-3xl font-[--font-unica] text-cosmic-gold">
+            {t("shop.all_cocktails")}
+          </h2>
+          <div className="inline-flex items-center gap-2 rounded-full border border-cosmic-gold/20 bg-white/5 p-1">
+            <button
+              type="button"
+              onClick={() => handleViewModeChange("pagination")}
+              aria-pressed={viewMode === "pagination"}
+              title={t("shop.view_mode_pagination")}
+              className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
+                viewMode === "pagination"
+                  ? "bg-cosmic-gold text-black"
+                  : "text-cosmic-silver hover:text-white"
+              }`}
+            >
+              <LayoutGrid className="h-4 w-4" />
+              <span className="sr-only">
+                {t("shop.view_mode_pagination")}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleViewModeChange("lazy")}
+              aria-pressed={viewMode === "lazy"}
+              title={t("shop.view_mode_lazy")}
+              className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
+                viewMode === "lazy"
+                  ? "bg-cosmic-gold text-black"
+                  : "text-cosmic-silver hover:text-white"
+              }`}
+            >
+              <Rows2 className="h-4 w-4" />
+              <span className="sr-only">{t("shop.view_mode_lazy")}</span>
+            </button>
           </div>
         </div>
 
@@ -690,46 +446,40 @@ export default function ShopPage() {
               transition={{ duration: 0.3 }}
               layout
             >
-              {hasActiveFilters ? (
-                <CocktailGrid cocktails={cocktails} />
-              ) : (
-                <>
-                  {/* Sección Principal - Todos los Cócteles */}
-                  <CocktailRow
-                    title={t("shop.all_cocktails")}
-                    cocktails={cocktails}
-                    showTitle={false}
-                  />
+              {/* Sección Principal - Todos los Cócteles */}
+              <CocktailRow
+                title={t("shop.all_cocktails")}
+                cocktails={cocktails}
+                showTitle={false}
+              />
 
-                  {/* Secciones Agrupadas - Solo mostrar si hay cócteles */}
-                  {nonAlcoholicCocktails.length > 0 && (
-                    <CocktailRow
-                      title={t("shop.non_alcoholic")}
-                      cocktails={nonAlcoholicCocktails}
-                    />
-                  )}
+              {/* Secciones Agrupadas - Solo mostrar si hay cócteles */}
+              {nonAlcoholicCocktails.length > 0 && (
+                <CocktailRow
+                  title={t("shop.non_alcoholic")}
+                  cocktails={nonAlcoholicCocktails}
+                />
+              )}
 
-                  {strongCocktails.length > 0 && (
-                    <CocktailRow
-                      title={t("shop.strong_drinks")}
-                      cocktails={strongCocktails}
-                    />
-                  )}
+              {strongCocktails.length > 0 && (
+                <CocktailRow
+                  title={t("shop.strong_drinks")}
+                  cocktails={strongCocktails}
+                />
+              )}
 
-                  {lightCocktails.length > 0 && (
-                    <CocktailRow
-                      title={t("shop.light_fresh")}
-                      cocktails={lightCocktails}
-                    />
-                  )}
+              {lightCocktails.length > 0 && (
+                <CocktailRow
+                  title={t("shop.light_fresh")}
+                  cocktails={lightCocktails}
+                />
+              )}
 
-                  {tropicalCocktails.length > 0 && (
-                    <CocktailRow
-                      title={t("shop.tropical")}
-                      cocktails={tropicalCocktails}
-                    />
-                  )}
-                </>
+              {tropicalCocktails.length > 0 && (
+                <CocktailRow
+                  title={t("shop.tropical")}
+                  cocktails={tropicalCocktails}
+                />
               )}
 
               {hasMore && (
