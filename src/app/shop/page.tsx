@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ShopLoadingState from "./components/ShopLoadingState";
 import CocktailGrid from "./components/CocktailGrid";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
@@ -206,12 +207,25 @@ export default function ShopPage() {
   };
 
   if (loading) {
-    return <ShopLoadingState />;
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+      >
+        <ShopLoadingState />
+      </motion.div>
+    );
   }
 
   if (error) {
     return (
-      <section className="min-h-[60vh] flex items-center justify-center px-6 py-24 text-center">
+      <motion.section
+        className="min-h-[60vh] flex items-center justify-center px-6 py-24 text-center"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+      >
         <div className="max-w-xl space-y-4">
           <h1 className="text-3xl font-[--font-unica] text-[#D8DAE3]">
             {t("shop.error_title")}
@@ -224,13 +238,18 @@ export default function ShopPage() {
             {t("common.retry")}
           </button>
         </div>
-      </section>
+      </motion.section>
     );
   }
 
   if (cocktails.length === 0) {
     return (
-      <section className="min-h-[60vh] flex items-center justify-center px-6 py-24 text-center">
+      <motion.section
+        className="min-h-[60vh] flex items-center justify-center px-6 py-24 text-center"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+      >
         <div className="max-w-xl space-y-4">
           <h1 className="text-3xl font-[--font-unica] text-[#D8DAE3]">
             {t("shop.empty_title")}
@@ -243,7 +262,7 @@ export default function ShopPage() {
             {t("common.retry")}
           </button>
         </div>
-      </section>
+      </motion.section>
     );
   }
 
@@ -268,7 +287,12 @@ export default function ShopPage() {
   );
 
   return (
-    <section className="py-24 px-6">
+    <motion.section
+      className="py-24 px-6"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+    >
       <div className="max-w-7xl mx-auto space-y-20">
         {/* Banner Principal */}
         <FeaturedBanner />
@@ -337,105 +361,123 @@ export default function ShopPage() {
           </div>
         </div>
 
-        {viewMode === "pagination" ? (
-          <div className="space-y-8">
-            <h2 className="text-2xl md:text-3xl font-[--font-unica] text-cosmic-gold">
-              {t("shop.all_cocktails")}
-            </h2>
-            <CocktailGrid cocktails={cocktails} />
-          </div>
-        ) : (
-          <>
-            {/* Sección Principal - Todos los Cócteles */}
-            <CocktailRow
-              title={t("shop.all_cocktails")}
-              cocktails={cocktails}
-            />
-
-            {/* Secciones Agrupadas - Solo mostrar si hay cócteles */}
-            {nonAlcoholicCocktails.length > 0 && (
-              <CocktailRow
-                title={t("shop.non_alcoholic")}
-                cocktails={nonAlcoholicCocktails}
-              />
-            )}
-
-            {strongCocktails.length > 0 && (
-              <CocktailRow
-                title={t("shop.strong_drinks")}
-                cocktails={strongCocktails}
-              />
-            )}
-
-            {lightCocktails.length > 0 && (
-              <CocktailRow
-                title={t("shop.light_fresh")}
-                cocktails={lightCocktails}
-              />
-            )}
-
-            {tropicalCocktails.length > 0 && (
-              <CocktailRow
-                title={t("shop.tropical")}
-                cocktails={tropicalCocktails}
-              />
-            )}
-          </>
-        )}
-
-        {viewMode === "lazy" && hasMore && (
-          <div className="flex flex-col items-center gap-2">
-            <button
-              type="button"
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-              title={t("shop.load_more")}
-              aria-label={t("shop.load_more")}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        <AnimatePresence mode="wait">
+          {viewMode === "pagination" ? (
+            <motion.div
+              key="pagination"
+              className="space-y-8"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.3 }}
+              layout
             >
-              {loadingMore ? (
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              ) : (
-                <ChevronsDown className="h-5 w-5" />
+              <h2 className="text-2xl md:text-3xl font-[--font-unica] text-cosmic-gold">
+                {t("shop.all_cocktails")}
+              </h2>
+              <CocktailGrid cocktails={cocktails} />
+
+              {totalPages > 1 && (
+                <div className="flex flex-wrap items-center justify-center gap-6">
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1 || loading}
+                    title={t("shop.prev_page")}
+                    aria-label={t("shop.prev_page")}
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <span className="text-sm text-cosmic-silver">
+                    {t("shop.pagination_status", {
+                      current: currentPage,
+                      total: totalPages,
+                    })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages || loading}
+                    title={t("shop.next_page")}
+                    aria-label={t("shop.next_page")}
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </div>
               )}
-            </button>
-            <span className="text-xs uppercase tracking-[0.2em] text-cosmic-silver">
-              {loadingMore ? t("shop.loading_more") : t("shop.load_more")}
-            </span>
-          </div>
-        )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="lazy"
+              className="space-y-10"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.3 }}
+              layout
+            >
+              {/* Sección Principal - Todos los Cócteles */}
+              <CocktailRow
+                title={t("shop.all_cocktails")}
+                cocktails={cocktails}
+              />
 
-        {viewMode === "pagination" && totalPages > 1 && (
-          <div className="flex flex-wrap items-center justify-center gap-6">
-            <button
-              type="button"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1 || loading}
-              title={t("shop.prev_page")}
-              aria-label={t("shop.prev_page")}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <span className="text-sm text-cosmic-silver">
-              {t("shop.pagination_status", {
-                current: currentPage,
-                total: totalPages,
-              })}
-            </span>
-            <button
-              type="button"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages || loading}
-              title={t("shop.next_page")}
-              aria-label={t("shop.next_page")}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </div>
-        )}
+              {/* Secciones Agrupadas - Solo mostrar si hay cócteles */}
+              {nonAlcoholicCocktails.length > 0 && (
+                <CocktailRow
+                  title={t("shop.non_alcoholic")}
+                  cocktails={nonAlcoholicCocktails}
+                />
+              )}
+
+              {strongCocktails.length > 0 && (
+                <CocktailRow
+                  title={t("shop.strong_drinks")}
+                  cocktails={strongCocktails}
+                />
+              )}
+
+              {lightCocktails.length > 0 && (
+                <CocktailRow
+                  title={t("shop.light_fresh")}
+                  cocktails={lightCocktails}
+                />
+              )}
+
+              {tropicalCocktails.length > 0 && (
+                <CocktailRow
+                  title={t("shop.tropical")}
+                  cocktails={tropicalCocktails}
+                />
+              )}
+
+              {hasMore && (
+                <div className="flex flex-col items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    title={t("shop.load_more")}
+                    aria-label={t("shop.load_more")}
+                    className="flex h-12 w-12 items-center justify-center rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {loadingMore ? (
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    ) : (
+                      <ChevronsDown className="h-5 w-5" />
+                    )}
+                  </button>
+                  <span className="text-xs uppercase tracking-[0.2em] text-cosmic-silver">
+                    {loadingMore ? t("shop.loading_more") : t("shop.load_more")}
+                  </span>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </section>
+    </motion.section>
   );
 }

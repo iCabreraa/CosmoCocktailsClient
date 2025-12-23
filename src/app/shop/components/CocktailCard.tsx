@@ -10,6 +10,8 @@ interface CocktailCardProps {
 }
 
 export default function CocktailCard({ cocktail }: CocktailCardProps) {
+  const imageSrc = cocktail.image_url || "/images/placeholder.webp";
+
   return (
     <Link href={`/shop/${cocktail.id}`} className="group relative">
       <motion.div
@@ -19,29 +21,26 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
       >
         {/* Imagen del cóctel con efecto cortina */}
         <div className="relative w-full h-64 rounded-xl overflow-hidden mb-6 group">
-          <Image
-            src="/images/hero-bg.webp"
-            alt=""
-            fill
-            className="object-cover"
-          />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-slate-950/90" />
           <div className="absolute inset-0 flex">
-            <div
-              className="w-1/2 h-full bg-cover bg-center origin-right transition-transform duration-500 group-hover:-translate-x-full"
-              style={{
-                backgroundImage: `url(${
-                  cocktail.image_url || "/images/placeholder.webp"
-                })`,
-              }}
-            />
-            <div
-              className="w-1/2 h-full bg-cover bg-center origin-left transition-transform duration-500 group-hover:translate-x-full"
-              style={{
-                backgroundImage: `url(${
-                  cocktail.image_url || "/images/placeholder.webp"
-                })`,
-              }}
-            />
+            <div className="relative w-1/2 h-full origin-right transition-transform duration-500 group-hover:-translate-x-full">
+              <Image
+                src={imageSrc}
+                alt={cocktail.name}
+                fill
+                className="object-cover"
+                style={{ objectPosition: "left center" }}
+              />
+            </div>
+            <div className="relative w-1/2 h-full origin-left transition-transform duration-500 group-hover:translate-x-full">
+              <Image
+                src={imageSrc}
+                alt={cocktail.name}
+                fill
+                className="object-cover"
+                style={{ objectPosition: "right center" }}
+              />
+            </div>
           </div>
         </div>
 
