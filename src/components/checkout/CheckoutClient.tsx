@@ -15,6 +15,7 @@ import Link from "next/link";
 import AddressForm from "./AddressForm";
 import InventoryValidation from "./InventoryValidation";
 import StripePaymentComplete from "./StripePaymentComplete";
+import PrivacyModal from "@/components/privacy/PrivacyModal";
 import { Address } from "@/types/shared";
 import { useClientData } from "@/hooks/useClientData";
 import { useAuthUnified } from "@/hooks/useAuthUnified";
@@ -54,6 +55,7 @@ export default function CheckoutClient() {
     isDefault: true,
   });
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inventoryValid, setInventoryValid] = useState(true);
   const [unavailableItems, setUnavailableItems] = useState<string[]>([]);
@@ -394,12 +396,13 @@ export default function CheckoutClient() {
                   />
                   <span>
                     {t("checkout.privacy_consent_prefix")}{" "}
-                    <Link
-                      href="/privacy"
+                    <button
+                      type="button"
+                      onClick={() => setIsPrivacyOpen(true)}
                       className="text-cosmic-gold hover:text-cosmic-gold/80 underline"
                     >
                       {t("checkout.privacy_policy")}
-                    </Link>
+                    </button>
                     {t("checkout.privacy_consent_suffix")}
                   </span>
                 </label>
@@ -532,6 +535,11 @@ export default function CheckoutClient() {
           </div>
         </div>
       </div>
+
+      <PrivacyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
     </main>
   );
 }

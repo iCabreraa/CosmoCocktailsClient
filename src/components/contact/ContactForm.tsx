@@ -11,9 +11,9 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useContactFormValidation } from "@/hooks/useValidation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import PrivacyModal from "@/components/privacy/PrivacyModal";
 import {
   Form,
   FormField,
@@ -45,6 +45,7 @@ export default function ContactForm() {
     type: "success" | "error" | null;
     message: string;
   }>({ type: null, message: "" });
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   const consentError = errors.find(
     err => err.field === "privacy_consent"
@@ -229,12 +230,13 @@ export default function ContactForm() {
             />
             <span>
               {t("contact.form.privacy_consent_prefix")}{" "}
-              <Link
-                href="/privacy"
+              <button
+                type="button"
+                onClick={() => setIsPrivacyOpen(true)}
                 className="text-sky-300 hover:text-sky-200 underline"
               >
                 {t("contact.form.privacy_policy")}
-              </Link>
+              </button>
               {t("contact.form.privacy_consent_suffix")}
             </span>
           </label>
@@ -277,6 +279,11 @@ export default function ContactForm() {
           </div>
         </div>
       </Form>
+
+      <PrivacyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
     </div>
   );
 }
