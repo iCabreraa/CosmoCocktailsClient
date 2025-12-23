@@ -32,7 +32,7 @@ export default function ShopPage() {
       setLoading(true);
       setError(null);
       // Intentar conectar con Supabase primero
-      const { data: cocktails, error } = await supabase
+      const { data: cocktailRows, error } = await supabase
         .from("cocktails")
         .select(
           `
@@ -51,50 +51,64 @@ export default function ShopPage() {
         throw error;
       }
 
-      if (!cocktails || cocktails.length === 0) {
+      const typedCocktails = (cocktailRows ?? []) as Array<{
+        id: string;
+        name: string;
+        description: string | null;
+        image_url: string | null;
+        alcohol_percentage: number;
+        has_non_alcoholic_version: boolean;
+      }>;
+
+      if (typedCocktails.length === 0) {
         setCocktails([]);
         return;
       }
 
-      // Si hay datos en Supabase, procesarlos normalmente
-      const cocktailsWithPrices = await Promise.all(
-        cocktails.map(async (cocktail: any) => {
-          const { data: sizes, error: sizeError } = await (supabase as any)
-            .from("cocktail_sizes")
-            .select("id, price")
-            .eq("cocktail_id", cocktail.id)
-            .eq("available", true);
+      const cocktailIds = typedCocktails.map(cocktail => cocktail.id);
+      const { data: sizes, error: sizeError } = await (supabase as any)
+        .from("cocktail_sizes")
+        .select("id, price, cocktail_id")
+        .eq("available", true)
+        .in("cocktail_id", cocktailIds);
 
-          if (sizeError) console.error(sizeError);
+      if (sizeError) {
+        console.error(sizeError);
+      }
 
-          const typedSizes = sizes as Array<{
-            id: string;
-            price: number;
-          }> | null;
-          const minPrice =
-            typedSizes && typedSizes.length > 0
-              ? Math.min(...typedSizes.map(s => s.price))
-              : null;
+      const priceByCocktail = new Map<
+        string,
+        { minPrice: number | null; minSizeId: string | null }
+      >();
 
-          const minSizeId =
-            typedSizes && typedSizes.length > 0
-              ? typedSizes.reduce((prev, curr) =>
-                  curr.price < prev.price ? curr : prev
-                ).id
-              : null;
+      (sizes as Array<{
+        id: string;
+        price: number;
+        cocktail_id: string;
+      }> | null)?.forEach(size => {
+        const current = priceByCocktail.get(size.cocktail_id);
+        if (!current || current.minPrice === null || size.price < current.minPrice) {
+          priceByCocktail.set(size.cocktail_id, {
+            minPrice: size.price,
+            minSizeId: size.id,
+          });
+        }
+      });
 
-          return {
-            id: cocktail.id,
-            name: cocktail.name,
-            description: cocktail.description,
-            image_url: cocktail.image_url,
-            min_price: minPrice,
-            min_size_id: minSizeId,
-            alcohol_percentage: cocktail.alcohol_percentage,
-            has_non_alcoholic_version: cocktail.has_non_alcoholic_version,
-          };
-        })
-      );
+      const cocktailsWithPrices = typedCocktails.map(cocktail => {
+        const price = priceByCocktail.get(cocktail.id);
+
+        return {
+          id: cocktail.id,
+          name: cocktail.name,
+          description: cocktail.description,
+          image_url: cocktail.image_url,
+          min_price: price?.minPrice ?? null,
+          min_size_id: price?.minSizeId ?? null,
+          alcohol_percentage: cocktail.alcohol_percentage,
+          has_non_alcoholic_version: cocktail.has_non_alcoholic_version,
+        };
+      });
 
       setCocktails(cocktailsWithPrices);
     } catch (err) {
