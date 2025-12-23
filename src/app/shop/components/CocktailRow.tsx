@@ -11,9 +11,14 @@ import { useLanguage } from "@/contexts/LanguageContext";
 type CocktailRowProps = {
   title: string;
   cocktails: CocktailWithPrice[];
+  showTitle?: boolean;
 };
 
-export default function CocktailRow({ title, cocktails }: CocktailRowProps) {
+export default function CocktailRow({
+  title,
+  cocktails,
+  showTitle = true,
+}: CocktailRowProps) {
   const { t } = useLanguage();
 
   if (cocktails.length < 2) return null;
@@ -35,9 +40,11 @@ export default function CocktailRow({ title, cocktails }: CocktailRowProps) {
   return (
     <section className="py-12">
       <div className="max-w-7xl mx-auto px-6">
-        <h2 className="text-2xl md:text-3xl font-[--font-unica] text-cosmic-gold mb-6">
-          {title}
-        </h2>
+        {showTitle && (
+          <h2 className="text-2xl md:text-3xl font-[--font-unica] text-cosmic-gold mb-6">
+            {title}
+          </h2>
+        )}
 
         <div className="flex overflow-x-auto gap-6 pb-6 snap-x snap-mandatory scrollbar-hide px-4 py-2">
           {cocktails.map(cocktail => (
