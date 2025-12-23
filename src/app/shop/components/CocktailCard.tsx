@@ -71,19 +71,19 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
           </div>
           {cocktail.sizes && cocktail.sizes.length > 0 && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-              <div className="pointer-events-auto w-[80%] max-w-[260px] rounded-2xl border border-cosmic-gold/40 bg-black/60 backdrop-blur px-4 py-3">
+              <div className="pointer-events-auto w-[82%] max-w-[280px] rounded-2xl border border-cosmic-gold/30 bg-black/55 backdrop-blur-xl px-4 py-3 shadow-[0_0_24px_rgba(219,184,99,0.18)]">
                 <div className="grid grid-cols-2 gap-2">
                   {cocktail.sizes.map(size => (
                     <button
                       key={size.id}
                       type="button"
                       onClick={event => handleAddToCart(event, size)}
-                      className="flex items-center justify-between gap-2 rounded-full border border-cosmic-gold/40 px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-cosmic-silver hover:border-cosmic-gold hover:text-white transition"
+                      className="group/button flex items-center justify-between gap-2 rounded-full border border-cosmic-gold/30 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-cosmic-silver transition hover:border-cosmic-gold hover:bg-cosmic-gold/10 hover:text-white"
                     >
                       <span className="truncate">
                         {size.size_name ?? `${size.volume_ml ?? 0}ml`}
                       </span>
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 text-cosmic-gold group-hover/button:text-white">
                         €{size.price.toFixed(2)}
                         <Plus className="h-3 w-3" />
                       </span>
@@ -103,11 +103,6 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
               <p className="text-cosmic-silver text-sm mb-2 line-clamp-2">
                 {cocktail.description}
               </p>
-              {cocktail.min_price !== null && (
-                <span className="text-cosmic-silver text-xs italic">
-                  from €{cocktail.min_price}
-                </span>
-              )}
             </div>
 
       </motion.div>
