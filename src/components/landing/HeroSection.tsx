@@ -8,6 +8,24 @@ import { translations } from "@/i18n/translations";
 
 export default function HeroSection() {
   const { t, isInitialized, language } = useLanguage();
+  const handleScroll = () => {
+    const nextSection = document.getElementById("how-it-works");
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    const behavior: ScrollBehavior = prefersReducedMotion ? "auto" : "smooth";
+
+    if (nextSection) {
+      try {
+        nextSection.scrollIntoView({ behavior, block: "start" });
+      } catch {
+        window.scrollTo({ top: nextSection.offsetTop, behavior });
+      }
+      return;
+    }
+
+    window.scrollTo({ top: window.innerHeight, behavior });
+  };
 
   if (!isInitialized) {
     return (
@@ -99,42 +117,7 @@ export default function HeroSection() {
         className="absolute bottom-6 md:bottom-10 text-cosmic-gold animate-bounce-slow"
       >
         <button
-          onClick={() => {
-            const nextSection = document.getElementById("how-it-works");
-            if (nextSection) {
-              // Smooth scroll with custom easing
-              const startPosition = window.pageYOffset;
-              const targetPosition = nextSection.offsetTop;
-              const distance = targetPosition - startPosition;
-              const duration = 1200; // 1.2 seconds for smooth animation
-              let startTime: number | null = null;
-
-              // Easing function: easeInOutCubic (slow start, fast middle, slow end)
-              const easeInOutCubic = (t: number): number => {
-                return t < 0.5
-                  ? 4 * t * t * t
-                  : 1 - Math.pow(-2 * t + 2, 3) / 2;
-              };
-
-              const animateScroll = (currentTime: number) => {
-                if (startTime === null) startTime = currentTime;
-                const timeElapsed = currentTime - startTime;
-                const progress = Math.min(timeElapsed / duration, 1);
-
-                const easedProgress = easeInOutCubic(progress);
-                const currentPosition =
-                  startPosition + distance * easedProgress;
-
-                window.scrollTo(0, currentPosition);
-
-                if (progress < 1) {
-                  requestAnimationFrame(animateScroll);
-                }
-              };
-
-              requestAnimationFrame(animateScroll);
-            }
-          }}
+          onClick={handleScroll}
           className="hover:text-white transition-colors duration-300 cursor-pointer"
           aria-label="Scroll to next section"
         >
