@@ -29,7 +29,11 @@ const nl = {
     "no_sizes_available": "Geen maten beschikbaar",
     "view_details": "Bekijk Details",
     "explore_now": "Nu verkennen",
-    "loading": "Cocktails laden..."
+    "loading": "Cocktails laden...",
+    "error_title": "We konden de shop niet laden",
+    "error_description": "Probeer het over een moment opnieuw.",
+    "empty_title": "Geen cocktails beschikbaar",
+    "empty_description": "Er zijn momenteel geen cocktails om te tonen."
   },
   "sizes": {
     "small_bottle": "Kleine fles",

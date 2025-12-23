@@ -24,10 +24,13 @@ export default function ShopPage() {
   const { t } = useLanguage();
   const [cocktails, setCocktails] = useState<CocktailWithPrice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
   async function fetchCocktails() {
     try {
+      setLoading(true);
+      setError(null);
       // Intentar conectar con Supabase primero
       const { data: cocktails, error } = await supabase
         .from("cocktails")
@@ -45,60 +48,11 @@ export default function ShopPage() {
         .eq("is_available", true);
 
       if (error) {
-        console.warn("Error conectando con Supabase:", error.message);
         throw error;
       }
 
       if (!cocktails || cocktails.length === 0) {
-        console.warn("No cocktails found in database, using mock data");
-        // Usar datos de ejemplo si no hay datos en Supabase
-        const mockCocktails: CocktailWithPrice[] = [
-          {
-            id: "1",
-            name: "Sex on the Beach",
-            description:
-              "A tropical blend of vodka, peach schnapps, cranberry juice, and orange juice.",
-            image_url: "/images/cocktailsImages/sex-on-the-beach.webp",
-            min_price: 12.99,
-            min_size_id: "1",
-            alcohol_percentage: 15,
-            has_non_alcoholic_version: true,
-          },
-          {
-            id: "2",
-            name: "Pornstar Martini",
-            description:
-              "A modern classic with vanilla vodka, passion fruit, and prosecco.",
-            image_url: "/images/cocktailsImages/pornstar-martini.webp",
-            min_price: 14.99,
-            min_size_id: "2",
-            alcohol_percentage: 18,
-            has_non_alcoholic_version: true,
-          },
-          {
-            id: "3",
-            name: "Piña Colada",
-            description:
-              "A tropical delight with rum, coconut cream, and pineapple juice.",
-            image_url: "/images/cocktailsImages/pina-colada.webp",
-            min_price: 11.99,
-            min_size_id: "3",
-            alcohol_percentage: 12,
-            has_non_alcoholic_version: true,
-          },
-          {
-            id: "4",
-            name: "Gin and Tonic",
-            description:
-              "A classic refreshing cocktail with gin and tonic water.",
-            image_url: "/images/cocktailsImages/gin-and-tonic.webp",
-            min_price: 9.99,
-            min_size_id: "4",
-            alcohol_percentage: 14,
-            has_non_alcoholic_version: true,
-          },
-        ];
-        setCocktails(mockCocktails);
+        setCocktails([]);
         return;
       }
 
@@ -144,55 +98,10 @@ export default function ShopPage() {
 
       setCocktails(cocktailsWithPrices);
     } catch (err) {
-      console.error("Error fetching cocktails:", err);
-      // En caso de error, usar datos de ejemplo
-      const mockCocktails: CocktailWithPrice[] = [
-        {
-          id: "1",
-          name: "Sex on the Beach",
-          description:
-            "A tropical blend of vodka, peach schnapps, cranberry juice, and orange juice.",
-          image_url: "/images/cocktailsImages/sex-on-the-beach.webp",
-          min_price: 12.99,
-          min_size_id: "1",
-          alcohol_percentage: 15,
-          has_non_alcoholic_version: true,
-        },
-        {
-          id: "2",
-          name: "Pornstar Martini",
-          description:
-            "A modern classic with vanilla vodka, passion fruit, and prosecco.",
-          image_url: "/images/cocktailsImages/pornstar-martini.webp",
-          min_price: 14.99,
-          min_size_id: "2",
-          alcohol_percentage: 18,
-          has_non_alcoholic_version: true,
-        },
-        {
-          id: "3",
-          name: "Piña Colada",
-          description:
-            "A tropical delight with rum, coconut cream, and pineapple juice.",
-          image_url: "/images/cocktailsImages/pina-colada.webp",
-          min_price: 11.99,
-          min_size_id: "3",
-          alcohol_percentage: 12,
-          has_non_alcoholic_version: true,
-        },
-        {
-          id: "4",
-          name: "Gin and Tonic",
-          description:
-            "A classic refreshing cocktail with gin and tonic water.",
-          image_url: "/images/cocktailsImages/gin-and-tonic.webp",
-          min_price: 9.99,
-          min_size_id: "4",
-          alcohol_percentage: 14,
-          has_non_alcoholic_version: true,
-        },
-      ];
-      setCocktails(mockCocktails);
+      setError(
+        err instanceof Error ? err.message : t("shop.error_description")
+      );
+      setCocktails([]);
     } finally {
       setLoading(false);
     }
@@ -210,6 +119,44 @@ export default function ShopPage() {
           {t("shop.loading")}
         </p>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="min-h-[60vh] flex items-center justify-center px-6 py-24 text-center">
+        <div className="max-w-xl space-y-4">
+          <h1 className="text-3xl font-[--font-unica] text-[#D8DAE3]">
+            {t("shop.error_title")}
+          </h1>
+          <p className="text-cosmic-silver">{t("shop.error_description")}</p>
+          <button
+            onClick={fetchCocktails}
+            className="inline-flex items-center justify-center px-5 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors"
+          >
+            {t("common.retry")}
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  if (cocktails.length === 0) {
+    return (
+      <section className="min-h-[60vh] flex items-center justify-center px-6 py-24 text-center">
+        <div className="max-w-xl space-y-4">
+          <h1 className="text-3xl font-[--font-unica] text-[#D8DAE3]">
+            {t("shop.empty_title")}
+          </h1>
+          <p className="text-cosmic-silver">{t("shop.empty_description")}</p>
+          <button
+            onClick={fetchCocktails}
+            className="inline-flex items-center justify-center px-5 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors"
+          >
+            {t("common.retry")}
+          </button>
+        </div>
+      </section>
     );
   }
 

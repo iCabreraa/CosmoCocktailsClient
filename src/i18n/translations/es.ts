@@ -29,7 +29,11 @@ const es = {
     "no_sizes_available": "No hay tamaños disponibles",
     "view_details": "Ver Detalles",
     "explore_now": "Explorar ahora",
-    "loading": "Cargando cócteles..."
+    "loading": "Cargando cócteles...",
+    "error_title": "No pudimos cargar la tienda",
+    "error_description": "Por favor, inténtalo de nuevo en unos segundos.",
+    "empty_title": "No hay cócteles disponibles",
+    "empty_description": "Ahora mismo no hay cócteles para mostrar."
   },
   "sizes": {
     "small_bottle": "Botella pequeña",
