@@ -92,8 +92,7 @@ export default function ShopPage() {
           image_url,
           is_available,
           alcohol_percentage,
-          has_non_alcoholic_version,
-          tags
+          has_non_alcoholic_version
         `,
         { count: "exact" }
       );
@@ -104,14 +103,28 @@ export default function ShopPage() {
 
       if (categories.length > 0) {
         const orFilters: string[] = [];
+        const keywordFilters = {
+          classic: ["classic", "martini", "negroni", "margarita"],
+          tropical: ["tropical", "tiki", "pina", "coconut", "colada"],
+        } satisfies Record<string, string[]>;
+
         if (categories.includes("classic")) {
-          orFilters.push("tags.cs.{classic}");
+          keywordFilters.classic.forEach(keyword => {
+            orFilters.push(`name.ilike.%${keyword}%`);
+            orFilters.push(`description.ilike.%${keyword}%`);
+          });
         }
+
         if (categories.includes("tropical")) {
-          orFilters.push("tags.cs.{tropical}");
+          keywordFilters.tropical.forEach(keyword => {
+            orFilters.push(`name.ilike.%${keyword}%`);
+            orFilters.push(`description.ilike.%${keyword}%`);
+          });
         }
+
         if (categories.includes("non-alcoholic")) {
           orFilters.push("alcohol_percentage.eq.0");
+          orFilters.push("has_non_alcoholic_version.eq.true");
         }
 
         if (orFilters.length > 0) {
@@ -139,7 +152,6 @@ export default function ShopPage() {
         image_url: string | null;
         alcohol_percentage: number;
         has_non_alcoholic_version: boolean;
-        tags?: string[] | null;
       }>;
 
       if (typedCocktails.length === 0) {
@@ -253,7 +265,6 @@ export default function ShopPage() {
           alcohol_percentage: cocktail.alcohol_percentage,
           has_non_alcoholic_version: cocktail.has_non_alcoholic_version,
           sizes: sizeOptions,
-          tags: cocktail.tags ?? undefined,
         };
       });
 
