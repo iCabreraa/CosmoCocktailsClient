@@ -261,6 +261,9 @@ const nl = {
       "message": "Bericht",
       "message_placeholder": "Vertel ons meer details over je vraag...",
       "message_help": "Minimaal 10 karakters. Wees specifiek om ons beter te kunnen helpen.",
+      "privacy_consent_prefix": "Ik heb de",
+      "privacy_policy": "privacyverklaring",
+      "privacy_consent_suffix": " gelezen en geaccepteerd.",
       "send": "Bericht verzenden",
       "sending": "Verzenden...",
       "clear": "Formulier wissen",
@@ -268,8 +271,16 @@ const nl = {
       "response_time": "Reactietijd: 24-48 uur",
       "attention_hours": "Openingstijden: Maandag tot vrijdag, 9:00-18:00",
       "urgent_orders": "Voor urgente bestellingen, bel +34 123 456 789",
-      "technical_support": "Technische ondersteuning: soporte@cosmococktails.com"
+    "technical_support": "Technische ondersteuning: soporte@cosmococktails.com"
     }
+  },
+  "privacy": {
+    "title": "Privacyverklaring",
+    "intro": "Je privacy is belangrijk voor ons. We verzamelen en gebruiken persoonsgegevens alleen om bestellingen te verwerken en je vragen te beantwoorden.",
+    "data_usage": "We gebruiken je contact- en bestelgegevens voor levering, ondersteuning en fraudepreventie.",
+    "data_sharing": "We delen gegevens alleen met betrouwbare partners die nodig zijn voor de dienst, zoals betalings- en verzendproviders.",
+    "rights": "Je kunt op elk moment toegang, correctie of verwijdering van je gegevens aanvragen.",
+    "contact": "Heb je vragen? Neem contact op via"
   },
   "checkout": {
     "title": "Afrekenen",
@@ -287,6 +298,10 @@ const nl = {
     "phone_placeholder": "+34 123 456 789",
     "shipping_address": "Verzendadres",
     "payment_info": "Betalingsinformatie",
+    "privacy_consent_prefix": "Ik heb de",
+    "privacy_policy": "privacyverklaring",
+    "privacy_consent_suffix": " gelezen en geaccepteerd.",
+    "privacy_consent_required": "Accepteer de privacyverklaring om verder te gaan.",
     "preparing_payment": "Veilige betaling voorbereiden...",
     "products_unavailable": "Sommige producten zijn niet beschikbaar. Controleer je winkelwagen.",
     "select_address": "Selecteer een verzendadres.",

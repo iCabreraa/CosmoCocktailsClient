@@ -220,6 +220,9 @@ const es = {
       "message": "Mensaje",
       "message_placeholder": "Escribe tu mensaje aquí...",
       "message_help": "Proporciona todos los detalles necesarios",
+      "privacy_consent_prefix": "He leído y acepto la",
+      "privacy_policy": "política de privacidad",
+      "privacy_consent_suffix": ".",
       "send": "Enviar Mensaje",
       "sending": "Enviando...",
       "clear": "Limpiar Formulario",
@@ -268,6 +271,14 @@ const es = {
     "card3_title": "Fiesta Galáctica de Año Nuevo",
     "card3_description": "Despide el año entre las estrellas con cócteles cósmicos y sorpresas."
   },
+  "privacy": {
+    "title": "Política de Privacidad",
+    "intro": "Tu privacidad es importante para nosotros. Solo recopilamos datos personales para procesar pedidos y responder a tus consultas.",
+    "data_usage": "Usamos tus datos de contacto y pedido para entregar productos, ofrecer soporte y prevenir fraudes.",
+    "data_sharing": "Solo compartimos datos con proveedores de confianza necesarios para el servicio, como pagos y envíos.",
+    "rights": "Puedes solicitar acceso, corrección o eliminación de tus datos en cualquier momento.",
+    "contact": "Si tienes dudas, contáctanos en"
+  },
   "checkout": {
     "title": "Finalizar Compra",
     "subtitle": "Completa tu pedido de forma segura",
@@ -284,6 +295,10 @@ const es = {
     "phone_placeholder": "+34 123 456 789",
     "shipping_address": "Dirección de Envío",
     "payment_info": "Información de Pago",
+    "privacy_consent_prefix": "He leído y acepto la",
+    "privacy_policy": "política de privacidad",
+    "privacy_consent_suffix": ".",
+    "privacy_consent_required": "Debes aceptar la política de privacidad para continuar.",
     "preparing_payment": "Preparando pago seguro...",
     "products_unavailable": "Algunos productos no están disponibles. Revisa tu carrito.",
     "select_address": "Por favor, selecciona una dirección de envío.",

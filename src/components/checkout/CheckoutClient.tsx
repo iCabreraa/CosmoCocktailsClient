@@ -53,6 +53,7 @@ export default function CheckoutClient() {
     phone: "+34 123 456 789",
     isDefault: true,
   });
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inventoryValid, setInventoryValid] = useState(true);
   const [unavailableItems, setUnavailableItems] = useState<string[]>([]);
@@ -195,6 +196,7 @@ export default function CheckoutClient() {
       selectedAddress: !!selectedAddress,
       formName: !!form.name,
       formEmail: !!form.email,
+      privacyAccepted,
       clientSecret: !!clientSecret,
     });
 
@@ -203,6 +205,7 @@ export default function CheckoutClient() {
       selectedAddress &&
       form.name &&
       form.email &&
+      privacyAccepted &&
       !clientSecret
     ) {
       console.log("🚀 Creating payment intent...");
@@ -217,12 +220,21 @@ export default function CheckoutClient() {
               ? "no name provided"
               : !form.email
                 ? "no email provided"
+                : !privacyAccepted
+                  ? "privacy consent not accepted"
                 : clientSecret
                   ? "already has client secret"
                   : "unknown",
       });
     }
-  }, [inventoryValid, selectedAddress, form.name, form.email, clientSecret]);
+  }, [
+    inventoryValid,
+    selectedAddress,
+    form.name,
+    form.email,
+    privacyAccepted,
+    clientSecret,
+  ]);
 
   const handleInventoryValidation = (
     isValid: boolean,
@@ -372,6 +384,32 @@ export default function CheckoutClient() {
                 {t("checkout.payment_info")}
               </h2>
 
+              <div className="mb-4 space-y-2">
+                <label className="flex items-start gap-2 text-sm text-cosmic-fog">
+                  <input
+                    type="checkbox"
+                    checked={privacyAccepted}
+                    onChange={e => setPrivacyAccepted(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-cosmic-fog/50 bg-transparent text-cosmic-gold focus:ring-cosmic-gold"
+                  />
+                  <span>
+                    {t("checkout.privacy_consent_prefix")}{" "}
+                    <Link
+                      href="/privacy"
+                      className="text-cosmic-gold hover:text-cosmic-gold/80 underline"
+                    >
+                      {t("checkout.privacy_policy")}
+                    </Link>
+                    {t("checkout.privacy_consent_suffix")}
+                  </span>
+                </label>
+                {!privacyAccepted && (
+                  <p className="text-sm text-red-400">
+                    {t("checkout.privacy_consent_required")}
+                  </p>
+                )}
+              </div>
+
               {paymentError && (
                 <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 mb-4">
                   <AlertTriangle className="w-4 h-4" />
@@ -379,7 +417,7 @@ export default function CheckoutClient() {
                 </div>
               )}
 
-              {clientSecret ? (
+              {clientSecret && privacyAccepted ? (
                 <StripePaymentComplete
                   clientSecret={clientSecret}
                   items={items}
@@ -393,7 +431,9 @@ export default function CheckoutClient() {
                 <div className="bg-cosmic-fog/10 rounded-lg p-4 text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cosmic-gold mx-auto mb-2"></div>
                   <p className="text-cosmic-fog text-sm">
-                    {t("checkout.preparing_payment")}
+                    {privacyAccepted
+                      ? t("checkout.preparing_payment")
+                      : t("checkout.privacy_consent_required")}
                   </p>
                 </div>
               )}
