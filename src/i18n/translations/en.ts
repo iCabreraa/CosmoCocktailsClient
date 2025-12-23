@@ -29,7 +29,11 @@ const en = {
     "no_sizes_available": "No sizes available",
     "view_details": "View Details",
     "explore_now": "Explore now",
-    "loading": "Loading cocktails..."
+    "loading": "Loading cocktails...",
+    "error_title": "We couldn't load the shop",
+    "error_description": "Please try again in a moment.",
+    "empty_title": "No cocktails available",
+    "empty_description": "There are no cocktails to show right now."
   },
   "sizes": {
     "small_bottle": "Small bottle",
