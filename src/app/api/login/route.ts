@@ -10,6 +10,7 @@ import {
   validateRequestBody,
   createValidationErrorResponse,
 } from "@/lib/validation";
+import { getAuthCookieOptions } from "@/lib/security/cookies";
 
 export async function POST(request: NextRequest) {
   try {
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
         expiresIn: "1h",
       }
     );
-    cookies().set("token", token, { httpOnly: true, sameSite: "lax" });
+    cookies().set("token", token, getAuthCookieOptions());
     const { password: _pw, ...safeUser } = user as any;
     return NextResponse.json({ user: safeUser });
   } catch (err) {
