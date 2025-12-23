@@ -6,7 +6,10 @@ import HeroSection from "@/components/landing/HeroSection";
 const HowItWorks = dynamic(() => import("@/components/landing/HowItWorks"), {
   ssr: true,
   loading: () => (
-    <div className="h-64 md:h-80 w-full animate-pulse bg-cosmic-silver/10 rounded-xl" />
+    <div
+      id="how-it-works"
+      className="h-64 md:h-80 w-full animate-pulse bg-cosmic-silver/10 rounded-xl"
+    />
   ),
 });
 
