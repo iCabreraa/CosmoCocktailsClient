@@ -10,6 +10,7 @@ import {
   HiOutlineEye,
 } from "react-icons/hi2";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Image from "next/image";
 
 interface FavoriteCocktail {
   id: string;
@@ -122,10 +123,12 @@ export default function UserFavorites() {
             >
               {/* Image */}
               <div className="relative h-48 bg-gray-200">
-                <img
+                <Image
                   src={cocktail.image_url}
                   alt={cocktail.name}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover"
                 />
                 <div className="absolute top-4 right-4">
                   <button

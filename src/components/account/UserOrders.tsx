@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import Image from "next/image";
 import {
   HiOutlineShoppingBag,
   HiOutlineClock,
@@ -205,12 +206,14 @@ export default function UserOrders() {
                     {order.items.slice(0, 3).map((item, index) => (
                       <div
                         key={index}
-                        className="w-10 h-10 rounded-full border-2 border-white overflow-hidden"
+                        className="relative w-10 h-10 rounded-full border-2 border-white overflow-hidden"
                       >
-                        <img
+                        <Image
                           src={item.image_url}
                           alt={item.cocktail_name}
-                          className="w-full h-full object-cover"
+                          fill
+                          sizes="40px"
+                          className="object-cover"
                         />
                       </div>
                     ))}
