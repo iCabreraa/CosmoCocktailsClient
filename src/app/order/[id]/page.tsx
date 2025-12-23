@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import OrderDetailActions from "@/components/order/OrderDetailActions";
 import OrderTitle from "@/components/order/OrderTitle";
@@ -175,10 +176,11 @@ export default function OrderDetailPage({
                 >
                   <div className="flex items-center gap-4">
                     {it.cocktail_image && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={it.cocktail_image}
                         alt={it.cocktail_name ?? "cocktail"}
+                        width={48}
+                        height={48}
                         className="w-12 h-12 rounded-lg object-cover border border-cosmic-gold/20"
                       />
                     )}
