@@ -38,7 +38,9 @@ export default function ShopPage() {
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState<"lazy" | "pagination">("lazy");
+  const [viewMode, setViewMode] = useState<"lazy" | "pagination">(
+    "pagination"
+  );
   const supabase = createClient();
 
   const PAGE_SIZE = 12;
@@ -99,7 +101,7 @@ export default function ShopPage() {
         cocktailIds.length > 0
           ? await (supabase as any)
               .from("cocktail_sizes")
-              .select("id, price, cocktail_id")
+              .select("id, price, cocktail_id, sizes_id")
               .eq("available", true)
               .in("cocktail_id", cocktailIds)
           : { data: [], error: null };
@@ -108,15 +110,54 @@ export default function ShopPage() {
         console.error(sizeError);
       }
 
+      const sizeIds = (sizes as Array<{
+        sizes_id: string | null;
+      }> | null)
+        ?.map(size => size.sizes_id)
+        .filter((id): id is string => Boolean(id)) ?? [];
+
+      const { data: sizeDetails } =
+        sizeIds.length > 0
+          ? await supabase
+              .from("sizes")
+              .select("id, name, volume_ml")
+              .in("id", sizeIds)
+          : { data: [] };
+
+      const sizeDetailById = new Map<
+        string,
+        { name: string | null; volume_ml: number | null }
+      >(
+        (sizeDetails as Array<{
+          id: string;
+          name: string | null;
+          volume_ml: number | null;
+        }> | null)?.map(detail => [
+          detail.id,
+          { name: detail.name, volume_ml: detail.volume_ml },
+        ]) ?? []
+      );
+
       const priceByCocktail = new Map<
         string,
         { minPrice: number | null; minSizeId: string | null }
+      >();
+      const sizesByCocktail = new Map<
+        string,
+        Array<{
+          id: string;
+          price: number;
+          sizes_id: string;
+          size_name: string | null;
+          volume_ml: number | null;
+        }>
       >();
 
       (sizes as Array<{
         id: string;
         price: number;
         cocktail_id: string;
+        sizes_id: string | null;
       }> | null)?.forEach(size => {
         const current = priceByCocktail.get(size.cocktail_id);
         if (
@@ -129,10 +170,25 @@ export default function ShopPage() {
             minSizeId: size.id,
           });
         }
+
+        if (size.sizes_id) {
+          const detail = sizeDetailById.get(size.sizes_id);
+          const list = sizesByCocktail.get(size.cocktail_id) ?? [];
+          list.push({
+            id: size.id,
+            price: size.price,
+            sizes_id: size.sizes_id,
+            size_name: detail?.name ?? null,
+            volume_ml: detail?.volume_ml ?? null,
+          });
+          sizesByCocktail.set(size.cocktail_id, list);
+        }
       });
 
       const cocktailsWithPrices = typedCocktails.map(cocktail => {
         const price = priceByCocktail.get(cocktail.id);
+        const sizeOptions = sizesByCocktail.get(cocktail.id) ?? [];
+        sizeOptions.sort((a, b) => a.price - b.price);
 
         return {
           id: cocktail.id,
@@ -143,6 +199,7 @@ export default function ShopPage() {
           min_size_id: price?.minSizeId ?? null,
           alcohol_percentage: cocktail.alcohol_percentage,
           has_non_alcoholic_version: cocktail.has_non_alcoholic_version,
+          sizes: sizeOptions,
         };
       });
 
@@ -297,67 +354,41 @@ export default function ShopPage() {
         {/* Banner Principal */}
         <FeaturedBanner />
 
-        <div className="flex flex-wrap items-center justify-end gap-4 text-sm text-cosmic-silver">
-          <div className="flex flex-col items-end gap-2">
-            <span className="uppercase tracking-[0.2em] text-xs">
-              {t("shop.view_mode")}
-            </span>
-            <div className="w-[180px]">
-              <div className="inline-flex w-full justify-between rounded-full border border-cosmic-gold/20 bg-white/5 p-1">
-                <button
-                  type="button"
-                  onClick={() => handleViewModeChange("lazy")}
-                  aria-pressed={viewMode === "lazy"}
-                  title={t("shop.view_mode_lazy")}
-                  className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
-                    viewMode === "lazy"
-                      ? "bg-cosmic-gold text-black"
-                      : "text-cosmic-silver hover:text-white"
-                  }`}
-                >
-                  <Rows2 className="h-4 w-4" />
-                  <span className="sr-only">
-                    {t("shop.view_mode_lazy")}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleViewModeChange("pagination")}
-                  aria-pressed={viewMode === "pagination"}
-                  title={t("shop.view_mode_pagination")}
-                  className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
-                    viewMode === "pagination"
-                      ? "bg-cosmic-gold text-black"
-                      : "text-cosmic-silver hover:text-white"
-                  }`}
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                  <span className="sr-only">
-                    {t("shop.view_mode_pagination")}
-                  </span>
-                </button>
-              </div>
-              <div className="mt-2 grid grid-cols-2 text-[10px] uppercase tracking-[0.16em] text-center">
-                <span
-                  className={
-                    viewMode === "lazy"
-                      ? "text-cosmic-gold"
-                      : "text-cosmic-silver/70"
-                  }
-                >
-                  {t("shop.view_mode_lazy")}
-                </span>
-                <span
-                  className={
-                    viewMode === "pagination"
-                      ? "text-cosmic-gold"
-                      : "text-cosmic-silver/70"
-                  }
-                >
-                  {t("shop.view_mode_pagination")}
-                </span>
-              </div>
-            </div>
+        <div className="flex flex-col items-center gap-3 text-sm text-cosmic-silver">
+          <h2 className="text-2xl md:text-3xl font-[--font-unica] text-cosmic-gold">
+            {t("shop.all_cocktails")}
+          </h2>
+          <div className="inline-flex items-center gap-2 rounded-full border border-cosmic-gold/20 bg-white/5 p-1">
+            <button
+              type="button"
+              onClick={() => handleViewModeChange("pagination")}
+              aria-pressed={viewMode === "pagination"}
+              title={t("shop.view_mode_pagination")}
+              className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
+                viewMode === "pagination"
+                  ? "bg-cosmic-gold text-black"
+                  : "text-cosmic-silver hover:text-white"
+              }`}
+            >
+              <LayoutGrid className="h-4 w-4" />
+              <span className="sr-only">
+                {t("shop.view_mode_pagination")}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleViewModeChange("lazy")}
+              aria-pressed={viewMode === "lazy"}
+              title={t("shop.view_mode_lazy")}
+              className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
+                viewMode === "lazy"
+                  ? "bg-cosmic-gold text-black"
+                  : "text-cosmic-silver hover:text-white"
+              }`}
+            >
+              <Rows2 className="h-4 w-4" />
+              <span className="sr-only">{t("shop.view_mode_lazy")}</span>
+            </button>
           </div>
         </div>
 
@@ -372,9 +403,6 @@ export default function ShopPage() {
               transition={{ duration: 0.3 }}
               layout
             >
-              <h2 className="text-2xl md:text-3xl font-[--font-unica] text-cosmic-gold">
-                {t("shop.all_cocktails")}
-              </h2>
               <CocktailGrid cocktails={cocktails} />
 
               {totalPages > 1 && (
@@ -422,6 +450,7 @@ export default function ShopPage() {
               <CocktailRow
                 title={t("shop.all_cocktails")}
                 cocktails={cocktails}
+                showTitle={false}
               />
 
               {/* Secciones Agrupadas - Solo mostrar si hay cócteles */}

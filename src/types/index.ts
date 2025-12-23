@@ -18,6 +18,13 @@ export type CocktailWithPrice = {
   min_size_id: string | null;
   alcohol_percentage: number;
   has_non_alcoholic_version: boolean;
+  sizes?: Array<{
+    id: string;
+    price: number;
+    sizes_id: string;
+    size_name: string | null;
+    volume_ml: number | null;
+  }>;
   tags?: string[];
   created_at?: string;
   updated_at?: string;
