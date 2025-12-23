@@ -9,9 +9,7 @@ import {
 export async function POST(request: NextRequest) {
   try {
     console.log("🔍 Creating payment intent...");
-    const { items, address } = await request.json();
-    console.log("📦 Items:", items);
-    console.log("📍 Address:", address);
+    const { items } = await request.json();
 
     if (!items || items.length === 0) {
       console.log("❌ No items provided");

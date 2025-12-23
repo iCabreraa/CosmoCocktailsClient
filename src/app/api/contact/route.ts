@@ -159,6 +159,33 @@ async function performSecurityChecks(data: {
 /**
  * Envía el mensaje de contacto
  */
+const maskEmail = (email: string) => {
+  const [name, domain] = email.split("@");
+  if (!domain) return "***";
+  return `${name.slice(0, 1)}***@${domain}`;
+};
+
+const maskPhone = (phone: string) => {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length <= 2) return "***";
+  return `${"*".repeat(digits.length - 2)}${digits.slice(-2)}`;
+};
+
+const maskIp = (ip: string) => {
+  if (!ip) return "***";
+  if (ip.includes(".")) {
+    const parts = ip.split(".");
+    if (parts.length === 4) {
+      return `${parts[0]}.${parts[1]}.*.*`;
+    }
+  }
+  if (ip.includes(":")) {
+    const parts = ip.split(":");
+    return `${parts.slice(0, 2).join(":")}:*:*`;
+  }
+  return "***";
+};
+
 async function sendContactMessage(data: {
   name: string;
   email: string;
@@ -177,12 +204,11 @@ async function sendContactMessage(data: {
     // Log del mensaje para desarrollo
     console.log("📧 Contact message received:", {
       messageId,
-      name: data.name,
-      email: data.email,
-      subject: data.subject,
+      email: maskEmail(data.email),
+      phone: data.phone ? maskPhone(data.phone) : null,
+      subjectLength: data.subject.length,
       messageLength: data.message.length,
-      phone: data.phone,
-      ip: data.ip,
+      ip: maskIp(data.ip),
       timestamp: new Date().toISOString(),
     });
 
