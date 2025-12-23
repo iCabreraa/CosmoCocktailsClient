@@ -16,6 +16,19 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
   const addToCart = useCart(state => state.addToCart);
   const imageSrc = cocktail.image_url || "/images/placeholder.webp";
   const halfInset = "calc(50% - 0.5px)";
+  const formatSizeLabel = (
+    size: NonNullable<CocktailWithPrice["sizes"]>[number]
+  ) => {
+    if (size.size_name) {
+      return size.size_name;
+    }
+
+    if (typeof size.volume_ml === "number") {
+      return size.volume_ml <= 60 ? "Shot" : "Small Bottle";
+    }
+
+    return "Size";
+  };
 
   const handleAddToCart = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -72,16 +85,21 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
           {cocktail.sizes && cocktail.sizes.length > 0 && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
               <div className="pointer-events-auto w-[82%] max-w-[280px] rounded-2xl border border-cosmic-gold/30 bg-black/55 backdrop-blur-xl px-4 py-3 shadow-[0_0_24px_rgba(219,184,99,0.18)]">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-2">
                   {cocktail.sizes.map(size => (
                     <button
                       key={size.id}
                       type="button"
                       onClick={event => handleAddToCart(event, size)}
-                      className="group/button flex items-center justify-between gap-2 rounded-full border border-cosmic-gold/30 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-cosmic-silver transition hover:border-cosmic-gold hover:bg-cosmic-gold/10 hover:text-white"
+                      className="group/button flex items-center justify-between gap-3 rounded-xl border border-cosmic-gold/30 bg-white/5 px-4 py-2 text-left text-[11px] uppercase tracking-[0.12em] text-cosmic-silver transition hover:border-cosmic-gold hover:bg-cosmic-gold/10 hover:text-white"
                     >
-                      <span className="truncate">
-                        {size.size_name ?? `${size.volume_ml ?? 0}ml`}
+                      <span className="flex flex-col">
+                        <span className="text-[10px] text-cosmic-gold/80 group-hover/button:text-white">
+                          {formatSizeLabel(size)}
+                        </span>
+                        <span className="text-[9px] uppercase tracking-[0.2em] text-cosmic-silver/70 group-hover/button:text-white/80">
+                          {size.volume_ml ? `${size.volume_ml}ml` : "Limited"}
+                        </span>
                       </span>
                       <span className="flex items-center gap-1 text-cosmic-gold group-hover/button:text-white">
                         €{size.price.toFixed(2)}
