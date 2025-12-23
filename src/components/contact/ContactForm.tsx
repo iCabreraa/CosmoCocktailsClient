@@ -13,6 +13,7 @@
 import React, { useState } from "react";
 import { useContactFormValidation } from "@/hooks/useValidation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import PrivacyModal from "@/components/privacy/PrivacyModal";
 import {
   Form,
   FormField,
@@ -44,6 +45,11 @@ export default function ContactForm() {
     type: "success" | "error" | null;
     message: string;
   }>({ type: null, message: "" });
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+
+  const consentError = errors.find(
+    err => err.field === "privacy_consent"
+  )?.message;
 
   // Manejar envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
@@ -214,6 +220,31 @@ export default function ContactForm() {
           helpText={t("contact.form.message_help")}
         />
 
+        <div className="mt-4 space-y-2">
+          <label className="flex items-start gap-2 text-sm text-slate-300">
+            <input
+              type="checkbox"
+              checked={data?.privacy_consent || false}
+              onChange={e => setValue("privacy_consent", e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-slate-500 bg-transparent text-sky-400 focus:ring-sky-400"
+            />
+            <span>
+              {t("contact.form.privacy_consent_prefix")}{" "}
+              <button
+                type="button"
+                onClick={() => setIsPrivacyOpen(true)}
+                className="text-sky-300 hover:text-sky-200 underline"
+              >
+                {t("contact.form.privacy_policy")}
+              </button>
+              {t("contact.form.privacy_consent_suffix")}
+            </span>
+          </label>
+          {consentError && (
+            <p className="text-sm text-red-300">{consentError}</p>
+          )}
+        </div>
+
         {/* Botones */}
         <div className="flex flex-col sm:flex-row gap-4 pt-6">
           <SubmitButton
@@ -248,6 +279,11 @@ export default function ContactForm() {
           </div>
         </div>
       </Form>
+
+      <PrivacyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
     </div>
   );
 }

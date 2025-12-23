@@ -237,6 +237,9 @@ const en = {
       "message": "Message",
       "message_placeholder": "Write your message here...",
       "message_help": "Provide all necessary details",
+      "privacy_consent_prefix": "I have read and accept the",
+      "privacy_policy": "privacy policy",
+      "privacy_consent_suffix": ".",
       "send": "Send Message",
       "sending": "Sending...",
       "clear": "Clear Form",
@@ -265,6 +268,14 @@ const en = {
     "faq_international_answer": "We currently only ship within Spain.",
     "follow_us": "Follow Us"
   },
+  "privacy": {
+    "title": "Privacy Policy",
+    "intro": "Your privacy matters to us. We collect and use personal data only to process orders and respond to your requests.",
+    "data_usage": "We use your contact and order details to deliver products, provide support, and prevent fraud.",
+    "data_sharing": "We only share data with trusted providers required to run the service, such as payment and shipping partners.",
+    "rights": "You can request access, correction, or deletion of your data at any time.",
+    "contact": "If you have any questions, contact us at"
+  },
   "checkout": {
     "title": "Checkout",
     "subtitle": "Complete your order securely",
@@ -281,6 +292,10 @@ const en = {
     "phone_placeholder": "+34 123 456 789",
     "shipping_address": "Shipping Address",
     "payment_info": "Payment Information",
+    "privacy_consent_prefix": "I have read and accept the",
+    "privacy_policy": "privacy policy",
+    "privacy_consent_suffix": ".",
+    "privacy_consent_required": "Please accept the privacy policy to continue.",
     "preparing_payment": "Preparing secure payment...",
     "products_unavailable": "Some products are not available. Check your cart.",
     "select_address": "Please select a shipping address.",

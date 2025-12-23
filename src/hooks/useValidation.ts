@@ -241,6 +241,7 @@ export function useContactFormValidation() {
     subject: "",
     message: "",
     phone: "",
+    privacy_consent: false,
   });
 }
 
