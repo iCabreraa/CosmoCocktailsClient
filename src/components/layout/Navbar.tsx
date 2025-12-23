@@ -460,18 +460,24 @@ export default function Navbar() {
 
                 {/* Navigation - Perfectly Centered with Logo */}
                 <nav className="flex items-center space-x-12 text-sm uppercase">
-                  {navLinks.map(item => (
-                    <Link
-                      key={item.key}
-                      href={item.href}
-                      className={clsx(
-                        "nav-link font-medium tracking-wide transition-colors duration-200",
-                        "text-cosmic-silver hover:text-cosmic-gold"
-                      )}
-                    >
-                      {t(`nav.${item.key}`)}
-                    </Link>
-                  ))}
+                  {navLinks.map(item => {
+                    const isActive = isActiveRoute(item.href);
+                    return (
+                      <Link
+                        key={item.key}
+                        href={item.href}
+                        aria-current={isActive ? "page" : undefined}
+                        className={clsx(
+                          "nav-link font-medium tracking-wide transition-colors duration-200",
+                          isActive
+                            ? "nav-link-active"
+                            : "text-cosmic-silver hover:text-cosmic-gold"
+                        )}
+                      >
+                        {t(`nav.${item.key}`)}
+                      </Link>
+                    );
+                  })}
                 </nav>
               </div>
 

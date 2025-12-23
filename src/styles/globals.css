@@ -26,6 +26,14 @@ h3 {
   @apply w-full;
 }
 
+.nav-link-active {
+  @apply text-cosmic-gold;
+}
+
+.nav-link-active::after {
+  @apply w-full;
+}
+
 /* KEYFRAMES NAVBAR */
 @keyframes fade-down {
   from {
