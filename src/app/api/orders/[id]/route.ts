@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { envServer } from "@/lib/env-server";
 import { fromOrderItemRow, orderItemSelect } from "@/types/order-item-utils";
+import { getAuthContext } from "@/lib/security/auth";
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const auth = await getAuthContext();
+  if (!auth) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const supabase = createClient(
     envServer.NEXT_PUBLIC_SUPABASE_URL,
     envServer.SUPABASE_SERVICE_ROLE_KEY
@@ -26,6 +32,10 @@ export async function GET(
   if (orderError || !order) {
     console.error("Order not found:", orderError);
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+
+  if (!auth.isAdmin && order.user_id !== auth.userId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // Fetch user data separately if user_id exists

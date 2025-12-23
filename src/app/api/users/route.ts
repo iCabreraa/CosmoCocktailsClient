@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { UserService } from "../../../lib/services/user.service";
+import { getAuthContext } from "@/lib/security/auth";
 
 const userService = new UserService();
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await getAuthContext();
+    if (!auth) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!auth.isAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -32,6 +41,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await getAuthContext();
+    if (!auth) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!auth.isAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const body = await request.json();
     const user = await userService.createUser(body);
 
