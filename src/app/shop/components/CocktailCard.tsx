@@ -11,6 +11,7 @@ interface CocktailCardProps {
 
 export default function CocktailCard({ cocktail }: CocktailCardProps) {
   const imageSrc = cocktail.image_url || "/images/placeholder.webp";
+  const halfInset = "calc(50% - 0.5px)";
 
   return (
     <Link href={`/shop/${cocktail.id}`} className="group relative">
@@ -20,27 +21,30 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
         className="flex flex-col items-center bg-cosmic-bg/50 border border-cosmic-gold/20 hover:border-cosmic-gold/50 rounded-2xl overflow-hidden shadow-md hover:shadow-cosmic-gold/30 transition-all duration-300 cursor-pointer p-6"
       >
         {/* Imagen del cóctel con efecto cortina */}
-        <div className="relative w-full h-64 rounded-xl overflow-hidden mb-6 group">
+        <div className="relative w-full h-64 rounded-xl overflow-hidden mb-6">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-slate-950/90" />
-          <div className="absolute inset-0 flex">
-            <div className="relative w-1/2 h-full origin-right transition-transform duration-500 group-hover:-translate-x-full">
-              <Image
-                src={imageSrc}
-                alt={cocktail.name}
-                fill
-                className="object-cover"
-                style={{ objectPosition: "left center" }}
-              />
-            </div>
-            <div className="relative w-1/2 h-full origin-left transition-transform duration-500 group-hover:translate-x-full">
-              <Image
-                src={imageSrc}
-                alt={cocktail.name}
-                fill
-                className="object-cover"
-                style={{ objectPosition: "right center" }}
-              />
-            </div>
+          <div
+            className="absolute inset-0 origin-right transition-transform duration-500 group-hover:-translate-x-full"
+            style={{ clipPath: `inset(0 ${halfInset} 0 0)` }}
+          >
+            <Image
+              src={imageSrc}
+              alt={cocktail.name}
+              fill
+              className="object-cover"
+            />
+          </div>
+          <div
+            className="absolute inset-0 origin-left transition-transform duration-500 group-hover:translate-x-full"
+            style={{ clipPath: `inset(0 0 0 ${halfInset})` }}
+            aria-hidden="true"
+          >
+            <Image
+              src={imageSrc}
+              alt=""
+              fill
+              className="object-cover"
+            />
           </div>
         </div>
 
