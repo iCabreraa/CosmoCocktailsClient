@@ -44,6 +44,7 @@ export default function ShopPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"lazy" | "pagination">(
     "pagination"
   );
@@ -51,13 +52,25 @@ export default function ShopPage() {
   const hasFetchedRef = useRef(false);
 
   const PAGE_SIZE = 12;
+  const categoryFilters = [
+    { id: "classic", label: t("shop.filter_classic") },
+    { id: "tropical", label: t("shop.filter_tropical") },
+  ];
+  const typeFilters = [
+    { id: "non-alcoholic", label: t("shop.filter_non_alcoholic") },
+  ];
 
   async function fetchCocktailsPage(
     page: number,
     append: boolean,
-    query = searchQuery,
-    options: { silent?: boolean } = {}
+    options: {
+      query?: string;
+      categories?: string[];
+      silent?: boolean;
+    } = {}
   ) {
+    const query = options.query ?? searchQuery;
+    const categories = options.categories ?? activeCategories;
     try {
       if (append) {
         setLoadingMore(true);
@@ -79,13 +92,31 @@ export default function ShopPage() {
           image_url,
           is_available,
           alcohol_percentage,
-          has_non_alcoholic_version
+          has_non_alcoholic_version,
+          tags
         `,
         { count: "exact" }
       );
 
       if (trimmedQuery) {
         queryBuilder = queryBuilder.ilike("name", `%${trimmedQuery}%`);
+      }
+
+      if (categories.length > 0) {
+        const orFilters: string[] = [];
+        if (categories.includes("classic")) {
+          orFilters.push("tags.cs.{classic}");
+        }
+        if (categories.includes("tropical")) {
+          orFilters.push("tags.cs.{tropical}");
+        }
+        if (categories.includes("non-alcoholic")) {
+          orFilters.push("alcohol_percentage.eq.0");
+        }
+
+        if (orFilters.length > 0) {
+          queryBuilder = queryBuilder.or(orFilters.join(","));
+        }
       }
 
       const { data: cocktailRows, error, count } = await queryBuilder
@@ -108,6 +139,7 @@ export default function ShopPage() {
         image_url: string | null;
         alcohol_percentage: number;
         has_non_alcoholic_version: boolean;
+        tags?: string[] | null;
       }>;
 
       if (typedCocktails.length === 0) {
@@ -221,6 +253,7 @@ export default function ShopPage() {
           alcohol_percentage: cocktail.alcohol_percentage,
           has_non_alcoholic_version: cocktail.has_non_alcoholic_version,
           sizes: sizeOptions,
+          tags: cocktail.tags ?? undefined,
         };
       });
 
@@ -267,19 +300,26 @@ export default function ShopPage() {
   useEffect(() => {
     if (!hasFetchedRef.current) {
       hasFetchedRef.current = true;
-      fetchCocktailsPage(1, false, searchQuery);
+      fetchCocktailsPage(1, false, { query: searchQuery });
       return;
     }
 
     setCurrentPage(1);
     setTotalCount(0);
-    fetchCocktailsPage(1, false, searchQuery, { silent: true });
-  }, [searchQuery]);
+    fetchCocktailsPage(1, false, {
+      query: searchQuery,
+      categories: activeCategories,
+      silent: true,
+    });
+  }, [searchQuery, activeCategories]);
 
   const handleRetry = () => {
     setCurrentPage(1);
     setCocktails([]);
-    fetchCocktailsPage(1, false, searchQuery);
+    fetchCocktailsPage(1, false, {
+      query: searchQuery,
+      categories: activeCategories,
+    });
   };
 
   const handleViewModeChange = (mode: "lazy" | "pagination") => {
@@ -287,20 +327,26 @@ export default function ShopPage() {
     setViewMode(mode);
     setCurrentPage(1);
     setCocktails([]);
-    fetchCocktailsPage(1, false, searchQuery);
+    fetchCocktailsPage(1, false, {
+      query: searchQuery,
+      categories: activeCategories,
+    });
   };
 
   const handleLoadMore = () => {
     if (loadingMore) return;
     const nextPage = currentPage + 1;
     setCurrentPage(nextPage);
-    fetchCocktailsPage(nextPage, true, searchQuery);
+    fetchCocktailsPage(nextPage, true);
   };
 
   const handlePageChange = (page: number) => {
     if (page === currentPage || loading) return;
     setCurrentPage(page);
-    fetchCocktailsPage(page, false, searchQuery);
+    fetchCocktailsPage(page, false, {
+      query: searchQuery,
+      categories: activeCategories,
+    });
   };
 
   const handleSearchClear = () => {
@@ -319,8 +365,28 @@ export default function ShopPage() {
     }
   };
 
+  const handleCategoryToggle = (category: string) => {
+    setActiveCategories(prev =>
+      prev.includes(category)
+        ? prev.filter(item => item !== category)
+        : [...prev, category]
+    );
+  };
+
+  const handleClearFilters = () => {
+    setActiveCategories([]);
+  };
+
+  const handleClearAll = () => {
+    setActiveCategories([]);
+    setSearchInput("");
+    setSearchQuery("");
+  };
+
   const normalizedSearch = searchQuery.trim();
   const hasSearch = normalizedSearch.length > 0;
+  const hasCategoryFilters = activeCategories.length > 0;
+  const hasActiveFilters = hasSearch || hasCategoryFilters;
 
   if (loading) {
     return (
@@ -368,14 +434,20 @@ export default function ShopPage() {
       >
         <div className="max-w-xl space-y-4">
           <h1 className="text-3xl font-[--font-unica] text-[#D8DAE3]">
-            {hasSearch ? t("shop.search_empty_title") : t("shop.empty_title")}
+            {hasSearch
+              ? t("shop.search_empty_title")
+              : hasCategoryFilters
+                ? t("shop.filter_empty_title")
+                : t("shop.empty_title")}
           </h1>
           <p className="text-cosmic-silver">
             {hasSearch
               ? t("shop.search_empty_description", {
                   query: normalizedSearch,
                 })
-              : t("shop.empty_description")}
+              : hasCategoryFilters
+                ? t("shop.filter_empty_description")
+                : t("shop.empty_description")}
           </p>
           {hasSearch && (
             <p className="text-sm text-cosmic-silver">
@@ -383,10 +455,10 @@ export default function ShopPage() {
             </p>
           )}
           <button
-            onClick={hasSearch ? handleSearchClear : handleRetry}
+            onClick={hasActiveFilters ? handleClearAll : handleRetry}
             className="inline-flex items-center justify-center px-5 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors"
           >
-            {hasSearch ? t("shop.clear_search") : t("common.retry")}
+            {hasActiveFilters ? t("shop.clear_filters") : t("common.retry")}
           </button>
         </div>
       </motion.section>
@@ -456,6 +528,60 @@ export default function ShopPage() {
                   </button>
                 )}
               </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] uppercase tracking-[0.18em] text-cosmic-silver/70">
+              <span className="mr-2 text-[10px] text-cosmic-silver/50">
+                {t("shop.filter_category")}
+              </span>
+              {categoryFilters.map(filter => {
+                const isActive = activeCategories.includes(filter.id);
+                return (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    onClick={() => handleCategoryToggle(filter.id)}
+                    className={`rounded-full border px-3 py-1 transition ${
+                      isActive
+                        ? "border-cosmic-gold bg-cosmic-gold/20 text-white"
+                        : "border-cosmic-gold/20 text-cosmic-silver hover:border-cosmic-gold hover:text-white"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                );
+              })}
+
+              <span className="mx-2 text-[10px] text-cosmic-silver/50">
+                {t("shop.filter_type")}
+              </span>
+              {typeFilters.map(filter => {
+                const isActive = activeCategories.includes(filter.id);
+                return (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    onClick={() => handleCategoryToggle(filter.id)}
+                    className={`rounded-full border px-3 py-1 transition ${
+                      isActive
+                        ? "border-cosmic-gold bg-cosmic-gold/20 text-white"
+                        : "border-cosmic-gold/20 text-cosmic-silver hover:border-cosmic-gold hover:text-white"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                );
+              })}
+
+              {hasCategoryFilters && (
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="rounded-full border border-cosmic-gold/20 px-3 py-1 text-[10px] text-cosmic-silver transition hover:border-cosmic-gold hover:text-white"
+                >
+                  {t("shop.clear_filters")}
+                </button>
+              )}
             </div>
 
             <div className="inline-flex items-center gap-2 rounded-full border border-cosmic-gold/20 bg-white/5 p-1">
@@ -547,7 +673,7 @@ export default function ShopPage() {
               transition={{ duration: 0.3 }}
               layout
             >
-              {hasSearch ? (
+              {hasActiveFilters ? (
                 <CocktailGrid cocktails={cocktails} />
               ) : (
                 <>
