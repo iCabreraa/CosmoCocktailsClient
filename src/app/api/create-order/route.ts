@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { envServer } from "@/lib/env-server";
+import {
+  normalizeOrderItems,
+  toOrderItemInserts,
+} from "@/types/order-item-utils";
 
 const supabase = createClient(
   envServer.NEXT_PUBLIC_SUPABASE_URL,
@@ -35,6 +39,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let normalizedItems;
+    try {
+      normalizedItems = normalizeOrderItems(items);
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Invalid order items" },
+        { status: 400 }
+      );
+    }
     // Crear el pedido
     const { data: order, error: orderError } = await supabase
       .from("orders")
@@ -57,14 +70,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Crear los items del pedido
-    const orderItems = items.map((item: any) => ({
-      order_id: order.id,
-      cocktail_id: item.cocktail_id,
-      size_id: item.sizes_id, // CartItem usa sizes_id, pero la BD usa size_id
-      quantity: item.quantity,
-      unit_price: item.unit_price,
-      item_total: item.unit_price * item.quantity,
-    }));
+    const orderItems = toOrderItemInserts(normalizedItems, order.id);
 
     const { error: itemsError } = await supabase
       .from("order_items")
@@ -79,7 +85,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Actualizar stock - método correcto para Supabase
-    for (const item of items) {
+    for (const item of normalizedItems) {
       // Primero obtener el stock actual
       const { data: currentStock, error: fetchError } = await supabase
         .from("cocktail_sizes")

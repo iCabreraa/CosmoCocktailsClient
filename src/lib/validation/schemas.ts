@@ -181,7 +181,7 @@ export const cocktailUpdateSchema = cocktailCreateSchema.partial();
  */
 export const cocktailSizeSchema = z.object({
   cocktail_id: uuidSchema,
-  size_id: uuidSchema,
+  sizes_id: uuidSchema,
   price: priceSchema,
   stock_quantity: z
     .number()
@@ -227,7 +227,7 @@ export const orderCreateSchema = z.object({
  */
 export const orderItemSchema = z.object({
   cocktail_id: uuidSchema,
-  size_id: uuidSchema,
+  sizes_id: uuidSchema,
   quantity: quantitySchema,
   unit_price: priceSchema,
 });
@@ -315,7 +315,7 @@ export const roleUpdateSchema = z.object({
  */
 export const stockUpdateSchema = z.object({
   cocktail_id: uuidSchema,
-  size_id: uuidSchema,
+  sizes_id: uuidSchema,
   quantity: z
     .number()
     .int("Cantidad debe ser un número entero")

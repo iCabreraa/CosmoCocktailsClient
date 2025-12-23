@@ -73,7 +73,6 @@ export default function AddToCartButton({
         return {
           ...s,
           cocktail_id: cocktail.id,
-          size_id: s.sizes_id, // Asegurar que size_id = sizes_id
           stock_quantity: s.stock_quantity || 0,
           created_at: new Date().toISOString(), // Generar timestamp ya que no existe en BD
           updated_at: new Date().toISOString(), // Generar timestamp ya que no existe en BD

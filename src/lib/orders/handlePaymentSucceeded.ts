@@ -1,5 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import { envServer } from "@/lib/env-server";
+import {
+  normalizeOrderItems,
+  toOrderItemMetadata,
+  type NormalizedOrderItem,
+  type OrderItemInput,
+} from "@/types/order-item-utils";
 
 type Args = {
   paymentIntentId: string;
@@ -19,12 +25,7 @@ export async function handlePaymentSucceeded({
   );
 
   // Parse items from metadata (created earlier)
-  let items: Array<{
-    cocktail_id: string; // UUID
-    size_id: string; // UUID
-    quantity: number;
-    unit_price: number;
-  }> = [];
+  let items: OrderItemInput[] = [];
   try {
     if (metadata.items) {
       items = JSON.parse(metadata.items.replace(/\.\.\.__truncated$/, ""));
@@ -33,8 +34,15 @@ export async function handlePaymentSucceeded({
     items = [];
   }
 
+  let normalizedItems: NormalizedOrderItem[] = [];
+  try {
+    normalizedItems = normalizeOrderItems(items);
+  } catch {
+    normalizedItems = [];
+  }
+
   // Fallback: if items missing, do nothing but record event
-  if (!items.length) {
+  if (!normalizedItems.length) {
     await (supabase as any).from("security_events").insert({
       type: "payment_intent_succeeded_no_items",
       payload: { payment_intent_id: paymentIntentId, amount: amountReceived },
@@ -42,13 +50,15 @@ export async function handlePaymentSucceeded({
     return;
   }
 
+  const payloadItems = normalizedItems.map(item => toOrderItemMetadata(item));
+
   // Use a single RPC to ensure stock decrement is conditional (stock >= quantity)
   const { error } = await (supabase as any).rpc(
     "decrement_stock_and_create_order",
     {
       p_payment_intent_id: paymentIntentId,
       p_total_amount: amountReceived / 100,
-      p_items: items,
+      p_items: payloadItems,
     }
   );
 

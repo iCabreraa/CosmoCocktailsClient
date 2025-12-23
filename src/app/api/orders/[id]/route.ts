@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { envServer } from "@/lib/env-server";
+import { fromOrderItemRow, orderItemSelect } from "@/types/order-item-utils";
 
 export async function GET(
   _req: NextRequest,
@@ -53,21 +54,10 @@ export async function GET(
 
   const { data: rawItems } = await (supabase as any)
     .from("order_items")
-    .select(
-      "cocktail_id, size_id, quantity, unit_price, item_total, cocktails:cocktail_id(name, image_url), sizes:size_id(name)"
-    )
+    .select(orderItemSelect)
     .eq("order_id", orderId);
 
-  const items = (rawItems || []).map((it: any) => ({
-    cocktail_id: it.cocktail_id,
-    size_id: it.size_id,
-    quantity: it.quantity,
-    unit_price: it.unit_price,
-    item_total: it.item_total,
-    cocktail_name: it.cocktails?.name ?? "",
-    cocktail_image: it.cocktails?.image_url ?? null,
-    size_name: it.sizes?.name ?? "",
-  }));
+  const items = (rawItems || []).map((it: any) => fromOrderItemRow(it));
 
   return NextResponse.json({
     order: {
