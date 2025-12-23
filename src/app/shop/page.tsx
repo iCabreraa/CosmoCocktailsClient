@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { CocktailWithPrice } from "@/types";
 import dynamic from "next/dynamic";
 import { useLanguage } from "@/contexts/LanguageContext";
+import ShopLoadingState from "./components/ShopLoadingState";
 
 const FeaturedBanner = dynamic(() => import("./components/FeaturedBanner"), {
   ssr: true,
@@ -126,14 +127,7 @@ export default function ShopPage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-[60vh] flex justify-center items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cosmic-gold"></div>
-        <p className="text-cosmic-silver text-lg ml-4">
-          {t("shop.loading")}
-        </p>
-      </div>
-    );
+    return <ShopLoadingState />;
   }
 
   if (error) {
