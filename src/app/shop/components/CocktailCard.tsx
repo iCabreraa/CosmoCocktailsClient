@@ -37,10 +37,9 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
             <div
               className="w-1/2 h-full bg-cover bg-center origin-left transition-transform duration-500 group-hover:translate-x-full"
               style={{
-                // backgroundImage: `url(${
-                //   cocktail.image_url || "/images/placeholder.webp"
-                // })`,
-                backgroundImage: `/Users/devica/Work/CosmicCocktails/cosmococktails-ecommerce/public/images/cocktailsImages/daiquiri.webp`,
+                backgroundImage: `url(${
+                  cocktail.image_url || "/images/placeholder.webp"
+                })`,
               }}
             />
           </div>

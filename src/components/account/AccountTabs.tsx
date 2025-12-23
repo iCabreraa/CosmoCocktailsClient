@@ -135,9 +135,9 @@ export default function AccountTabs({
       case "profile":
         return <UserProfile user={user} onUpdate={onUpdate} />;
       case "orders":
-        return <UserOrders userId={user.id} />;
+        return <UserOrders />;
       case "favorites":
-        return <UserFavorites userId={user.id} />;
+        return <UserFavorites />;
       case "settings":
         return <UserSettings user={user} onUpdate={onUpdate} />;
       default:

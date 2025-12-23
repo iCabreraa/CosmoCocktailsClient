@@ -41,13 +41,6 @@ export default function Navbar() {
   const { canAccess: canAccessAdmin } = useAdminAccess();
   const pathname = usePathname();
 
-  // Debug logs
-  console.log("Navbar Debug:", {
-    canAccessAdmin,
-    user: user?.role,
-    userEmail: user?.email,
-  });
-
   const showBg = scrolled || hovered;
 
   // Function to check if a route is active

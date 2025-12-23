@@ -13,10 +13,7 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("🔍 Creating order...");
-
     const body = await request.json();
-    console.log("📦 Request body:", body);
 
     const { items, total, user_id, shipping_address, payment_intent_id } = body;
 
@@ -51,17 +48,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    console.log("📦 Order data:", {
-      items,
-      total,
-      user_id,
-      shipping_address,
-      payment_intent_id,
-    });
-
     // Crear el pedido
-    console.log("💳 Creating order in database...");
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
@@ -82,13 +69,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("✅ Order created:", order.id);
-
     // Crear los items del pedido
-    console.log("📝 Creating order items...");
     const orderItems = toOrderItemInserts(normalizedItems, order.id);
-
-    console.log("📦 Order items to insert:", orderItems);
 
     const { error: itemsError } = await supabase
       .from("order_items")
@@ -102,15 +84,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("✅ Order items created successfully");
-
     // Actualizar stock - método correcto para Supabase
-    console.log("📦 Updating stock...");
     for (const item of normalizedItems) {
-      console.log(
-        `🔄 Updating stock for cocktail ${item.cocktail_id}, size ${item.sizes_id}, quantity ${item.quantity}`
-      );
-
       // Primero obtener el stock actual
       const { data: currentStock, error: fetchError } = await supabase
         .from("cocktail_sizes")
@@ -127,10 +102,6 @@ export async function POST(request: NextRequest) {
       const newStock = (currentStock.stock_quantity || 0) - item.quantity;
       const isAvailable = newStock > 0;
 
-      console.log(
-        `📊 Stock update: ${currentStock.stock_quantity} - ${item.quantity} = ${newStock} (available: ${isAvailable})`
-      );
-
       const { error: stockError } = await supabase
         .from("cocktail_sizes")
         .update({
@@ -142,12 +113,9 @@ export async function POST(request: NextRequest) {
 
       if (stockError) {
         console.error("❌ Error updating stock:", stockError);
-      } else {
-        console.log("✅ Stock updated successfully");
       }
     }
 
-    console.log("🎉 Order creation completed successfully");
     return NextResponse.json({ id: order.id, order_ref: order.order_ref });
   } catch (error) {
     console.error("❌ Error creating order:", error);
