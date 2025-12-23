@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { envServer } from "../env-server";
+import { getSecureCookieOptions } from "@/lib/security/cookies";
 
 export function createClient() {
   const cookieStore = cookies();
@@ -16,7 +17,7 @@ export function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              cookieStore.set(name, value, getSecureCookieOptions(options))
             );
           } catch {
             // The `setAll` method was called from a Server Component.
