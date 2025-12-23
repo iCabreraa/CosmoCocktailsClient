@@ -45,7 +45,7 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
       >
         {/* Imagen del cóctel con efecto cortina */}
         <div className="relative w-full h-64 rounded-xl overflow-hidden mb-6">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-slate-950/90" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-900/70 to-slate-950/90" />
           <div
             className="absolute inset-0 origin-right transition-transform duration-700 ease-out group-hover:-translate-x-full"
             style={{ clipPath: `inset(0 ${halfInset} 0 0)` }}
@@ -69,6 +69,30 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
               className="object-cover"
             />
           </div>
+          {cocktail.sizes && cocktail.sizes.length > 0 && (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+              <div className="pointer-events-auto w-[80%] max-w-[260px] rounded-2xl border border-cosmic-gold/40 bg-black/60 backdrop-blur px-4 py-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {cocktail.sizes.map(size => (
+                    <button
+                      key={size.id}
+                      type="button"
+                      onClick={event => handleAddToCart(event, size)}
+                      className="flex items-center justify-between gap-2 rounded-full border border-cosmic-gold/40 px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-cosmic-silver hover:border-cosmic-gold hover:text-white transition"
+                    >
+                      <span className="truncate">
+                        {size.size_name ?? `${size.volume_ml ?? 0}ml`}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        €{size.price.toFixed(2)}
+                        <Plus className="h-3 w-3" />
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Información */}
@@ -86,26 +110,6 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
               )}
             </div>
 
-            {cocktail.sizes && cocktail.sizes.length > 0 && (
-              <div className="mt-4 grid grid-cols-2 gap-2 w-full">
-                {cocktail.sizes.map(size => (
-                  <button
-                    key={size.id}
-                    type="button"
-                    onClick={event => handleAddToCart(event, size)}
-                    className="flex items-center justify-between gap-2 rounded-full border border-cosmic-gold/30 px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-cosmic-silver hover:border-cosmic-gold hover:text-white transition"
-                  >
-                    <span className="truncate">
-                      {size.size_name ?? `${size.volume_ml ?? 0}ml`}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      €{size.price.toFixed(2)}
-                      <Plus className="h-3 w-3" />
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
       </motion.div>
     </Link>
   );
