@@ -112,10 +112,7 @@ export function useClientData() {
 
       // También guardar en localStorage como backup
       localStorage.setItem(`client_${data.email}`, JSON.stringify(savedClient));
-      console.log(
-        "✅ Client data saved to database and localStorage:",
-        savedClient
-      );
+      console.log("✅ Client data saved to database and localStorage");
       return savedClient;
     } catch (err) {
       console.error("Error saving client data to database:", err);
@@ -129,7 +126,7 @@ export function useClientData() {
       };
 
       localStorage.setItem(`client_${data.email}`, JSON.stringify(clientData));
-      console.log("📦 Client data saved to localStorage fallback:", clientData);
+      console.log("📦 Client data saved to localStorage fallback");
       return clientData;
     }
   };
