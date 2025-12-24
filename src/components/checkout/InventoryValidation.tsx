@@ -5,6 +5,7 @@ import { AlertTriangle, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { useInventoryValidationServer } from "@/hooks/useInventoryValidationServer";
 import { CartItem } from "@/types/shared";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useCart } from "@/store/cart";
 
 interface InventoryValidationProps {
   items: CartItem[];
@@ -22,6 +23,8 @@ interface ValidationResult {
   max_available: number;
 }
 
+const MAX_PER_ORDER = 10;
+
 export default function InventoryValidation({
   items,
   onValidationComplete,
@@ -29,6 +32,7 @@ export default function InventoryValidation({
   const { t } = useLanguage();
   const { validateInventory, isLoading, error } =
     useInventoryValidationServer();
+  const { updateQuantity, removeFromCart } = useCart();
   const [validationResults, setValidationResults] = useState<
     ValidationResult[]
   >([]);
@@ -56,7 +60,7 @@ export default function InventoryValidation({
         size_name: item?.size_name || "Unknown Size",
         requested_quantity: item?.quantity || 0,
         stock_quantity: result.stock_quantity ?? 0,
-        max_available: Math.min(result.stock_quantity ?? 0, 10), // Máximo 10 por pedido
+        max_available: Math.min(result.stock_quantity ?? 0, MAX_PER_ORDER),
       };
     });
 
@@ -72,6 +76,22 @@ export default function InventoryValidation({
       .map(result => `${result.cocktail_name} (${result.size_name})`);
 
     onValidationComplete(unavailableItems.length === 0, unavailableItems);
+  };
+
+  const handleAdjustQuantity = (result: ValidationResult) => {
+    if (result.max_available > 0) {
+      updateQuantity(
+        result.cocktail_id,
+        result.sizes_id,
+        result.max_available
+      );
+    } else {
+      removeFromCart(result.cocktail_id, result.sizes_id);
+    }
+  };
+
+  const handleRemoveItem = (result: ValidationResult) => {
+    removeFromCart(result.cocktail_id, result.sizes_id);
   };
 
   const getValidationStatus = () => {
@@ -157,55 +177,83 @@ export default function InventoryValidation({
       {/* Lista de productos */}
       {validationResults.length > 0 && (
         <div className="space-y-3">
-          {validationResults.map((result, index) => (
-            <div
-              key={`${result.cocktail_id}-${result.sizes_id}-${index}`}
-              className={`p-3 rounded-lg border ${
-                result.available &&
-                result.requested_quantity <= result.max_available
-                  ? "border-green-500/30 bg-green-500/5"
-                  : "border-red-500/30 bg-red-500/5"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-cosmic-text">
-                    {result.cocktail_name} - {result.size_name}
-                  </h4>
-                  <p className="text-sm text-cosmic-fog">
-                    {t("checkout.requested")}: {result.requested_quantity}{" "}
-                    {t("checkout.units")}
-                  </p>
-                </div>
+          {validationResults.map((result, index) => {
+            const isOverLimit =
+              result.requested_quantity > result.max_available;
+            const isUnavailable = !result.available || isOverLimit;
 
-                <div className="text-right">
-                  {result.available &&
-                  result.requested_quantity <= result.max_available ? (
-                    <div className="flex items-center gap-1 text-green-500">
-                      <CheckCircle className="w-4 h-4" />
-                      <span className="text-sm">{t("checkout.available")}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1 text-red-500">
-                      <XCircle className="w-4 h-4" />
-                      <span className="text-sm">
-                        {!result.available
-                          ? t("checkout.not_available")
-                          : `${t("checkout.maximum")}: ${result.max_available}`}
-                      </span>
-                    </div>
-                  )}
-
-                  {result.stock_quantity > 0 && (
-                    <p className="text-xs text-cosmic-fog mt-1">
-                      {t("checkout.stock")}: {result.stock_quantity}{" "}
+            return (
+              <div
+                key={`${result.cocktail_id}-${result.sizes_id}-${index}`}
+                className={`p-3 rounded-lg border ${
+                  !isUnavailable
+                    ? "border-green-500/30 bg-green-500/5"
+                    : "border-red-500/30 bg-red-500/5"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-cosmic-text">
+                      {result.cocktail_name} - {result.size_name}
+                    </h4>
+                    <p className="text-sm text-cosmic-fog">
+                      {t("checkout.requested")}: {result.requested_quantity}{" "}
                       {t("checkout.units")}
                     </p>
-                  )}
+                  </div>
+
+                  <div className="text-right">
+                    {!isUnavailable ? (
+                      <div className="flex items-center gap-1 text-green-500">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="text-sm">
+                          {t("checkout.available")}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 text-red-500">
+                        <XCircle className="w-4 h-4" />
+                        <span className="text-sm">
+                          {!result.available
+                            ? t("checkout.not_available")
+                            : `${t("checkout.maximum")}: ${result.max_available}`}
+                        </span>
+                      </div>
+                    )}
+
+                    {result.stock_quantity > 0 && (
+                      <p className="text-xs text-cosmic-fog mt-1">
+                        {t("checkout.stock")}: {result.stock_quantity}{" "}
+                        {t("checkout.units")}
+                      </p>
+                    )}
+                  </div>
                 </div>
+                {isUnavailable && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {result.max_available > 0 && isOverLimit && (
+                      <button
+                        type="button"
+                        onClick={() => handleAdjustQuantity(result)}
+                        className="rounded-full border border-cosmic-gold/40 px-3 py-1 text-xs text-cosmic-gold transition hover:border-cosmic-gold hover:text-black hover:bg-cosmic-gold"
+                      >
+                        {t("checkout.adjust_quantity", {
+                          max: result.max_available,
+                        })}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItem(result)}
+                      className="rounded-full border border-red-400/50 px-3 py-1 text-xs text-red-300 transition hover:border-red-400 hover:text-red-100"
+                    >
+                      {t("cart.remove_item")}
+                    </button>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

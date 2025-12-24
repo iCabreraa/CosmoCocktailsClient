@@ -35,8 +35,7 @@ export function useInventoryValidationServer(): UseInventoryValidationReturn {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            cocktail_id: cocktailId,
-            sizes_id: sizeId,
+            items: [{ cocktail_id: cocktailId, sizes_id: sizeId }],
           }),
         });
 
@@ -45,7 +44,8 @@ export function useInventoryValidationServer(): UseInventoryValidationReturn {
         }
 
         const data = await response.json();
-        return data.available && (data.stock_quantity || 0) > 0;
+        const result = Array.isArray(data?.results) ? data.results[0] : data;
+        return result?.available && (result?.stock_quantity || 0) > 0;
       } catch (err) {
         console.error("Error checking availability:", err);
         return false;
@@ -63,8 +63,7 @@ export function useInventoryValidationServer(): UseInventoryValidationReturn {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            cocktail_id: cocktailId,
-            sizes_id: sizeId,
+            items: [{ cocktail_id: cocktailId, sizes_id: sizeId }],
           }),
         });
 
@@ -73,7 +72,8 @@ export function useInventoryValidationServer(): UseInventoryValidationReturn {
         }
 
         const data = await response.json();
-        return data.stock_quantity || 0;
+        const result = Array.isArray(data?.results) ? data.results[0] : data;
+        return result?.stock_quantity || 0;
       } catch (err) {
         console.error("Error getting max quantity:", err);
         return 0;
@@ -88,27 +88,37 @@ export function useInventoryValidationServer(): UseInventoryValidationReturn {
       setError(null);
 
       try {
-        const validationPromises = items.map(async item => {
-          const available = await checkItemAvailability(
-            item.cocktail_id,
-            item.sizes_id
-          );
-          const maxQuantity = await getMaxQuantity(
-            item.cocktail_id,
-            item.sizes_id
-          );
+        if (items.length === 0) {
+          return [];
+        }
 
-          return {
-            cocktail_id: item.cocktail_id,
-            sizes_id: item.sizes_id,
-            available,
-            stock_quantity: maxQuantity,
-            max_quantity: maxQuantity,
-          };
+        const response = await fetch("/api/check-inventory", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            items: items.map(item => ({
+              cocktail_id: item.cocktail_id,
+              sizes_id: item.sizes_id,
+            })),
+          }),
         });
 
-        const results = await Promise.all(validationPromises);
-        return results;
+        if (!response.ok) {
+          throw new Error("Failed to validate inventory");
+        }
+
+        const data = await response.json();
+        const results = Array.isArray(data?.results) ? data.results : [];
+
+        return results.map((result: InventoryStatus) => ({
+          cocktail_id: result.cocktail_id,
+          sizes_id: result.sizes_id,
+          available: Boolean(result.available),
+          stock_quantity: result.stock_quantity ?? 0,
+          max_quantity: result.stock_quantity ?? 0,
+        }));
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : "Error validating inventory";

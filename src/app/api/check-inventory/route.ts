@@ -9,12 +9,77 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const { cocktail_id, sizes_id } = await request.json();
+    const body = await request.json();
+    const { cocktail_id, sizes_id } = body || {};
+    const items = Array.isArray(body?.items) ? body.items : null;
 
     console.log("🔍 [check-inventory] Request received:", {
       cocktail_id,
       sizes_id,
+      items: items ? items.length : 0,
     });
+
+    // Validar formato UUID
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (items) {
+      const normalizedItems = items
+        .map((item: any) => ({
+          cocktail_id: item?.cocktail_id,
+          sizes_id: item?.sizes_id,
+        }))
+        .filter((item: any) => item.cocktail_id && item.sizes_id);
+
+      const validItems = normalizedItems.filter(
+        (item: any) =>
+          uuidRegex.test(item.cocktail_id) && uuidRegex.test(item.sizes_id)
+      );
+
+      if (normalizedItems.length === 0) {
+        return NextResponse.json({ results: [] });
+      }
+
+      let inventoryRows: any[] = [];
+      if (validItems.length > 0) {
+        const orConditions = validItems
+          .map(
+            item =>
+              `and(cocktail_id.eq.${item.cocktail_id},sizes_id.eq.${item.sizes_id})`
+          )
+          .join(",");
+
+        const { data, error } = await supabase
+          .from("cocktail_sizes")
+          .select("available, stock_quantity, cocktail_id, sizes_id")
+          .or(orConditions);
+
+        if (error) {
+          console.error("❌ [check-inventory] Supabase error:", error);
+          return NextResponse.json(
+            { error: "Failed to check inventory", details: error.message },
+            { status: 500 }
+          );
+        }
+
+        inventoryRows = data ?? [];
+      }
+
+      const results = normalizedItems.map(item => {
+        const match = inventoryRows.find(
+          row =>
+            row.cocktail_id === item.cocktail_id &&
+            row.sizes_id === item.sizes_id
+        );
+        return {
+          cocktail_id: item.cocktail_id,
+          sizes_id: item.sizes_id,
+          available: match?.available ?? false,
+          stock_quantity: match?.stock_quantity ?? 0,
+        };
+      });
+
+      return NextResponse.json({ results });
+    }
 
     if (!cocktail_id || !sizes_id) {
       console.error("❌ [check-inventory] Missing parameters:", {
@@ -27,9 +92,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validar formato UUID
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(cocktail_id) || !uuidRegex.test(sizes_id)) {
       console.error("❌ [check-inventory] Invalid UUID format:", {
         cocktail_id,
