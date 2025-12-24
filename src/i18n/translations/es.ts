@@ -363,6 +363,7 @@ const es = {
     "subtotal": "Subtotal",
     "items": "artículos",
     "vat": "IVA",
+    "vat_alcoholic_note": "Bebidas alcohólicas",
     "shipping": "Envío",
     "free": "Gratis",
     "total": "Total",

@@ -365,6 +365,7 @@ const nl = {
     "subtotal": "Subtotaal",
     "items": "artikelen",
     "vat": "BTW",
+    "vat_alcoholic_note": "Alcoholische dranken",
     "shipping": "Verzending",
     "free": "Gratis",
     "total": "Totaal",

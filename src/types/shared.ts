@@ -131,6 +131,7 @@ export interface CartItem {
   size_name: string;
   volume_ml: number;
   image_url: string | null;
+  is_alcoholic?: boolean;
 }
 
 export interface Cart {

@@ -84,6 +84,7 @@ export default function CheckoutClient() {
   const isAddressComplete = Boolean(selectedAddress);
   const isShippingComplete = inventoryValid;
   const isPaymentReady = privacyAccepted;
+  const hasAlcoholicItems = items.some(item => item.is_alcoholic === true);
 
   const stepCompletion = [
     isContactComplete,
@@ -581,11 +582,11 @@ export default function CheckoutClient() {
                       <span className="text-cosmic-fog block">
                         {item.size_name}
                       </span>
+                      <span className="text-xs text-cosmic-fog">
+                        €{item.unit_price.toFixed(2)} × {item.quantity}
+                      </span>
                     </div>
                     <div className="text-right">
-                      <span className="text-cosmic-text">
-                        x{item.quantity}
-                      </span>
                       <span className="text-cosmic-gold block">
                         €{(item.item_total || 0).toFixed(2)}
                       </span>
@@ -603,7 +604,14 @@ export default function CheckoutClient() {
                   <span>€{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-cosmic-text">
-                  <span>{t("checkout.vat")} (21%)</span>
+                  <span className="flex items-center gap-2">
+                    {t("checkout.vat")} (21%)
+                    {hasAlcoholicItems && (
+                      <span className="text-xs text-cosmic-fog">
+                        {t("checkout.vat_alcoholic_note")}
+                      </span>
+                    )}
+                  </span>
                   <span>€{vat_amount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-cosmic-text">

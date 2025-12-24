@@ -217,6 +217,7 @@ export default function CocktailDetailPage({
                       volumeMl={size.size?.volume_ml ?? 0}
                       price={size.price}
                       cocktailSizeId={size.id}
+                      isAlcoholic={cocktail.alcohol_percentage > 0}
                     />
                   </div>
                 ))}

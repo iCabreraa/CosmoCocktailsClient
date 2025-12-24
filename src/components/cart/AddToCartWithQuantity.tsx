@@ -15,6 +15,7 @@ interface AddToCartProps {
   volumeMl: number;
   price: number;
   cocktailSizeId: string; // ID de la tabla cocktail_sizes
+  isAlcoholic?: boolean;
 }
 
 export default function AddToCartWithQuantity({
@@ -26,6 +27,7 @@ export default function AddToCartWithQuantity({
   volumeMl,
   price,
   cocktailSizeId,
+  isAlcoholic = false,
 }: AddToCartProps) {
   const { t } = useLanguage();
   const { notify } = useToast();
@@ -72,6 +74,7 @@ export default function AddToCartWithQuantity({
             size_name: sizeName,
             volume_ml: volumeMl,
             image_url: cocktailImage,
+            is_alcoholic: isAlcoholic,
           });
           notify({
             type: "success",

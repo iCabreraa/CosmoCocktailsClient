@@ -57,6 +57,7 @@ export default function CocktailCard({
       size_name: size.size_name ?? `${size.volume_ml ?? 0}ml`,
       volume_ml: size.volume_ml ?? 0,
       image_url: cocktail.image_url,
+      is_alcoholic: cocktail.alcohol_percentage > 0,
     });
     notify({
       type: "success",

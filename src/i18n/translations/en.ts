@@ -360,6 +360,7 @@ const en = {
     "subtotal": "Subtotal",
     "items": "items",
     "vat": "VAT",
+    "vat_alcoholic_note": "Alcoholic drinks",
     "shipping": "Shipping",
     "free": "Free",
     "total": "Total",

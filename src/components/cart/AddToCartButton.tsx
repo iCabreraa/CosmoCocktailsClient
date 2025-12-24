@@ -110,6 +110,7 @@ export default function AddToCartButton({
       size_name: size.size?.name ?? `${size.size?.volume_ml ?? 0}ml`,
       volume_ml: size.size?.volume_ml ?? 0,
       image_url: cocktail.image_url,
+      is_alcoholic: cocktail.alcohol_percentage > 0,
     });
     notify({
       type: "success",
