@@ -6,6 +6,7 @@ import {
   CreditCard,
   MapPin,
   User,
+  Check,
   AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
@@ -59,6 +60,28 @@ export default function CheckoutClient() {
   const [unavailableItems, setUnavailableItems] = useState<string[]>([]);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const isContactComplete = Boolean(
+    form.name.trim() && form.email.trim() && form.phone.trim()
+  );
+  const isAddressComplete = Boolean(selectedAddress);
+  const isShippingComplete = inventoryValid;
+  const isPaymentReady = privacyAccepted;
+
+  const stepCompletion = [
+    isContactComplete,
+    isAddressComplete,
+    isShippingComplete,
+    isPaymentReady,
+  ];
+  const firstIncomplete = stepCompletion.findIndex(done => !done);
+  const maxAllowedStep =
+    firstIncomplete === -1 ? stepCompletion.length : firstIncomplete;
+  const isLastStep = currentStep === stepCompletion.length;
+  const canAdvance = currentStep < stepCompletion.length
+    ? stepCompletion[currentStep]
+    : true;
 
   const steps = [
     { id: "checkout-contact", label: t("checkout.contact_info") },
@@ -68,11 +91,9 @@ export default function CheckoutClient() {
     { id: "checkout-summary", label: t("checkout.order_summary") },
   ];
 
-  const handleStepJump = (targetId: string) => {
-    if (typeof window === "undefined") return;
-    const el = document.getElementById(targetId);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+  const handleStepJump = (index: number) => {
+    if (index <= maxAllowedStep) {
+      setCurrentStep(index);
     }
   };
 
@@ -222,6 +243,7 @@ export default function CheckoutClient() {
       form.name &&
       form.email &&
       privacyAccepted &&
+      currentStep >= 3 &&
       !clientSecret
     ) {
       console.log("🚀 Creating payment intent...");
@@ -250,6 +272,7 @@ export default function CheckoutClient() {
     form.email,
     privacyAccepted,
     clientSecret,
+    currentStep,
   ]);
 
   const handleInventoryValidation = (
@@ -337,13 +360,30 @@ export default function CheckoutClient() {
               <li key={step.id}>
                 <button
                   type="button"
-                  onClick={() => handleStepJump(step.id)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2 text-left text-sm text-cosmic-fog transition hover:border-cosmic-gold/40 hover:text-cosmic-text"
+                  onClick={() => handleStepJump(index)}
+                  disabled={index > maxAllowedStep}
+                  className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left text-sm transition ${
+                    index === currentStep
+                      ? "border-cosmic-gold text-cosmic-text bg-cosmic-gold/10"
+                      : index <= maxAllowedStep
+                        ? "border-transparent text-cosmic-fog hover:border-cosmic-gold/40 hover:text-cosmic-text"
+                        : "border-transparent text-cosmic-fog/40 cursor-not-allowed"
+                  }`}
                 >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cosmic-gold/40 text-xs font-semibold text-cosmic-gold">
-                    {String(index + 1).padStart(2, "0")}
+                  <span
+                    className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold ${
+                      index < stepCompletion.length && stepCompletion[index]
+                        ? "border-cosmic-gold bg-cosmic-gold text-black"
+                        : "border-cosmic-gold/40 text-cosmic-gold"
+                    }`}
+                  >
+                    {index < stepCompletion.length && stepCompletion[index] ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      String(index + 1).padStart(2, "0")
+                    )}
                   </span>
-                  <span className="text-sm font-medium text-cosmic-text">
+                  <span className="text-sm font-medium">
                     {step.label}
                   </span>
                 </button>
@@ -352,14 +392,9 @@ export default function CheckoutClient() {
           </ol>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left column: form */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Contact Information */}
-            <div
-              id="checkout-contact"
-              className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10 scroll-mt-24"
-            >
+        <div className="space-y-8">
+          {currentStep === 0 && (
+            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
               <div className="flex items-center gap-3 mb-4">
                 <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cosmic-gold/40 text-xs font-semibold text-cosmic-gold">
                   01
@@ -414,12 +449,10 @@ export default function CheckoutClient() {
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Address Management */}
-            <div
-              id="checkout-address"
-              className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10 scroll-mt-24"
-            >
+          {currentStep === 1 && (
+            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
               <div className="flex items-center gap-3 mb-4">
                 <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cosmic-gold/40 text-xs font-semibold text-cosmic-gold">
                   02
@@ -434,9 +467,10 @@ export default function CheckoutClient() {
                 selectedAddress={selectedAddress}
               />
             </div>
+          )}
 
-            {/* Shipping */}
-            <section id="checkout-shipping" className="space-y-6 scroll-mt-24">
+          {currentStep === 2 && (
+            <section className="space-y-6">
               <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cosmic-gold/40 text-xs font-semibold text-cosmic-gold">
@@ -469,12 +503,10 @@ export default function CheckoutClient() {
                 onValidationComplete={handleInventoryValidation}
               />
             </section>
+          )}
 
-            {/* Payment Section */}
-            <div
-              id="checkout-payment"
-              className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10 scroll-mt-24"
-            >
+          {currentStep === 3 && (
+            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
               <div className="flex items-center gap-3 mb-4">
                 <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cosmic-gold/40 text-xs font-semibold text-cosmic-gold">
                   04
@@ -512,133 +544,141 @@ export default function CheckoutClient() {
                 )}
               </div>
 
-              {paymentError && (
-                <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 mb-4">
-                  <AlertTriangle className="w-4 h-4" />
-                  <span className="text-sm">{paymentError}</span>
-                </div>
-              )}
+              <div className="rounded-lg border border-cosmic-gold/10 bg-black/20 p-4 text-sm text-cosmic-fog">
+                {t("checkout.preparing_payment")}
+              </div>
+            </div>
+          )}
 
-              {clientSecret && privacyAccepted ? (
-                <StripePaymentComplete
-                  clientSecret={clientSecret}
-                  items={items}
-                  total={total}
-                  user={authUser}
-                  shippingAddress={selectedAddress}
-                  onPaymentSuccess={handlePaymentSuccess}
-                  onPaymentError={handlePaymentError}
-                />
-              ) : (
-                <div className="bg-cosmic-fog/10 rounded-lg p-4 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cosmic-gold mx-auto mb-2"></div>
-                  <p className="text-cosmic-fog text-sm">
-                    {privacyAccepted
-                      ? t("checkout.preparing_payment")
-                      : t("checkout.privacy_consent_required")}
+          {currentStep === 4 && (
+            <div className="space-y-8">
+              <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cosmic-gold/40 text-xs font-semibold text-cosmic-gold">
+                    05
+                  </span>
+                  <h2 className="text-xl font-[--font-unica] text-cosmic-gold">
+                    {t("checkout.order_summary")}
+                  </h2>
+                </div>
+
+                <div className="space-y-3 mb-6">
+                  {items.map((item, index) => (
+                    <div
+                      key={`${item.cocktail_id}-${item.sizes_id}-${index}`}
+                      className="flex justify-between text-sm"
+                    >
+                      <div>
+                        <span className="text-cosmic-text">
+                          {item.cocktail_name}
+                        </span>
+                        <span className="text-cosmic-fog block">
+                          {item.size_name}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-cosmic-text">
+                          x{item.quantity}
+                        </span>
+                        <span className="text-cosmic-gold block">
+                          €{(item.item_total || 0).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2 text-sm pt-4 border-t border-cosmic-fog/30">
+                  <div className="flex justify-between text-cosmic-text">
+                    <span>
+                      {t("checkout.subtotal")} ({item_count}{" "}
+                      {t("checkout.items")})
+                    </span>
+                    <span>€{subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-cosmic-text">
+                    <span>{t("checkout.vat")} (21%)</span>
+                    <span>€{vat_amount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-cosmic-text">
+                    <span>{t("checkout.shipping")}</span>
+                    <span>
+                      {shipping_cost > 0
+                        ? `€${shipping_cost.toFixed(2)}`
+                        : t("checkout.free")}
+                    </span>
+                  </div>
+                  <div className="border-t border-cosmic-fog/30 pt-2">
+                    <div className="flex justify-between text-lg font-semibold text-cosmic-gold">
+                      <span>{t("checkout.total")}</span>
+                      <span>€{total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {shipping_cost > 0 && (
+                  <p className="text-xs text-cosmic-fog mt-4 text-center">
+                    {t("checkout.free_shipping_note")}
                   </p>
-                </div>
-              )}
+                )}
+              </div>
+
+              <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
+                {paymentError && (
+                  <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 mb-4">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span className="text-sm">{paymentError}</span>
+                  </div>
+                )}
+
+                {clientSecret && privacyAccepted ? (
+                  <StripePaymentComplete
+                    clientSecret={clientSecret}
+                    items={items}
+                    total={total}
+                    user={authUser}
+                    shippingAddress={selectedAddress}
+                    onPaymentSuccess={handlePaymentSuccess}
+                    onPaymentError={handlePaymentError}
+                  />
+                ) : (
+                  <div className="bg-cosmic-fog/10 rounded-lg p-4 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cosmic-gold mx-auto mb-2"></div>
+                    <p className="text-cosmic-fog text-sm">
+                      {privacyAccepted
+                        ? t("checkout.preparing_payment")
+                        : t("checkout.privacy_consent_required")}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
+          )}
 
-            {/* Submit Button */}
-            <div className="space-y-4">
-              {/* Validation Status */}
-              {!inventoryValid && (
-                <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500">
-                  <AlertTriangle className="w-5 h-5" />
-                  <span className="text-sm">
-                    {t("checkout.products_unavailable")}
-                  </span>
-                </div>
-              )}
-
-              {!selectedAddress && (
-                <div className="flex items-center gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-500">
-                  <AlertTriangle className="w-5 h-5" />
-                  <span className="text-sm">
-                    {t("checkout.select_address")}
-                  </span>
-                </div>
-              )}
-
-              {/* El botón de pago está en StripePaymentComplete */}
-            </div>
-          </div>
-
-          {/* Right column: summary */}
-          <div className="lg:col-span-1">
-            <div
-              id="checkout-summary"
-              className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10 sticky top-6 scroll-mt-24"
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setCurrentStep(Math.max(currentStep - 1, 0))}
+              disabled={currentStep === 0}
+              className="rounded-full border border-cosmic-fog/40 px-5 py-2 text-sm text-cosmic-fog transition hover:border-cosmic-gold hover:text-cosmic-gold disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <div className="flex items-center gap-3 mb-4">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cosmic-gold/40 text-xs font-semibold text-cosmic-gold">
-                  05
-                </span>
-                <h2 className="text-xl font-[--font-unica] text-cosmic-gold">
-                  {t("checkout.order_summary")}
-                </h2>
-              </div>
+              {t("common.back")}
+            </button>
 
-              <div className="space-y-3 mb-6">
-                {items.map((item, index) => (
-                  <div
-                    key={`${item.cocktail_id}-${item.sizes_id}-${index}`}
-                    className="flex justify-between text-sm"
-                  >
-                    <div>
-                      <span className="text-cosmic-text">
-                        {item.cocktail_name}
-                      </span>
-                      <span className="text-cosmic-fog block">
-                        {item.size_name}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-cosmic-text">x{item.quantity}</span>
-                      <span className="text-cosmic-gold block">
-                        €{(item.item_total || 0).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-2 text-sm pt-4 border-t border-cosmic-fog/30">
-                <div className="flex justify-between text-cosmic-text">
-                  <span>
-                    {t("checkout.subtotal")} ({item_count} {t("checkout.items")}
-                    )
-                  </span>
-                  <span>€{subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-cosmic-text">
-                  <span>{t("checkout.vat")} (21%)</span>
-                  <span>€{vat_amount.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-cosmic-text">
-                  <span>{t("checkout.shipping")}</span>
-                  <span>
-                    {shipping_cost > 0
-                      ? `€${shipping_cost.toFixed(2)}`
-                      : t("checkout.free")}
-                  </span>
-                </div>
-                <div className="border-t border-cosmic-fog/30 pt-2">
-                  <div className="flex justify-between text-lg font-semibold text-cosmic-gold">
-                    <span>{t("checkout.total")}</span>
-                    <span>€{total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {shipping_cost > 0 && (
-                <p className="text-xs text-cosmic-fog mt-4 text-center">
-                  {t("checkout.free_shipping_note")}
-                </p>
-              )}
-            </div>
+            {!isLastStep && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (canAdvance) {
+                    setCurrentStep(Math.min(currentStep + 1, steps.length - 1));
+                  }
+                }}
+                disabled={!canAdvance}
+                className="rounded-full bg-cosmic-gold px-6 py-2 text-sm font-medium text-black transition hover:bg-cosmic-gold/80 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t("common.next")}
+              </button>
+            )}
           </div>
         </div>
       </div>

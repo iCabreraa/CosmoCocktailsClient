@@ -182,6 +182,7 @@ const en = {
     "cancel": "Cancel",
     "close": "Close",
     "back": "Back",
+    "next": "Next",
     "reload": "Reload",
     "user": "User"
   },
