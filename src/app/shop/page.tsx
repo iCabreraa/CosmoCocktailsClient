@@ -354,7 +354,10 @@ export default function ShopPage() {
         {/* Banner Principal */}
         <FeaturedBanner />
 
-        <div className="flex flex-col items-center gap-4 text-sm text-cosmic-silver">
+        <div
+          id="shop-catalog"
+          className="flex flex-col items-center gap-4 text-sm text-cosmic-silver"
+        >
           <h2 className="text-2xl md:text-3xl font-[--font-unica] text-cosmic-gold">
             {t("shop.all_cocktails")}
           </h2>
