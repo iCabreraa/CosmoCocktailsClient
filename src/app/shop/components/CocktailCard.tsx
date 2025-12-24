@@ -7,12 +7,16 @@ import Link from "next/link";
 import { CocktailWithPrice } from "@/types";
 import { useCart } from "@/store/cart";
 import { Plus } from "lucide-react";
+import { useToast } from "@/components/feedback/ToastProvider";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CocktailCardProps {
   cocktail: CocktailWithPrice;
 }
 
 export default function CocktailCard({ cocktail }: CocktailCardProps) {
+  const { t } = useLanguage();
+  const { notify } = useToast();
   const addToCart = useCart(state => state.addToCart);
   const imageSrc = cocktail.image_url || "/images/placeholder.webp";
   const halfInset = "calc(50% - 0.5px)";
@@ -48,6 +52,11 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
       size_name: size.size_name ?? `${size.volume_ml ?? 0}ml`,
       volume_ml: size.volume_ml ?? 0,
       image_url: cocktail.image_url,
+    });
+    notify({
+      type: "success",
+      title: t("feedback.cart_added_title"),
+      message: t("feedback.cart_added_message", { name: cocktail.name }),
     });
   };
 

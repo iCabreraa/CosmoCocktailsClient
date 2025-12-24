@@ -27,6 +27,7 @@ import UserAvatar from "@/components/ui/UserAvatar";
 import RoleBadge from "@/components/ui/RoleBadge";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useFavorites } from "@/hooks/queries/useFavorites";
+import { useCart } from "@/store/cart";
 import { createClient } from "@/lib/supabase/client";
 import { usePathname } from "next/navigation";
 import "@fontsource/major-mono-display";
@@ -46,6 +47,8 @@ export default function Navbar() {
   const favoritesCount = hasFavoritesAccess
     ? favoritesQuery.data?.length ?? 0
     : 0;
+  const { item_count, hasHydrated } = useCart();
+  const cartCount = hasHydrated ? item_count : 0;
 
   const showBg = scrolled || hovered;
 
@@ -520,10 +523,15 @@ export default function Navbar() {
                   )}
                   <Link
                     href="/cart"
-                    className="hover:text-cosmic-gold transition-colors duration-200"
-                    aria-label="Shopping Cart"
+                    className="relative hover:text-cosmic-gold transition-colors duration-200"
+                    aria-label={t("nav.cart")}
                   >
                     <ShoppingCart className="w-5 h-5" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-2 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-cosmic-gold px-1 text-[10px] font-semibold text-black">
+                        {cartCount > 9 ? "9+" : cartCount}
+                      </span>
+                    )}
                   </Link>
 
                   {/* Admin Panel Button - Only for admins */}

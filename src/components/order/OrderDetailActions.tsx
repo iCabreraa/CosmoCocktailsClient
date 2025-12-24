@@ -10,6 +10,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/components/feedback/ToastProvider";
 
 interface OrderDetailActionsProps {
   orderId: string;
@@ -23,6 +24,7 @@ export default function OrderDetailActions({
   status,
 }: OrderDetailActionsProps) {
   const { t, isInitialized } = useLanguage();
+  const { notify } = useToast();
   const [showContactForm, setShowContactForm] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -79,7 +81,11 @@ export default function OrderDetailActions({
     console.log("Mensaje enviado:", { orderId, orderRef, message });
 
     // Simular envío
-    alert(t("order.message_sent"));
+    notify({
+      type: "success",
+      title: t("feedback.message_sent_title"),
+      message: t("feedback.message_sent_message"),
+    });
     setMessage("");
     setShowContactForm(false);
   };

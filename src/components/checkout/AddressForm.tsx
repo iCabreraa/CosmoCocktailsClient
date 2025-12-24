@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MapPin, Plus, Edit2, Trash2, Check } from "lucide-react";
 import { Address } from "@/types/shared";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/components/feedback/ToastProvider";
 
 interface AddressFormProps {
   onAddressSelect: (address: Address) => void;
@@ -25,6 +26,7 @@ export default function AddressForm({
   selectedAddress,
 }: AddressFormProps) {
   const { t } = useLanguage();
+  const { notify } = useToast();
   const [addresses, setAddresses] = useState<Address[]>([
     // Dirección por defecto
     {
@@ -82,8 +84,22 @@ export default function AddressForm({
       setAddresses(prev =>
         prev.map(addr => (addr.id === editingAddress.id ? newAddress : addr))
       );
+      notify({
+        type: "success",
+        title: t("feedback.address_updated_title"),
+        message: t("feedback.address_updated_message", {
+          name: newAddress.name,
+        }),
+      });
     } else {
       setAddresses(prev => [...prev, newAddress]);
+      notify({
+        type: "success",
+        title: t("feedback.address_added_title"),
+        message: t("feedback.address_added_message", {
+          name: newAddress.name,
+        }),
+      });
     }
 
     // Si es la dirección por defecto o la primera, seleccionarla automáticamente
@@ -120,9 +136,17 @@ export default function AddressForm({
   };
 
   const handleDelete = (addressId: string) => {
+    const toDelete = addresses.find(addr => addr.id === addressId);
     setAddresses(prev => prev.filter(addr => addr.id !== addressId));
     if (selectedAddress?.id === addressId) {
       onAddressSelect(addresses[0] || null);
+    }
+    if (toDelete) {
+      notify({
+        type: "warning",
+        title: t("feedback.address_deleted_title"),
+        message: t("feedback.address_deleted_message", { name: toDelete.name }),
+      });
     }
   };
 
