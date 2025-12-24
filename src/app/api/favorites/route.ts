@@ -1,13 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const mode = request.nextUrl.searchParams.get("mode");
+
+  if (mode === "ids") {
+    const { data, error } = await supabase
+      .from("user_favorites")
+      .select("cocktail_id, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ favorites: data ?? [] });
+  }
 
   const { data, error } = await supabase
     .from("user_favorites")

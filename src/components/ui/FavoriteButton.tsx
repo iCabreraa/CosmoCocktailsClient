@@ -23,10 +23,16 @@ export default function FavoriteButton({
   const { favoritesQuery, addFavorite, removeFavorite } = useFavorites({
     enabled: isAuthenticated,
   });
-  const isFavorite = useMemo(
-    () => (favoritesQuery.data ?? []).some(f => f.cocktail_id === cocktailId),
-    [favoritesQuery.data, cocktailId]
-  );
+  const favoriteIds = useMemo(() => {
+    const data = favoritesQuery.data ?? [];
+    return new Set(
+      (data as Array<{ cocktail_id?: string; id?: string }>).map(
+        favorite => favorite.cocktail_id ?? favorite.id ?? ""
+      )
+    );
+  }, [favoritesQuery.data]);
+
+  const isFavorite = favoriteIds.has(cocktailId);
 
   if (!isAuthenticated) {
     return null;
