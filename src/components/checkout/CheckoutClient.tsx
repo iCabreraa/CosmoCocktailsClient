@@ -61,10 +61,35 @@ export default function CheckoutClient() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [showStepErrors, setShowStepErrors] = useState(false);
+  const [touchedFields, setTouchedFields] = useState({
+    name: false,
+    email: false,
+    phone: false,
+  });
 
-  const isContactComplete = Boolean(
-    form.name.trim() && form.email.trim() && form.phone.trim()
-  );
+  const emailValue = form.email.trim();
+  const phoneDigits = form.phone.replace(/[^\d]/g, "");
+  const emailValid =
+    emailValue.length > 0 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue);
+  const phoneValid = phoneDigits.length >= 6;
+
+  const nameError = form.name.trim()
+    ? ""
+    : t("checkout.full_name_required");
+  const emailError = emailValue
+    ? emailValid
+      ? ""
+      : t("checkout.email_invalid")
+    : t("checkout.email_required");
+  const phoneError = form.phone.trim()
+    ? phoneValid
+      ? ""
+      : t("checkout.phone_invalid")
+    : t("checkout.phone_required");
+
+  const isContactComplete = !nameError && !emailError && !phoneError;
   const isAddressComplete = Boolean(selectedAddress);
   const isShippingComplete = inventoryValid;
   const isPaymentReady = privacyAccepted;
@@ -119,6 +144,9 @@ export default function CheckoutClient() {
 
   const handleChange = async (field: string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }));
+    if (showStepErrors) {
+      setShowStepErrors(false);
+    }
 
     // Auto-rellenar formulario cuando se ingresa un email
     if (field === "email" && value.includes("@")) {
@@ -411,29 +439,41 @@ export default function CheckoutClient() {
                     <label className="block text-sm text-cosmic-fog mb-2">
                       {t("checkout.full_name")} *
                     </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder={t("checkout.full_name_placeholder")}
-                      className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
-                      value={form.name}
-                      onChange={e => handleChange("name", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-cosmic-fog mb-2">
-                      {t("checkout.email")} *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      placeholder={t("checkout.email_placeholder")}
-                      className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
-                      value={form.email}
-                      onChange={e => handleChange("email", e.target.value)}
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    required
+                    placeholder={t("checkout.full_name_placeholder")}
+                    className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
+                    value={form.name}
+                    onChange={e => handleChange("name", e.target.value)}
+                    onBlur={() =>
+                      setTouchedFields(prev => ({ ...prev, name: true }))
+                    }
+                  />
+                  {(showStepErrors || touchedFields.name) && nameError && (
+                    <p className="mt-2 text-sm text-red-400">{nameError}</p>
+                  )}
                 </div>
+                <div>
+                  <label className="block text-sm text-cosmic-fog mb-2">
+                    {t("checkout.email")} *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder={t("checkout.email_placeholder")}
+                    className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
+                    value={form.email}
+                    onChange={e => handleChange("email", e.target.value)}
+                    onBlur={() =>
+                      setTouchedFields(prev => ({ ...prev, email: true }))
+                    }
+                  />
+                  {(showStepErrors || touchedFields.email) && emailError && (
+                    <p className="mt-2 text-sm text-red-400">{emailError}</p>
+                  )}
+                </div>
+              </div>
 
                 <div>
                   <label className="block text-sm text-cosmic-fog mb-2">
@@ -446,7 +486,13 @@ export default function CheckoutClient() {
                     className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
                     value={form.phone}
                     onChange={e => handleChange("phone", e.target.value)}
+                    onBlur={() =>
+                      setTouchedFields(prev => ({ ...prev, phone: true }))
+                    }
                   />
+                  {(showStepErrors || touchedFields.phone) && phoneError && (
+                    <p className="mt-2 text-sm text-red-400">{phoneError}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -467,6 +513,11 @@ export default function CheckoutClient() {
                 onAddressSelect={handleAddressSelect}
                 selectedAddress={selectedAddress}
               />
+              {showStepErrors && !selectedAddress && (
+                <p className="mt-4 text-sm text-red-400">
+                  {t("checkout.select_address")}
+                </p>
+              )}
             </div>
           )}
 
@@ -503,6 +554,14 @@ export default function CheckoutClient() {
                 items={items}
                 onValidationComplete={handleInventoryValidation}
               />
+              {showStepErrors && !inventoryValid && (
+                <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span className="text-sm">
+                    {t("checkout.products_unavailable")}
+                  </span>
+                </div>
+              )}
             </section>
           )}
 
@@ -611,7 +670,7 @@ export default function CheckoutClient() {
                     {t("checkout.privacy_consent_suffix")}
                   </span>
                 </label>
-                {!privacyAccepted && (
+                {showStepErrors && !privacyAccepted && (
                   <p className="text-sm text-red-400">
                     {t("checkout.privacy_consent_required")}
                   </p>
@@ -663,7 +722,12 @@ export default function CheckoutClient() {
                 type="button"
                 onClick={() => {
                   if (canAdvance) {
-                    setCurrentStep(Math.min(currentStep + 1, steps.length - 1));
+                    setShowStepErrors(false);
+                    setCurrentStep(
+                      Math.min(currentStep + 1, steps.length - 1)
+                    );
+                  } else {
+                    setShowStepErrors(true);
                   }
                 }}
                 disabled={!canAdvance}
