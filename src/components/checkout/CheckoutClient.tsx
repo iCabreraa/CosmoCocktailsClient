@@ -161,11 +161,18 @@ export default function CheckoutClient() {
     setSelectedAddress(address);
   };
 
+  const addressWithPhone = selectedAddress
+    ? {
+        ...selectedAddress,
+        phone: selectedAddress.phone || form.phone,
+      }
+    : selectedAddress;
+
   const createPaymentIntent = async () => {
     try {
       console.log("🔍 Creating payment intent with data:", {
         items,
-        address: selectedAddress,
+        address: addressWithPhone,
         form: { name: form.name, email: form.email },
       });
 
@@ -176,7 +183,7 @@ export default function CheckoutClient() {
         },
         body: JSON.stringify({
           items: items,
-          address: selectedAddress,
+          address: addressWithPhone,
         }),
       });
 
@@ -218,7 +225,7 @@ export default function CheckoutClient() {
           email: form.email,
           full_name: form.name,
           phone: form.phone,
-          address: selectedAddress,
+          address: addressWithPhone,
           is_guest: true,
           user_id: undefined,
         });
@@ -242,7 +249,7 @@ export default function CheckoutClient() {
         shipping_cost,
         total,
         item_count,
-        shippingAddress: selectedAddress,
+        shippingAddress: addressWithPhone,
       };
       sessionStorage.setItem(
         "checkout-success",
@@ -703,7 +710,7 @@ export default function CheckoutClient() {
                   items={items}
                   total={total}
                   user={authUser}
-                  shippingAddress={selectedAddress}
+                  shippingAddress={addressWithPhone}
                   contactEmail={form.email}
                   onPaymentSuccess={handlePaymentSuccess}
                   onPaymentError={handlePaymentError}

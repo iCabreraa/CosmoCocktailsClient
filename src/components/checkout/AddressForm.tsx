@@ -372,7 +372,9 @@ export default function AddressForm({
                 <p className="text-sm text-cosmic-fog">
                   {address.city}, {address.postal_code}, {address.country}
                 </p>
-                <p className="text-sm text-cosmic-fog">{address.phone}</p>
+                {address.phone && (
+                  <p className="text-sm text-cosmic-fog">{address.phone}</p>
+                )}
               </div>
               <div className="flex gap-2 ml-4">
                 <button
@@ -421,7 +423,7 @@ export default function AddressForm({
           </h3>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm text-cosmic-fog mb-2">
                   {t("checkout.address_name")} *
@@ -433,19 +435,6 @@ export default function AddressForm({
                   className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
                   value={formData.name}
                   onChange={e => handleInputChange("name", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-cosmic-fog mb-2">
-                  {t("checkout.phone")} *
-                </label>
-                <input
-                  type="tel"
-                  required
-                  placeholder={t("checkout.phone_placeholder")}
-                  className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
-                  value={formData.phone}
-                  onChange={e => handleInputChange("phone", e.target.value)}
                 />
               </div>
             </div>
