@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MapPin, Plus, Edit2, Trash2, Check } from "lucide-react";
 import { Address } from "@/types/shared";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/components/feedback/ToastProvider";
 
 interface AddressFormProps {
-  onAddressSelect: (address: Address) => void;
+  onAddressSelect: (address: Address | null) => void;
   selectedAddress?: Address | null;
+  isAuthenticated?: boolean;
 }
 
 interface AddressFormData {
@@ -24,25 +25,13 @@ interface AddressFormData {
 export default function AddressForm({
   onAddressSelect,
   selectedAddress,
+  isAuthenticated = false,
 }: AddressFormProps) {
   const { t } = useLanguage();
   const { notify } = useToast();
-  const [addresses, setAddresses] = useState<Address[]>([
-    // Dirección por defecto
-    {
-      id: "default-1",
-      user_id: "current-user",
-      name: t("checkout.home"),
-      street: "Calle Principal 123",
-      city: "Madrid",
-      postal_code: "28001",
-      country: t("checkout.spain"),
-      phone: "+34 123 456 789",
-      is_default: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-  ]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
+  const [addressError, setAddressError] = useState("");
 
   const [showForm, setShowForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
@@ -56,6 +45,67 @@ export default function AddressForm({
     isDefault: false,
   });
 
+  const normalizeAddress = (address: Address): Address => {
+    const fallbackId = `addr-${Date.now()}-${Math.round(Math.random() * 1000)}`;
+    return {
+      ...address,
+      id: address.id || fallbackId,
+      name: address.name || address.full_name || address.street || "",
+      street: address.street || address.address_line_1 || "",
+      postal_code: address.postal_code || address.postalCode || "",
+      is_default:
+        address.is_default ?? address.isDefault ?? false,
+    };
+  };
+
+  const syncSelectedAddress = (list: Address[]) => {
+    if (!list.length) return;
+    if (selectedAddress && list.some(addr => addr.id === selectedAddress.id)) {
+      return;
+    }
+    const preferred = list.find(addr => addr.is_default) || list[0];
+    if (preferred) {
+      onAddressSelect(preferred);
+    }
+  };
+
+  const loadAddresses = async () => {
+    if (!isAuthenticated) return;
+    setLoadingAddresses(true);
+    setAddressError("");
+    try {
+      const res = await fetch("/api/addresses");
+      if (!res.ok) {
+        throw new Error("Failed to load addresses");
+      }
+      const data = await res.json();
+      const list = (data.addresses || []).map((addr: Address) =>
+        normalizeAddress(addr)
+      );
+      setAddresses(list);
+      syncSelectedAddress(list);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error loading addresses";
+      setAddressError(message);
+    } finally {
+      setLoadingAddresses(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setAddresses([]);
+      loadAddresses();
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated && addresses.length === 0) {
+      setShowForm(true);
+    }
+  }, [isAuthenticated, addresses.length]);
+
   const handleInputChange = (
     field: keyof AddressFormData,
     value: string | boolean
@@ -68,42 +118,110 @@ export default function AddressForm({
 
     const newAddress: Address = {
       id: editingAddress?.id || `addr-${Date.now()}`,
-      user_id: "current-user",
       name: formData.name,
       street: formData.street,
       city: formData.city,
       postal_code: formData.postalCode,
       country: formData.country,
       phone: formData.phone,
-      is_default: formData.isDefault || addresses.length === 0,
+      is_default: isAuthenticated
+        ? formData.isDefault || addresses.length === 0
+        : false,
       created_at: editingAddress?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
-    if (editingAddress) {
-      setAddresses(prev =>
-        prev.map(addr => (addr.id === editingAddress.id ? newAddress : addr))
-      );
-      notify({
-        type: "success",
-        title: t("feedback.address_updated_title"),
-        message: t("feedback.address_updated_message", {
-          name: newAddress.name,
-        }),
-      });
+    if (isAuthenticated) {
+      const saveAddress = async () => {
+        try {
+          setAddressError("");
+          const payload = {
+            ...newAddress,
+            is_default: newAddress.is_default,
+            type: "shipping",
+          };
+          const res = await fetch("/api/addresses", {
+            method: editingAddress ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) {
+            throw new Error("Failed to save address");
+          }
+          const data = await res.json();
+          const saved = normalizeAddress(data.address);
+          setAddresses(prev => {
+            const next = editingAddress
+              ? prev.map(addr => (addr.id === saved.id ? saved : addr))
+              : [...prev, saved];
+            return saved.is_default
+              ? next.map(addr => ({
+                  ...addr,
+                  is_default: addr.id === saved.id,
+                }))
+              : next;
+          });
+          onAddressSelect(saved);
+          notify({
+            type: "success",
+            title: editingAddress
+              ? t("feedback.address_updated_title")
+              : t("feedback.address_added_title"),
+            message: editingAddress
+              ? t("feedback.address_updated_message", {
+                  name: saved.name,
+                })
+              : t("feedback.address_added_message", {
+                  name: saved.name,
+                }),
+          });
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : "Error saving address";
+          setAddressError(message);
+        }
+      };
+      void saveAddress();
     } else {
-      setAddresses(prev => [...prev, newAddress]);
-      notify({
-        type: "success",
-        title: t("feedback.address_added_title"),
-        message: t("feedback.address_added_message", {
-          name: newAddress.name,
-        }),
-      });
+      if (editingAddress) {
+        setAddresses(prev =>
+          prev.map(addr => {
+            if (addr.id === editingAddress.id) {
+              return newAddress;
+            }
+            if (newAddress.is_default) {
+              return { ...addr, is_default: false };
+            }
+            return addr;
+          })
+        );
+        notify({
+          type: "success",
+          title: t("feedback.address_updated_title"),
+          message: t("feedback.address_updated_message", {
+            name: newAddress.name,
+          }),
+        });
+      } else {
+        setAddresses(prev => {
+          const next = newAddress.is_default
+            ? prev.map(addr => ({ ...addr, is_default: false }))
+            : prev;
+          return [...next, newAddress];
+        });
+        notify({
+          type: "success",
+          title: t("feedback.address_added_title"),
+          message: t("feedback.address_added_message", {
+            name: newAddress.name,
+          }),
+        });
+      }
+      onAddressSelect(newAddress);
     }
 
     // Si es la dirección por defecto o la primera, seleccionarla automáticamente
-    if (formData.isDefault || addresses.length === 0) {
+    if (!isAuthenticated) {
       onAddressSelect(newAddress);
     }
 
@@ -130,23 +248,70 @@ export default function AddressForm({
       postalCode: address.postal_code || "",
       country: address.country,
       phone: address.phone || "",
-      isDefault: address.is_default || false,
+      isDefault: isAuthenticated ? address.is_default || false : false,
     });
     setShowForm(true);
   };
 
   const handleDelete = (addressId: string) => {
     const toDelete = addresses.find(addr => addr.id === addressId);
-    setAddresses(prev => prev.filter(addr => addr.id !== addressId));
-    if (selectedAddress?.id === addressId) {
-      onAddressSelect(addresses[0] || null);
-    }
-    if (toDelete) {
-      notify({
-        type: "warning",
-        title: t("feedback.address_deleted_title"),
-        message: t("feedback.address_deleted_message", { name: toDelete.name }),
-      });
+    const wasDefault = Boolean(toDelete?.is_default);
+    if (isAuthenticated) {
+      const removeAddress = async () => {
+        try {
+          setAddressError("");
+          const res = await fetch(`/api/addresses?id=${addressId}`, {
+            method: "DELETE",
+          });
+          if (!res.ok) {
+            throw new Error("Failed to delete address");
+          }
+          const remaining = addresses.filter(addr => addr.id !== addressId);
+          if (wasDefault && remaining.length > 0) {
+            const nextDefault = remaining[0];
+            await fetch("/api/addresses", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...nextDefault, is_default: true }),
+            });
+            remaining[0] = { ...nextDefault, is_default: true };
+          }
+          setAddresses(remaining);
+          if (selectedAddress?.id === addressId) {
+            onAddressSelect(remaining.find(addr => addr.is_default) || remaining[0] || null);
+          }
+          if (toDelete) {
+            notify({
+              type: "warning",
+              title: t("feedback.address_deleted_title"),
+              message: t("feedback.address_deleted_message", {
+                name: toDelete.name,
+              }),
+            });
+          }
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : "Error deleting address";
+          setAddressError(message);
+        }
+      };
+      void removeAddress();
+    } else {
+      const next = addresses.filter(addr => addr.id !== addressId);
+      if (wasDefault && next.length > 0) {
+        next[0] = { ...next[0], is_default: true };
+      }
+      setAddresses(next);
+      if (selectedAddress?.id === addressId) {
+        onAddressSelect(next.find(addr => addr.is_default) || next[0] || null);
+      }
+      if (toDelete) {
+        notify({
+          type: "warning",
+          title: t("feedback.address_deleted_title"),
+          message: t("feedback.address_deleted_message", { name: toDelete.name }),
+        });
+      }
     }
   };
 
@@ -162,6 +327,16 @@ export default function AddressForm({
           <MapPin className="w-5 h-5" />
           {t("checkout.shipping_addresses")}
         </h3>
+
+        {loadingAddresses && (
+          <div className="text-sm text-cosmic-fog">
+            {t("checkout.loading")}
+          </div>
+        )}
+
+        {addressError && (
+          <div className="text-sm text-red-400">{addressError}</div>
+        )}
 
         {addresses.map(address => (
           <div
@@ -204,17 +379,16 @@ export default function AddressForm({
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
-                {!address.is_default && (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleDelete(address.id);
-                    }}
-                    className="p-2 text-cosmic-fog hover:text-red-500 transition"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleDelete(address.id);
+                  }}
+                  className="p-2 text-cosmic-fog hover:text-red-500 transition"
+                  title={t("feedback.address_deleted_title")}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
@@ -329,18 +503,20 @@ export default function AddressForm({
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="isDefault"
-                checked={formData.isDefault}
-                onChange={e => handleInputChange("isDefault", e.target.checked)}
-                className="w-4 h-4 text-cosmic-gold bg-transparent border-cosmic-fog rounded focus:ring-cosmic-gold focus:ring-2"
-              />
-              <label htmlFor="isDefault" className="text-sm text-cosmic-fog">
-                {t("checkout.set_as_default")}
-              </label>
-            </div>
+            {isAuthenticated && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isDefault"
+                  checked={formData.isDefault}
+                  onChange={e => handleInputChange("isDefault", e.target.checked)}
+                  className="w-4 h-4 text-cosmic-gold bg-transparent border-cosmic-fog rounded focus:ring-cosmic-gold focus:ring-2"
+                />
+                <label htmlFor="isDefault" className="text-sm text-cosmic-fog">
+                  {t("checkout.set_as_default")}
+                </label>
+              </div>
+            )}
 
             <div className="flex gap-3 pt-4">
               <button

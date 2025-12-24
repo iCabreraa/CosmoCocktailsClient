@@ -43,16 +43,7 @@ export default function CheckoutClient() {
     phone: "",
   });
 
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>({
-    id: "default",
-    name: "Casa",
-    street: "Calle Principal 123",
-    city: "Madrid",
-    postalCode: "28001",
-    country: "España",
-    phone: "+34 123 456 789",
-    isDefault: true,
-  });
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -178,7 +169,7 @@ export default function CheckoutClient() {
     }
   };
 
-  const handleAddressSelect = (address: Address) => {
+  const handleAddressSelect = (address: Address | null) => {
     setSelectedAddress(address);
   };
 
@@ -512,6 +503,7 @@ export default function CheckoutClient() {
               <AddressForm
                 onAddressSelect={handleAddressSelect}
                 selectedAddress={selectedAddress}
+                isAuthenticated={Boolean(authUser)}
               />
               {showStepErrors && !selectedAddress && (
                 <p className="mt-4 text-sm text-red-400">
