@@ -15,40 +15,44 @@ export default function Footer() {
           <h4 className="text-cosmic-gold uppercase font-display tracking-wide mb-3">
             {t("nav.account")}
           </h4>
-          <ul className="space-y-1">
-            <li>
-              <Link
-                href="/account?tab=dashboard"
-                className="hover:text-cosmic-gold transition"
-              >
-                {t("account.tabs.dashboard")}
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/account?tab=orders"
-                className="hover:text-cosmic-gold transition"
-              >
-                {t("account.tabs.orders")}
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/account?tab=favorites"
-                className="hover:text-cosmic-gold transition"
-              >
-                {t("account.tabs.favorites")}
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/account?tab=settings"
-                className="hover:text-cosmic-gold transition"
-              >
-                {t("account.tabs.settings")}
-              </Link>
-            </li>
-          </ul>
+          <div className="grid grid-cols-2 gap-x-6">
+            <ul className="space-y-1">
+              <li>
+                <Link
+                  href="/account?tab=dashboard"
+                  className="hover:text-cosmic-gold transition"
+                >
+                  {t("account.tabs.dashboard")}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/account?tab=orders"
+                  className="hover:text-cosmic-gold transition"
+                >
+                  {t("account.tabs.orders")}
+                </Link>
+              </li>
+            </ul>
+            <ul className="space-y-1">
+              <li>
+                <Link
+                  href="/account?tab=favorites"
+                  className="hover:text-cosmic-gold transition"
+                >
+                  {t("account.tabs.favorites")}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/account?tab=settings"
+                  className="hover:text-cosmic-gold transition"
+                >
+                  {t("account.tabs.settings")}
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
 
         {/* Center: Branding */}
