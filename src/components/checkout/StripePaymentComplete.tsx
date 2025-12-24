@@ -21,7 +21,12 @@ interface StripePaymentCompleteProps {
   total: number;
   user?: any;
   shippingAddress?: any;
-  onPaymentSuccess: (paymentIntent: any) => void;
+  contactEmail?: string;
+  onPaymentSuccess: (payload: {
+    orderId: string;
+    orderRef?: string;
+    paymentIntentId: string;
+  }) => void;
   onPaymentError: (error: string) => void;
 }
 
@@ -31,6 +36,7 @@ function PaymentForm({
   total,
   user,
   shippingAddress,
+  contactEmail,
   onPaymentSuccess,
   onPaymentError,
 }: StripePaymentCompleteProps) {
@@ -68,9 +74,17 @@ function PaymentForm({
         setError(errorMessage);
         onPaymentError(errorMessage);
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
-        // Crear pedido después del pago exitoso y redirigir al detalle
-        await createOrder(paymentIntent);
-        onPaymentSuccess(paymentIntent);
+        // Crear pedido después del pago exitoso
+        const orderResult = await createOrder(paymentIntent);
+        if (orderResult?.id) {
+          onPaymentSuccess({
+            orderId: orderResult.id,
+            orderRef: orderResult.order_ref,
+            paymentIntentId: paymentIntent.id,
+          });
+        } else {
+          onPaymentError(t("checkout.failed_create_order"));
+        }
       }
     } catch (err) {
       const errorMessage =
@@ -92,6 +106,7 @@ function PaymentForm({
         user_id: user?.id || null,
         shipping_address: shippingAddress,
         payment_intent_id: paymentIntent.id,
+        contact_email: contactEmail || user?.email || null,
       };
 
       const response = await fetch("/api/create-order", {
@@ -108,11 +123,7 @@ function PaymentForm({
 
       const orderResult = await response.json();
       console.log("Order created successfully:", orderResult);
-      if (orderResult?.id) {
-        window.location.href = `/order/${orderResult.id}`;
-      } else if (orderResult?.order?.id) {
-        window.location.href = `/order/${orderResult.order.id}`;
-      }
+      return orderResult;
     } catch (error) {
       console.error("Error creating order:", error);
       throw error;
@@ -195,6 +206,7 @@ export default function StripePaymentComplete({
   total,
   user,
   shippingAddress,
+  contactEmail,
   onPaymentSuccess,
   onPaymentError,
 }: StripePaymentCompleteProps) {
@@ -220,6 +232,7 @@ export default function StripePaymentComplete({
         total={total}
         user={user}
         shippingAddress={shippingAddress}
+        contactEmail={contactEmail}
         onPaymentSuccess={onPaymentSuccess}
         onPaymentError={onPaymentError}
       />

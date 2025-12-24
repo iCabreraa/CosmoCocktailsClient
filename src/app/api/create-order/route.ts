@@ -15,7 +15,14 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const { items, total, user_id, shipping_address, payment_intent_id } = body;
+    const {
+      items,
+      total,
+      user_id,
+      shipping_address,
+      payment_intent_id,
+      contact_email,
+    } = body;
 
     // Validaciones básicas
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -116,6 +123,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    if (contact_email) {
+      await sendOrderConfirmation({
+        email: contact_email,
+        orderId: order.id,
+        orderRef: order.order_ref,
+        total,
+        itemCount: normalizedItems.length,
+      });
+    }
+
     return NextResponse.json({ id: order.id, order_ref: order.order_ref });
   } catch (error) {
     console.error("❌ Error creating order:", error);
@@ -126,5 +143,33 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     );
+  }
+}
+
+function maskEmail(email: string) {
+  const [name, domain] = email.split("@");
+  if (!domain) return "***";
+  return `${name.slice(0, 2)}***@${domain}`;
+}
+
+async function sendOrderConfirmation(data: {
+  email: string;
+  orderId: string;
+  orderRef?: string | null;
+  total: number;
+  itemCount: number;
+}) {
+  try {
+    // Placeholder for real email delivery (Resend/SendGrid/etc.).
+    console.log("📧 Order confirmation queued:", {
+      email: maskEmail(data.email),
+      orderId: data.orderId,
+      orderRef: data.orderRef,
+      total: data.total,
+      itemCount: data.itemCount,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("❌ Error queueing order confirmation:", error);
   }
 }

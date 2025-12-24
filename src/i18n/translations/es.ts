@@ -418,6 +418,8 @@ const es = {
       "order_details_title": "Detalles del Pedido",
       "order_id_label": "ID del Pedido:",
       "confirmation_note": "Recibirás un email de confirmación en breve con todos los detalles de tu pedido.",
+      "summary_title": "Resumen del Pedido",
+      "summary_empty": "No hemos podido cargar el resumen aquí. Podrás verlo en los detalles del pedido.",
       "next_steps_title": "Próximos Pasos",
       "step1_title": "Confirmación",
       "step1_description": "Recibirás un email de confirmación",
@@ -427,9 +429,13 @@ const es = {
       "step3_description": "Te notificaremos cuando esté en camino",
       "continue_shopping": "Seguir Comprando",
       "go_home": "Ir al Inicio",
+      "view_order": "Ver detalles del pedido",
+      "view_orders": "Ver mis pedidos",
       "support_text": "¿Tienes alguna pregunta?",
       "contact_us": "Contáctanos"
-    }
+    },
+    "order_number": "Número de Pedido",
+    "estimated_delivery": "Entrega estimada"
   },
   "order": {
     "success_title": "¡Pedido Realizado!",
