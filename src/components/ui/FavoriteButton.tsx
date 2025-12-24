@@ -4,9 +4,8 @@ import { useMemo } from "react";
 import { useFavorites } from "@/hooks/queries/useFavorites";
 import { HiOutlineHeart, HiHeart } from "react-icons/hi2";
 import { useAuthUnified } from "@/hooks/useAuthUnified";
-import { useToast } from "@/components/feedback/ToastProvider";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useRouter } from "next/navigation";
+import { useToast } from "@/components/feedback/ToastProvider";
 
 interface FavoriteButtonProps {
   cocktailId: string;
@@ -20,11 +19,14 @@ export default function FavoriteButton({
   const { user } = useAuthUnified();
   const { t } = useLanguage();
   const { notify } = useToast();
-  const router = useRouter();
   const isAuthenticated = Boolean(user);
   const { favoritesQuery, addFavorite, removeFavorite } = useFavorites({
     enabled: isAuthenticated,
   });
+
+  if (!isAuthenticated) {
+    return null;
+  }
   const isFavorite = useMemo(
     () => (favoritesQuery.data ?? []).some(f => f.cocktail_id === cocktailId),
     [favoritesQuery.data, cocktailId]
@@ -37,19 +39,6 @@ export default function FavoriteButton({
 
   const handleToggle = async () => {
     if (loading) return;
-    if (!isAuthenticated) {
-      notify({
-        type: "warning",
-        title: t("feedback.favorite_login_title"),
-        message: t("feedback.favorite_login_message"),
-        action: {
-          label: t("feedback.login_action"),
-          onClick: () => router.push("/account"),
-        },
-      });
-      return;
-    }
-
     if (isFavorite) {
       removeFavorite.mutate(cocktailId, {
         onSuccess: () => {

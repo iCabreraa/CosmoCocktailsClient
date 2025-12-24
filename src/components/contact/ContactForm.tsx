@@ -14,6 +14,7 @@ import React, { useState } from "react";
 import { useContactFormValidation } from "@/hooks/useValidation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import PrivacyModal from "@/components/privacy/PrivacyModal";
+import { useToast } from "@/components/feedback/ToastProvider";
 import {
   Form,
   FormField,
@@ -30,6 +31,7 @@ import {
 
 export default function ContactForm() {
   const { t } = useLanguage();
+  const { notify } = useToast();
   const {
     data,
     errors,
@@ -75,18 +77,29 @@ export default function ContactForm() {
 
         setSubmitStatus({
           type: "success",
-          message: "¡Mensaje enviado correctamente! Te responderemos pronto.",
+          message: t("contact.form.success_message"),
+        });
+        notify({
+          type: "success",
+          title: t("contact.form.success_title"),
+          message: t("contact.form.success_message"),
         });
 
         reset();
       } catch (error) {
         console.error("Error sending contact form:", error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : t("contact.form.error_message");
         setSubmitStatus({
           type: "error",
-          message:
-            error instanceof Error
-              ? error.message
-              : "Error al enviar el mensaje. Inténtalo de nuevo.",
+          message: errorMessage,
+        });
+        notify({
+          type: "error",
+          title: t("contact.form.error_title"),
+          message: errorMessage,
         });
       }
     });
