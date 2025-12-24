@@ -4,11 +4,8 @@ import { useCart } from "@/store/cart";
 import { useState, useEffect } from "react";
 import {
   CreditCard,
-  Lock,
   MapPin,
   User,
-  Mail,
-  Phone,
   AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
@@ -62,6 +59,22 @@ export default function CheckoutClient() {
   const [unavailableItems, setUnavailableItems] = useState<string[]>([]);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+
+  const steps = [
+    { id: "checkout-contact", label: t("checkout.contact_info") },
+    { id: "checkout-address", label: t("checkout.shipping_address") },
+    { id: "checkout-shipping", label: t("checkout.shipping") },
+    { id: "checkout-payment", label: t("checkout.payment_info") },
+    { id: "checkout-summary", label: t("checkout.order_summary") },
+  ];
+
+  const handleStepJump = (targetId: string) => {
+    if (typeof window === "undefined") return;
+    const el = document.getElementById(targetId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   // Auto-rellenar formulario si el usuario está autenticado
   useEffect(() => {
@@ -318,15 +331,44 @@ export default function CheckoutClient() {
           <p className="text-cosmic-fog">{t("checkout.subtitle")}</p>
         </div>
 
+        <div className="mb-10 rounded-2xl border border-cosmic-gold/20 bg-white/5 px-4 py-5 backdrop-blur-sm">
+          <ol className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {steps.map((step, index) => (
+              <li key={step.id}>
+                <button
+                  type="button"
+                  onClick={() => handleStepJump(step.id)}
+                  className="flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2 text-left text-sm text-cosmic-fog transition hover:border-cosmic-gold/40 hover:text-cosmic-text"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cosmic-gold/40 text-xs font-semibold text-cosmic-gold">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="text-sm font-medium text-cosmic-text">
+                    {step.label}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left column: form */}
           <div className="lg:col-span-2 space-y-8">
             {/* Contact Information */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
-              <h2 className="text-xl font-[--font-unica] text-cosmic-gold mb-4 flex items-center gap-2">
-                <User className="w-5 h-5" />
-                {t("checkout.contact_info")}
-              </h2>
+            <div
+              id="checkout-contact"
+              className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10 scroll-mt-24"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cosmic-gold/40 text-xs font-semibold text-cosmic-gold">
+                  01
+                </span>
+                <h2 className="text-xl font-[--font-unica] text-cosmic-gold flex items-center gap-2">
+                  <User className="w-5 h-5" />
+                  {t("checkout.contact_info")}
+                </h2>
+              </div>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -374,29 +416,74 @@ export default function CheckoutClient() {
             </div>
 
             {/* Address Management */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
-              <h2 className="text-xl font-[--font-unica] text-cosmic-gold mb-4 flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
-                {t("checkout.shipping_address")}
-              </h2>
+            <div
+              id="checkout-address"
+              className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10 scroll-mt-24"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cosmic-gold/40 text-xs font-semibold text-cosmic-gold">
+                  02
+                </span>
+                <h2 className="text-xl font-[--font-unica] text-cosmic-gold flex items-center gap-2">
+                  <MapPin className="w-5 h-5" />
+                  {t("checkout.shipping_address")}
+                </h2>
+              </div>
               <AddressForm
                 onAddressSelect={handleAddressSelect}
                 selectedAddress={selectedAddress}
               />
             </div>
 
-            {/* Inventory Validation */}
-            <InventoryValidation
-              items={items}
-              onValidationComplete={handleInventoryValidation}
-            />
+            {/* Shipping */}
+            <section id="checkout-shipping" className="space-y-6 scroll-mt-24">
+              <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cosmic-gold/40 text-xs font-semibold text-cosmic-gold">
+                    03
+                  </span>
+                  <h2 className="text-xl font-[--font-unica] text-cosmic-gold flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    {t("checkout.shipping")}
+                  </h2>
+                </div>
+                <div className="flex items-start justify-between gap-4 rounded-lg border border-cosmic-gold/20 bg-black/20 p-4">
+                  <div>
+                    <p className="text-sm font-medium text-cosmic-text">
+                      {t("checkout.shipping")}
+                    </p>
+                    <p className="text-xs text-cosmic-fog">
+                      {t("checkout.free_shipping_note")}
+                    </p>
+                  </div>
+                  <span className="text-sm font-semibold text-cosmic-gold">
+                    {shipping_cost > 0
+                      ? `€${shipping_cost.toFixed(2)}`
+                      : t("checkout.free")}
+                  </span>
+                </div>
+              </div>
+
+              <InventoryValidation
+                items={items}
+                onValidationComplete={handleInventoryValidation}
+              />
+            </section>
 
             {/* Payment Section */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
-              <h2 className="text-xl font-[--font-unica] text-cosmic-gold mb-4 flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
-                {t("checkout.payment_info")}
-              </h2>
+            <div
+              id="checkout-payment"
+              className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10 scroll-mt-24"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cosmic-gold/40 text-xs font-semibold text-cosmic-gold">
+                  04
+                </span>
+                <h2 className="text-xl font-[--font-unica] text-cosmic-gold flex items-center gap-2">
+                  <CreditCard className="w-5 h-5" />
+                  {t("checkout.payment_info")}
+                </h2>
+              </div>
 
               <div className="mb-4 space-y-2">
                 <label className="flex items-start gap-2 text-sm text-cosmic-fog">
@@ -481,10 +568,18 @@ export default function CheckoutClient() {
 
           {/* Right column: summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10 sticky top-6">
-              <h2 className="text-xl font-[--font-unica] text-cosmic-gold mb-4">
-                {t("checkout.order_summary")}
-              </h2>
+            <div
+              id="checkout-summary"
+              className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10 sticky top-6 scroll-mt-24"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-cosmic-gold/40 text-xs font-semibold text-cosmic-gold">
+                  05
+                </span>
+                <h2 className="text-xl font-[--font-unica] text-cosmic-gold">
+                  {t("checkout.order_summary")}
+                </h2>
+              </div>
 
               <div className="space-y-3 mb-6">
                 {items.map((item, index) => (
