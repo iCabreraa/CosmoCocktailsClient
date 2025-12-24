@@ -61,7 +61,7 @@ export default function Footer() {
           <h4 className="text-cosmic-gold uppercase font-logo tracking-widest text-lg">
             CosmoCocktails
           </h4>
-          <div className="mt-3 h-px w-16 bg-gradient-to-r from-cosmic-gold/70 via-cosmic-gold/40 to-transparent md:self-center" />
+          <div className="mt-3 h-px w-24 bg-gradient-to-r from-transparent via-cosmic-gold/70 to-transparent mx-auto" />
           <p className="text-cosmic-silver mt-2 max-w-sm text-center leading-relaxed">
             {t("footer.description")}
           </p>
