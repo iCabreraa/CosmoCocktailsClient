@@ -145,6 +145,7 @@ const en = {
   },
   "footer": {
     "explore": "Explore",
+    "legal": "Legal",
     "description": "Curated drinks & premium cocktail experiences, served with stellar taste.",
     "contact": "Contact:",
     "copyright": "© 2025 CosmoCocktails. All rights reserved."

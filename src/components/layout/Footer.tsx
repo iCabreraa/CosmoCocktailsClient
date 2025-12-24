@@ -1,59 +1,30 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { FaInstagram } from "react-icons/fa";
 import { useLanguage } from "@/contexts/LanguageContext";
+import PrivacyModal from "@/components/privacy/PrivacyModal";
 
 export default function Footer() {
   const { t } = useLanguage();
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   return (
     <footer className="bg-transparent text-cosmic-text mt-20 px-6">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 py-12 text-sm items-center text-center md:text-left">
-        {/* Left: Account Links */}
+        {/* Left: Legal */}
         <div>
           <h4 className="text-cosmic-gold uppercase font-display tracking-wide mb-3">
-            {t("nav.account")}
+            {t("footer.legal")}
           </h4>
           <div className="mb-4 h-px w-16 bg-gradient-to-r from-cosmic-gold/70 via-cosmic-gold/40 to-transparent" />
-          <div className="grid grid-cols-2 gap-x-6">
-            <ul className="space-y-1">
-              <li>
-                <Link
-                  href="/account?tab=dashboard"
-                  className="hover:text-cosmic-gold transition"
-                >
-                  {t("account.tabs.dashboard")}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/account?tab=orders"
-                  className="hover:text-cosmic-gold transition"
-                >
-                  {t("account.tabs.orders")}
-                </Link>
-              </li>
-            </ul>
-            <ul className="space-y-1">
-              <li>
-                <Link
-                  href="/account?tab=favorites"
-                  className="hover:text-cosmic-gold transition"
-                >
-                  {t("account.tabs.favorites")}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/account?tab=settings"
-                  className="hover:text-cosmic-gold transition"
-                >
-                  {t("account.tabs.settings")}
-                </Link>
-              </li>
-            </ul>
-          </div>
+          <button
+            type="button"
+            onClick={() => setIsPrivacyOpen(true)}
+            className="hover:text-cosmic-gold transition"
+          >
+            {t("privacy.title")}
+          </button>
         </div>
 
         {/* Center: Branding */}
@@ -102,6 +73,11 @@ export default function Footer() {
       <div className="text-center py-4 text-xs text-cosmic-silver">
         {t("footer.copyright")}
       </div>
+
+      <PrivacyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
     </footer>
   );
 }
