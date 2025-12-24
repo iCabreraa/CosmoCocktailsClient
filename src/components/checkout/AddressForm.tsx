@@ -50,7 +50,7 @@ export default function AddressForm({
     return {
       ...address,
       id: address.id || fallbackId,
-      name: address.name || address.full_name || t("checkout.home"),
+      name: address.name || address.full_name || address.street || "",
       street: address.street || address.address_line_1 || "",
       postal_code: address.postal_code || address.postalCode || "",
       is_default:
@@ -256,6 +256,7 @@ export default function AddressForm({
 
   const handleDelete = (addressId: string) => {
     const toDelete = addresses.find(addr => addr.id === addressId);
+    const wasDefault = Boolean(toDelete?.is_default);
     if (isAuthenticated) {
       const removeAddress = async () => {
         try {
@@ -266,10 +267,19 @@ export default function AddressForm({
           if (!res.ok) {
             throw new Error("Failed to delete address");
           }
-          setAddresses(prev => prev.filter(addr => addr.id !== addressId));
+          const remaining = addresses.filter(addr => addr.id !== addressId);
+          if (wasDefault && remaining.length > 0) {
+            const nextDefault = remaining[0];
+            await fetch("/api/addresses", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...nextDefault, is_default: true }),
+            });
+            remaining[0] = { ...nextDefault, is_default: true };
+          }
+          setAddresses(remaining);
           if (selectedAddress?.id === addressId) {
-            const next = addresses.filter(addr => addr.id !== addressId);
-            onAddressSelect(next.find(addr => addr.is_default) || next[0] || null);
+            onAddressSelect(remaining.find(addr => addr.is_default) || remaining[0] || null);
           }
           if (toDelete) {
             notify({
@@ -289,9 +299,12 @@ export default function AddressForm({
       void removeAddress();
     } else {
       const next = addresses.filter(addr => addr.id !== addressId);
+      if (wasDefault && next.length > 0) {
+        next[0] = { ...next[0], is_default: true };
+      }
       setAddresses(next);
       if (selectedAddress?.id === addressId) {
-        onAddressSelect(next[0] || null);
+        onAddressSelect(next.find(addr => addr.is_default) || next[0] || null);
       }
       if (toDelete) {
         notify({
@@ -367,17 +380,16 @@ export default function AddressForm({
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
-                {!address.is_default && (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleDelete(address.id);
-                    }}
-                    className="p-2 text-cosmic-fog hover:text-red-500 transition"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleDelete(address.id);
+                  }}
+                  className="p-2 text-cosmic-fog hover:text-red-500 transition"
+                  title={t("feedback.address_deleted_title")}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
