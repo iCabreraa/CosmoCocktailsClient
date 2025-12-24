@@ -101,11 +101,25 @@ export default function AddressForm({
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (!isAuthenticated && selectedAddress && addresses.length === 0) {
-      const normalized = normalizeAddress(selectedAddress);
-      setAddresses([normalized]);
+    if (!isAuthenticated && addresses.length === 0) {
+      setShowForm(true);
     }
-  }, [isAuthenticated, selectedAddress, addresses.length]);
+  }, [isAuthenticated, addresses.length]);
+
+  useEffect(() => {
+    if (!isAuthenticated && selectedAddress && !editingAddress) {
+      setFormData({
+        name: selectedAddress.name || selectedAddress.full_name || "",
+        street: selectedAddress.street || selectedAddress.address_line_1 || "",
+        city: selectedAddress.city || "",
+        postalCode:
+          selectedAddress.postal_code || selectedAddress.postalCode || "",
+        country: selectedAddress.country || t("checkout.spain"),
+        phone: selectedAddress.phone || "",
+        isDefault: selectedAddress.is_default || selectedAddress.isDefault || false,
+      });
+    }
+  }, [isAuthenticated, selectedAddress, editingAddress, t]);
 
   const handleInputChange = (
     field: keyof AddressFormData,
