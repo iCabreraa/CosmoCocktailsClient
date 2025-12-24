@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FaInstagram, FaLinkedinIn } from "react-icons/fa";
+import { FaInstagram } from "react-icons/fa";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Footer() {
@@ -10,45 +10,46 @@ export default function Footer() {
   return (
     <footer className="bg-transparent text-cosmic-text mt-20 px-6">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 py-12 text-sm items-center text-center md:text-left">
-        {/* Left: Quick Links - split in 2 columns */}
+        {/* Left: Account Links */}
         <div>
           <h4 className="text-cosmic-gold uppercase font-display tracking-wide mb-3">
-            {t("footer.explore")}
+            {t("nav.account")}
           </h4>
-          <div className="grid grid-cols-2">
+          <div className="mb-4 h-px w-16 bg-gradient-to-r from-cosmic-gold/70 via-cosmic-gold/40 to-transparent" />
+          <div className="grid grid-cols-2 gap-x-6">
             <ul className="space-y-1">
               <li>
                 <Link
-                  href="/shop"
+                  href="/account?tab=dashboard"
                   className="hover:text-cosmic-gold transition"
                 >
-                  {t("nav.shop")}
+                  {t("account.tabs.dashboard")}
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/events"
+                  href="/account?tab=orders"
                   className="hover:text-cosmic-gold transition"
                 >
-                  {t("nav.events")}
+                  {t("account.tabs.orders")}
                 </Link>
               </li>
             </ul>
             <ul className="space-y-1">
               <li>
                 <Link
-                  href="/about"
+                  href="/account?tab=favorites"
                   className="hover:text-cosmic-gold transition"
                 >
-                  {t("nav.about")}
+                  {t("account.tabs.favorites")}
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/contact"
+                  href="/account?tab=settings"
                   className="hover:text-cosmic-gold transition"
                 >
-                  {t("nav.contact")}
+                  {t("account.tabs.settings")}
                 </Link>
               </li>
             </ul>
@@ -56,17 +57,22 @@ export default function Footer() {
         </div>
 
         {/* Center: Branding */}
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center border-t border-white/10 pt-6 md:border-t-0 md:pt-0">
           <h4 className="text-cosmic-gold uppercase font-logo tracking-widest text-lg">
             CosmoCocktails
           </h4>
+          <div className="mt-3 h-px w-24 bg-gradient-to-r from-transparent via-cosmic-gold/70 to-transparent mx-auto" />
           <p className="text-cosmic-silver mt-2 max-w-sm text-center leading-relaxed">
             {t("footer.description")}
           </p>
         </div>
 
         {/* Right: Contact & Socials */}
-        <div className="md:text-right">
+        <div className="border-t border-white/10 pt-6 md:border-t-0 md:pt-0 md:text-right">
+          <h4 className="text-cosmic-gold uppercase font-display tracking-wide mb-3">
+            {t("nav.contact")}
+          </h4>
+          <div className="mb-4 h-px w-16 bg-gradient-to-l from-cosmic-gold/70 via-cosmic-gold/40 to-transparent md:ml-auto" />
           <p className="mb-2 text-cosmic-silver">
             {t("footer.contact")}{" "}
             <a
@@ -85,14 +91,6 @@ export default function Footer() {
             >
               <FaInstagram />
             </a>
-            {/* <a
-              href="https://linkedin.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-cosmic-gold transition"
-            >
-              <FaLinkedinIn />
-            </a> */}
           </div>
         </div>
       </div>
