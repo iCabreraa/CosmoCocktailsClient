@@ -67,6 +67,9 @@ export default function Footer() {
 
         {/* Right: Contact & Socials */}
         <div className="md:text-right">
+          <h4 className="text-cosmic-gold uppercase font-display tracking-wide mb-3">
+            {t("nav.contact")}
+          </h4>
           <p className="mb-2 text-cosmic-silver">
             {t("footer.contact")}{" "}
             <a
