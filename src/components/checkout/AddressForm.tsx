@@ -106,21 +106,6 @@ export default function AddressForm({
     }
   }, [isAuthenticated, addresses.length]);
 
-  useEffect(() => {
-    if (!isAuthenticated && selectedAddress && !editingAddress) {
-      setFormData({
-        name: selectedAddress.name || selectedAddress.full_name || "",
-        street: selectedAddress.street || selectedAddress.address_line_1 || "",
-        city: selectedAddress.city || "",
-        postalCode:
-          selectedAddress.postal_code || selectedAddress.postalCode || "",
-        country: selectedAddress.country || t("checkout.spain"),
-        phone: selectedAddress.phone || "",
-        isDefault: selectedAddress.is_default || selectedAddress.isDefault || false,
-      });
-    }
-  }, [isAuthenticated, selectedAddress, editingAddress, t]);
-
   const handleInputChange = (
     field: keyof AddressFormData,
     value: string | boolean
@@ -139,7 +124,9 @@ export default function AddressForm({
       postal_code: formData.postalCode,
       country: formData.country,
       phone: formData.phone,
-      is_default: formData.isDefault || addresses.length === 0,
+      is_default: isAuthenticated
+        ? formData.isDefault || addresses.length === 0
+        : false,
       created_at: editingAddress?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -230,13 +217,11 @@ export default function AddressForm({
           }),
         });
       }
-      if (newAddress.is_default || addresses.length === 0) {
-        onAddressSelect(newAddress);
-      }
+      onAddressSelect(newAddress);
     }
 
     // Si es la dirección por defecto o la primera, seleccionarla automáticamente
-    if (!isAuthenticated && (formData.isDefault || addresses.length === 0)) {
+    if (!isAuthenticated) {
       onAddressSelect(newAddress);
     }
 
@@ -263,7 +248,7 @@ export default function AddressForm({
       postalCode: address.postal_code || "",
       country: address.country,
       phone: address.phone || "",
-      isDefault: address.is_default || false,
+      isDefault: isAuthenticated ? address.is_default || false : false,
     });
     setShowForm(true);
   };
@@ -518,18 +503,20 @@ export default function AddressForm({
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="isDefault"
-                checked={formData.isDefault}
-                onChange={e => handleInputChange("isDefault", e.target.checked)}
-                className="w-4 h-4 text-cosmic-gold bg-transparent border-cosmic-fog rounded focus:ring-cosmic-gold focus:ring-2"
-              />
-              <label htmlFor="isDefault" className="text-sm text-cosmic-fog">
-                {t("checkout.set_as_default")}
-              </label>
-            </div>
+            {isAuthenticated && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isDefault"
+                  checked={formData.isDefault}
+                  onChange={e => handleInputChange("isDefault", e.target.checked)}
+                  className="w-4 h-4 text-cosmic-gold bg-transparent border-cosmic-fog rounded focus:ring-cosmic-gold focus:ring-2"
+                />
+                <label htmlFor="isDefault" className="text-sm text-cosmic-fog">
+                  {t("checkout.set_as_default")}
+                </label>
+              </div>
+            )}
 
             <div className="flex gap-3 pt-4">
               <button
