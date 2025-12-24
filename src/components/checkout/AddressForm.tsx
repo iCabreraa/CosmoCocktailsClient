@@ -40,7 +40,7 @@ export default function AddressForm({
     street: "",
     city: "",
     postalCode: "",
-    country: t("checkout.spain"),
+    country: "",
     phone: "",
     isDefault: false,
   });
@@ -231,7 +231,7 @@ export default function AddressForm({
       street: "",
       city: "",
       postalCode: "",
-      country: t("checkout.spain"),
+      country: "",
       phone: "",
       isDefault: false,
     });

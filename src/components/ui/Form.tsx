@@ -298,7 +298,7 @@ export function PhoneField(props: Omit<FormFieldProps, "type">) {
     <FormField
       {...props}
       type="tel"
-      helpText={props.helpText || "Formato: +34 123 456 789"}
+      helpText={props.helpText || "Introduce tu teléfono"}
     />
   );
 }
@@ -338,4 +338,3 @@ export function ResetButton({
     </FormButton>
   );
 }
-
