@@ -16,6 +16,8 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
   const addToCart = useCart(state => state.addToCart);
   const imageSrc = cocktail.image_url || "/images/placeholder.webp";
   const halfInset = "calc(50% - 0.5px)";
+  const imageSizes =
+    "(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 25vw";
   const formatSizeLabel = (
     size: NonNullable<CocktailWithPrice["sizes"]>[number]
   ) => {
@@ -68,6 +70,8 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
               alt={cocktail.name}
               fill
               className="object-cover"
+              sizes={imageSizes}
+              quality={75}
             />
           </div>
           <div
@@ -80,6 +84,8 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
               alt=""
               fill
               className="object-cover"
+              sizes={imageSizes}
+              quality={75}
             />
           </div>
           {cocktail.sizes && cocktail.sizes.length > 0 && (
