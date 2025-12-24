@@ -15,6 +15,7 @@ export default function Footer() {
           <h4 className="text-cosmic-gold uppercase font-display tracking-wide mb-3">
             {t("nav.account")}
           </h4>
+          <div className="mb-4 h-px w-16 bg-gradient-to-r from-cosmic-gold/70 via-cosmic-gold/40 to-transparent" />
           <div className="grid grid-cols-2 gap-x-6">
             <ul className="space-y-1">
               <li>
@@ -60,6 +61,7 @@ export default function Footer() {
           <h4 className="text-cosmic-gold uppercase font-logo tracking-widest text-lg">
             CosmoCocktails
           </h4>
+          <div className="mt-3 h-px w-16 bg-gradient-to-r from-cosmic-gold/70 via-cosmic-gold/40 to-transparent md:self-center" />
           <p className="text-cosmic-silver mt-2 max-w-sm text-center leading-relaxed">
             {t("footer.description")}
           </p>
@@ -70,6 +72,7 @@ export default function Footer() {
           <h4 className="text-cosmic-gold uppercase font-display tracking-wide mb-3">
             {t("nav.contact")}
           </h4>
+          <div className="mb-4 h-px w-16 bg-gradient-to-l from-cosmic-gold/70 via-cosmic-gold/40 to-transparent md:ml-auto" />
           <p className="mb-2 text-cosmic-silver">
             {t("footer.contact")}{" "}
             <a
