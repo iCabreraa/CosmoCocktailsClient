@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
+import { createClient } from "@/lib/supabase/client";
+import { fromOrderItemRow, orderItemSelect } from "@/types/order-item-utils";
 
 type SuccessSummary = {
   orderId: string;
@@ -28,12 +31,16 @@ type SuccessSummary = {
 };
 
 const STORAGE_KEY = "checkout-success";
+const VAT_RATE = 0.21;
+const SHIPPING_THRESHOLD = 50;
+const SHIPPING_COST = 4.99;
 
 export default function CheckoutSuccess() {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderRef, setOrderRef] = useState<string | null>(null);
   const [summary, setSummary] = useState<SuccessSummary | null>(null);
   const { t, language } = useLanguage();
+  const { user } = useAuthUnified();
 
   useEffect(() => {
     // Obtener el ID del pedido de la URL o localStorage
@@ -60,6 +67,61 @@ export default function CheckoutSuccess() {
     }
   }, []);
 
+  useEffect(() => {
+    if (!orderId || summary || !user) return;
+
+    const fetchSummary = async () => {
+      try {
+        const supabase = createClient();
+        const { data: order, error: orderError } = await supabase
+          .from("orders")
+          .select("id, order_ref, total_amount, order_date")
+          .eq("id", orderId)
+          .single();
+
+        if (orderError || !order) {
+          return;
+        }
+
+        const { data: itemsData } = await supabase
+          .from("order_items")
+          .select(orderItemSelect)
+          .eq("order_id", orderId);
+
+        const items = (itemsData || []).map((row: any) =>
+          fromOrderItemRow(row)
+        );
+        const subtotal = items.reduce(
+          (sum: number, item: any) => sum + Number(item.item_total || 0),
+          0
+        );
+        const vat_amount = subtotal * VAT_RATE;
+        const shipping_cost = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+        const total = order.total_amount ?? subtotal + vat_amount + shipping_cost;
+
+        setSummary({
+          orderId: order.id,
+          orderRef: order.order_ref ?? undefined,
+          orderDate: order.order_date ?? undefined,
+          items: items.map((item: any) => ({
+            cocktail_name: item.cocktail_name,
+            size_name: item.size_name,
+            quantity: item.quantity,
+            item_total: item.item_total,
+          })),
+          subtotal,
+          vat_amount,
+          shipping_cost,
+          total,
+        });
+      } catch (error) {
+        console.warn("Failed to fetch order summary:", error);
+      }
+    };
+
+    fetchSummary();
+  }, [orderId, summary, user]);
+
   const getDeliveryRange = () => {
     const baseDate = summary?.orderDate
       ? new Date(summary.orderDate)
@@ -80,9 +142,9 @@ export default function CheckoutSuccess() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-6">
-      <div className="max-w-2xl w-full">
-        <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 text-center">
+    <main className="px-6 py-24">
+      <div className="max-w-4xl mx-auto">
+        <div className="rounded-2xl border border-cosmic-gold/20 bg-cosmic-bg/40 p-8 text-center shadow-[0_0_40px_rgba(209,184,127,0.12)] backdrop-blur">
           {/* Success Icon */}
           <div className="mb-6">
             <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -97,9 +159,9 @@ export default function CheckoutSuccess() {
           </div>
 
           {/* Order Details */}
-          <div className="bg-white/5 rounded-xl p-6 mb-6">
+          <div className="bg-white/5 rounded-xl p-6 mb-6 border border-cosmic-gold/10">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <Package className="w-5 h-5 text-purple-400" />
+              <Package className="w-5 h-5 text-cosmic-gold" />
               <h2 className="text-xl font-semibold text-white">
                 {t("checkout.success.order_details_title")}
               </h2>
@@ -130,15 +192,15 @@ export default function CheckoutSuccess() {
               </div>
             </div>
 
-            <div className="text-sm text-purple-300">
+            <div className="text-sm text-cosmic-fog">
               {t("checkout.success.confirmation_note")}
             </div>
           </div>
 
           {/* Order Summary */}
-          <div className="bg-white/5 rounded-xl p-6 mb-6 text-left">
+          <div className="bg-white/5 rounded-xl p-6 mb-6 text-left border border-cosmic-gold/10">
             <div className="flex items-center gap-2 mb-4">
-              <Receipt className="w-5 h-5 text-purple-400" />
+              <Receipt className="w-5 h-5 text-cosmic-gold" />
               <h2 className="text-lg font-semibold text-white">
                 {t("checkout.success.summary_title")}
               </h2>
@@ -150,25 +212,25 @@ export default function CheckoutSuccess() {
                   {summary.items.map((item, index) => (
                     <div
                       key={`${item.cocktail_name}-${index}`}
-                      className="flex items-center justify-between text-sm text-purple-200"
+                      className="flex items-center justify-between text-sm text-cosmic-silver"
                     >
                       <div>
                         <div className="font-medium text-white">
                           {item.cocktail_name}
                         </div>
-                        <div className="text-xs text-purple-300">
+                        <div className="text-xs text-cosmic-fog">
                           {item.size_name} · {t("order.quantity")}:{" "}
                           {item.quantity}
                         </div>
                       </div>
-                      <div className="text-purple-100">
+                      <div className="text-cosmic-silver">
                         €{Number(item.item_total || 0).toFixed(2)}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="border-t border-white/10 pt-3 space-y-2 text-sm text-purple-200">
+                <div className="border-t border-white/10 pt-3 space-y-2 text-sm text-cosmic-silver">
                   <div className="flex items-center justify-between">
                     <span>{t("checkout.subtotal")}</span>
                     <span>€{Number(summary.subtotal || 0).toFixed(2)}</span>
@@ -185,14 +247,14 @@ export default function CheckoutSuccess() {
                         : t("checkout.free")}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-white font-semibold">
+                  <div className="flex items-center justify-between text-cosmic-gold font-semibold">
                     <span>{t("checkout.total")}</span>
                     <span>€{Number(summary.total || 0).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-purple-300">
+              <p className="text-sm text-cosmic-fog">
                 {t("checkout.success.summary_empty")}
               </p>
             )}
@@ -250,7 +312,7 @@ export default function CheckoutSuccess() {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {orderId && (
+            {orderId && user && (
               <Link
                 href={`/order/${orderId}`}
                 className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-all duration-200 border border-white/20"
@@ -259,13 +321,15 @@ export default function CheckoutSuccess() {
                 {t("checkout.success.view_order")}
               </Link>
             )}
-            <Link
-              href="/account?tab=orders"
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-all duration-200 border border-white/20"
-            >
-              <Receipt className="w-4 h-4" />
-              {t("checkout.success.view_orders")}
-            </Link>
+            {user && (
+              <Link
+                href="/account?tab=orders"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-all duration-200 border border-white/20"
+              >
+                <Receipt className="w-4 h-4" />
+                {t("checkout.success.view_orders")}
+              </Link>
+            )}
             <Link
               href="/shop"
               className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200"
@@ -285,11 +349,11 @@ export default function CheckoutSuccess() {
 
           {/* Support Info */}
           <div className="mt-8 pt-6 border-t border-white/10">
-            <p className="text-sm text-purple-300">
+            <p className="text-sm text-cosmic-fog">
               {t("checkout.success.support_text")}{" "}
               <a
                 href="mailto:support@cosmococktails.com"
-                className="text-purple-400 hover:text-purple-300 underline"
+                className="text-cosmic-gold hover:text-cosmic-gold/80 underline"
               >
                 {t("checkout.success.contact_us")}
               </a>
@@ -297,6 +361,6 @@ export default function CheckoutSuccess() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
