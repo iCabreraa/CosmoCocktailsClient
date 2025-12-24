@@ -13,6 +13,8 @@ interface CartState extends Cart {
   ) => void;
   clearCart: () => void;
   recalculateTotals: () => void;
+  hasHydrated: boolean;
+  setHasHydrated: (value: boolean) => void;
 
   // Estado de carga
   isLoading: boolean;
@@ -33,6 +35,7 @@ export const useCart = create<CartState>()(
       shipping_cost: 0,
       total: 0,
       item_count: 0,
+      hasHydrated: false,
       isLoading: false,
       error: null,
 
@@ -152,6 +155,9 @@ export const useCart = create<CartState>()(
           item_count,
         });
       },
+      setHasHydrated: value => {
+        set({ hasHydrated: value });
+      },
     }),
     {
       name: "cosmic-cocktails-cart",
@@ -164,6 +170,12 @@ export const useCart = create<CartState>()(
         total: state.total,
         item_count: state.item_count,
       }),
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error("Error rehydrating cart:", error);
+        }
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

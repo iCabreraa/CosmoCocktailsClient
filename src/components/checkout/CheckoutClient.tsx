@@ -33,6 +33,7 @@ export default function CheckoutClient() {
     clearCart,
     isLoading,
     error,
+    hasHydrated,
   } = useCart();
 
   const { getFormDataForEmail, saveClientData } = useClientData();
@@ -248,6 +249,17 @@ export default function CheckoutClient() {
 
   // El pago se maneja a través de StripePaymentComplete
   // No necesitamos handleSubmit aquí
+
+  if (!hasHydrated) {
+    return (
+      <main className="py-20 px-6 min-h-[70vh] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cosmic-gold mx-auto mb-4"></div>
+          <p className="text-cosmic-fog">{t("checkout.loading")}</p>
+        </div>
+      </main>
+    );
+  }
 
   if (isLoading) {
     return (
