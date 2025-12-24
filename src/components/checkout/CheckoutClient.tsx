@@ -235,6 +235,7 @@ export default function CheckoutClient() {
         orderId: payload.orderId,
         orderRef: payload.orderRef,
         orderDate: new Date().toISOString(),
+        storedAt: Date.now(),
         items,
         subtotal,
         vat_amount,

@@ -58,6 +58,7 @@ export function useFavorites(
   const queryClient = useQueryClient();
   const queryKey = ["favorites", mode];
   const supabase = createClient();
+  const favoritesTable = supabase.from("user_favorites") as any;
   const getSessionUserId = async () => {
     const { data, error } = await supabase.auth.getSession();
     if (error) {
@@ -72,8 +73,7 @@ export function useFavorites(
       if (mode === "ids") {
         const userId = await getSessionUserId();
         if (!userId) return [];
-        const { data, error } = await supabase
-          .from("user_favorites")
+        const { data, error } = await favoritesTable
           .select("cocktail_id")
           .eq("user_id", userId);
 
@@ -81,7 +81,8 @@ export function useFavorites(
           throw error;
         }
 
-        const normalized = (data ?? []).map(favorite => ({
+        const favoritesData = (data ?? []) as Array<{ cocktail_id: string }>;
+        const normalized = favoritesData.map(favorite => ({
           id: favorite.cocktail_id,
           cocktail_id: favorite.cocktail_id,
         }));
@@ -108,9 +109,10 @@ export function useFavorites(
       if (!userId) {
         throw new Error("Unauthorized");
       }
-      const { error } = await supabase
-        .from("user_favorites")
-        .insert({ user_id: userId, cocktail_id: cocktailId });
+      const { error } = await favoritesTable.insert({
+        user_id: userId,
+        cocktail_id: cocktailId,
+      });
       if (error) {
         throw new Error(error.message);
       }
@@ -151,8 +153,7 @@ export function useFavorites(
       if (!userId) {
         throw new Error("Unauthorized");
       }
-      const { error } = await supabase
-        .from("user_favorites")
+      const { error } = await favoritesTable
         .delete()
         .eq("user_id", userId)
         .eq("cocktail_id", cocktailId);
