@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle, Package, Home, ShoppingBag } from "lucide-react";
+import { CheckCircle, Package, Home, ShoppingBag, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -111,6 +111,15 @@ export default function CheckoutSuccess() {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            {orderId && (
+              <Link
+                href={`/order/${orderId}`}
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-all duration-200 border border-white/20"
+              >
+                <ArrowRight className="w-4 h-4" />
+                {t("checkout.success.view_order_details")}
+              </Link>
+            )}
             <Link
               href="/shop"
               className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200"

@@ -415,6 +415,7 @@ const en = {
       "step2_description": "We prepare your order with care",
       "step3_title": "Shipping",
       "step3_description": "We will notify you when it's on the way",
+      "view_order_details": "View order details",
       "continue_shopping": "Continue Shopping",
       "go_home": "Go Home",
       "support_text": "Have any questions?",

@@ -420,6 +420,7 @@ const nl = {
       "step2_description": "We bereiden je bestelling met zorg voor",
       "step3_title": "Verzending",
       "step3_description": "We laten het weten zodra het onderweg is",
+      "view_order_details": "Bestelling bekijken",
       "continue_shopping": "Verder Winkelen",
       "go_home": "Naar Home",
       "support_text": "Heb je vragen?",
