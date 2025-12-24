@@ -182,6 +182,7 @@ const es = {
     "cancel": "Cancelar",
     "close": "Cerrar",
     "back": "Volver",
+    "next": "Siguiente",
     "reload": "Recargar",
     "user": "Usuario"
   },

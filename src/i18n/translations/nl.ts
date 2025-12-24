@@ -455,6 +455,7 @@ const nl = {
     "cancel": "Annuleren",
     "close": "Sluiten",
     "back": "Terug",
+    "next": "Volgende",
     "reload": "Herladen",
     "user": "Gebruiker"
   },
