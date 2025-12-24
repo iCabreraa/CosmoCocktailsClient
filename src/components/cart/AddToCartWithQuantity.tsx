@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useCart } from "@/store/cart";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/components/feedback/ToastProvider";
 
 interface AddToCartProps {
   cocktailId: string;
@@ -25,6 +27,8 @@ export default function AddToCartWithQuantity({
   price,
   cocktailSizeId,
 }: AddToCartProps) {
+  const { t } = useLanguage();
+  const { notify } = useToast();
   const [qty, setQty] = useState(1);
   const addToCart = useCart(state => state.addToCart);
 
@@ -58,7 +62,7 @@ export default function AddToCartWithQuantity({
         </button>
       </div>
       <button
-        onClick={() =>
+        onClick={() => {
           addToCart({
             cocktail_id: cocktailId,
             sizes_id: sizeId,
@@ -68,12 +72,17 @@ export default function AddToCartWithQuantity({
             size_name: sizeName,
             volume_ml: volumeMl,
             image_url: cocktailImage,
-          })
-        }
+          });
+          notify({
+            type: "success",
+            title: t("feedback.cart_added_title"),
+            message: t("feedback.cart_added_message", { name: cocktailName }),
+          });
+        }}
         className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black focus:outline-none focus:ring-2 focus:ring-cosmic-gold transition-all text-sm"
       >
         <ShoppingCart className="w-4 h-4" />
-        Add to Cart
+        {t("shop.add_to_cart")}
       </button>
     </div>
   );

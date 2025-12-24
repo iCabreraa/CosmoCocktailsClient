@@ -10,6 +10,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import CosmicBackground from "@/components/ui/CosmicBackground";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import { ToastProvider } from "@/components/feedback/ToastProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 import { warnIfStripeEnvInvalid } from "@/lib/diagnostics/stripeEnvCheck";
@@ -57,18 +58,20 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <LanguageProvider>
             <ThemeProvider>
               <QueryProvider>
-                <CosmicBackground className="text-cosmic-text">
-                  <Navbar />
-                  <main className="pt-36">
-                    <SuspenseGuard fallback={null} timeoutMs={8000}>
-                      {children}
-                    </SuspenseGuard>
-                  </main>
-                  <Footer />
-                  <ServiceWorkerRegister />
-                  <SpeedInsights />
-                  <Analytics />
-                </CosmicBackground>
+                <ToastProvider>
+                  <CosmicBackground className="text-cosmic-text">
+                    <Navbar />
+                    <main className="pt-36">
+                      <SuspenseGuard fallback={null} timeoutMs={8000}>
+                        {children}
+                      </SuspenseGuard>
+                    </main>
+                    <Footer />
+                    <ServiceWorkerRegister />
+                    <SpeedInsights />
+                    <Analytics />
+                  </CosmicBackground>
+                </ToastProvider>
               </QueryProvider>
             </ThemeProvider>
           </LanguageProvider>

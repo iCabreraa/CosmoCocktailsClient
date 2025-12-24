@@ -7,6 +7,7 @@ import { ShoppingCart, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { CocktailSize as SupabaseCocktailSize, Size } from "@/types/supabase";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/components/feedback/ToastProvider";
 
 interface AddToCartButtonProps {
   cocktail: Cocktail;
@@ -20,6 +21,7 @@ export default function AddToCartButton({
   minSizeId,
 }: AddToCartButtonProps) {
   const { t } = useLanguage();
+  const { notify } = useToast();
   const addToCart = useCart(state => state.addToCart);
   const [open, setOpen] = useState(false);
   const [sizes, setSizes] = useState<CocktailSize[]>([]);
@@ -108,6 +110,11 @@ export default function AddToCartButton({
       size_name: size.size?.name ?? `${size.size?.volume_ml ?? 0}ml`,
       volume_ml: size.size?.volume_ml ?? 0,
       image_url: cocktail.image_url,
+    });
+    notify({
+      type: "success",
+      title: t("feedback.cart_added_title"),
+      message: t("feedback.cart_added_message", { name: cocktail.name }),
     });
     setOpen(false);
   }
