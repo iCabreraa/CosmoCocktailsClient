@@ -17,10 +17,11 @@ export default function CartClient() {
     clearCart,
     isLoading,
     error,
+    hasHydrated,
   } = useCart();
 
   // Wait for language context to be initialized
-  if (!isInitialized) {
+  if (!isInitialized || !hasHydrated) {
     return (
       <main className="py-20 px-6 min-h-[70vh] flex items-center justify-center">
         <div className="text-center">
