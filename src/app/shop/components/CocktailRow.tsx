@@ -14,12 +14,14 @@ type CocktailRowProps = {
   title: string;
   cocktails: CocktailWithPrice[];
   showTitle?: boolean;
+  showFavorites?: boolean;
 };
 
 export default function CocktailRow({
   title,
   cocktails,
   showTitle = true,
+  showFavorites = false,
 }: CocktailRowProps) {
   const { t } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -140,7 +142,10 @@ export default function CocktailRow({
                   </Link>
                   {/* Botón de favoritos */}
                   <div className="absolute top-2 right-2">
-                    <FavoriteButton cocktailId={cocktail.id} />
+                    <FavoriteButton
+                      cocktailId={cocktail.id}
+                      show={showFavorites}
+                    />
                   </div>
                 </div>
                 {cocktail.min_price !== null && cocktail.min_size_id ? (

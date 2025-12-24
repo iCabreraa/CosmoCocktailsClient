@@ -1,47 +1,194 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
 
 export type Favorite = { id: string; cocktail_id: string };
+export type FavoriteDetails = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image_url: string;
+  category: string;
+  added_at: string;
+  sizes?: Array<{
+    id: string;
+    name: string;
+    volume_ml: number;
+    price: number;
+  }>;
+};
 
-export function useFavorites(options: { enabled?: boolean } = {}) {
-  const { enabled = true } = options;
+type FavoritesMode = "ids" | "details";
+const FAVORITES_IDS_CACHE_KEY = "cosmic-favorites-ids";
+
+const readCachedIds = (): Favorite[] | undefined => {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const raw = window.localStorage.getItem(FAVORITES_IDS_CACHE_KEY);
+    if (!raw) return undefined;
+    const ids = JSON.parse(raw);
+    if (!Array.isArray(ids)) return undefined;
+    return ids
+      .filter((id: unknown) => typeof id === "string" && id.length > 0)
+      .map(id => ({ id, cocktail_id: id }));
+  } catch {
+    return undefined;
+  }
+};
+
+const writeCachedIds = (favorites: Favorite[]) => {
+  if (typeof window === "undefined") return;
+  try {
+    const ids = favorites.map(favorite => favorite.cocktail_id);
+    window.localStorage.setItem(
+      FAVORITES_IDS_CACHE_KEY,
+      JSON.stringify(ids)
+    );
+  } catch {
+    // ignore storage errors
+  }
+};
+
+export function useFavorites(
+  options: { enabled?: boolean; mode?: FavoritesMode } = {}
+) {
+  const { enabled = true, mode = "ids" } = options;
   const queryClient = useQueryClient();
+  const queryKey = ["favorites", mode];
+  const supabase = createClient();
+  const getSessionUserId = async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      throw error;
+    }
+    return data.session?.user?.id ?? null;
+  };
 
-  const favoritesQuery = useQuery<Favorite[]>({
-    queryKey: ["favorites"],
+  const favoritesQuery = useQuery<Favorite[] | FavoriteDetails[]>({
+    queryKey,
     queryFn: async () => {
-      const res = await fetch("/api/favorites");
+      if (mode === "ids") {
+        const userId = await getSessionUserId();
+        if (!userId) return [];
+        const { data, error } = await supabase
+          .from("user_favorites")
+          .select("cocktail_id")
+          .eq("user_id", userId);
+
+        if (error) {
+          throw error;
+        }
+
+        const normalized = (data ?? []).map(favorite => ({
+          id: favorite.cocktail_id,
+          cocktail_id: favorite.cocktail_id,
+        }));
+        writeCachedIds(normalized);
+        return normalized;
+      }
+      const res = await fetch(`/api/favorites?mode=${mode}`);
       if (!res.ok) return [];
       const data = await res.json();
-      return (data.favorites as Favorite[]) ?? [];
+      const favorites = data.favorites ?? [];
+      return favorites as FavoriteDetails[];
     },
     enabled,
-    staleTime: 5 * 60 * 1000,
+    staleTime: mode === "ids" ? 10 * 60 * 1000 : 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnMount: "always",
+    initialData: mode === "ids" ? readCachedIds() ?? [] : undefined,
   });
 
   const addFavorite = useMutation({
     mutationFn: async (cocktailId: string) => {
-      const res = await fetch("/api/favorites", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cocktail_id: cocktailId }),
-      });
-      if (!res.ok) throw new Error("Failed to add favorite");
+      const userId = await getSessionUserId();
+      if (!userId) {
+        throw new Error("Unauthorized");
+      }
+      const { error } = await supabase
+        .from("user_favorites")
+        .insert({ user_id: userId, cocktail_id: cocktailId });
+      if (error) {
+        throw new Error(error.message);
+      }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["favorites"] }),
+    onMutate: async cocktailId => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<
+        Favorite[] | FavoriteDetails[]
+      >(queryKey);
+      if (mode === "ids") {
+        const typedPrevious = previous as Favorite[] | undefined;
+        const next = typedPrevious?.some(
+          favorite => favorite.cocktail_id === cocktailId
+        )
+          ? typedPrevious
+          : [
+              ...(typedPrevious ?? []),
+              { id: cocktailId, cocktail_id: cocktailId },
+            ];
+        queryClient.setQueryData(queryKey, next);
+        if (next) {
+          writeCachedIds(next);
+        }
+      }
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey }),
   });
 
   const removeFavorite = useMutation({
     mutationFn: async (cocktailId: string) => {
-      const res = await fetch(`/api/favorites?cocktail_id=${cocktailId}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Failed to remove favorite");
+      const userId = await getSessionUserId();
+      if (!userId) {
+        throw new Error("Unauthorized");
+      }
+      const { error } = await supabase
+        .from("user_favorites")
+        .delete()
+        .eq("user_id", userId)
+        .eq("cocktail_id", cocktailId);
+      if (error) {
+        throw new Error(error.message);
+      }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["favorites"] }),
+    onMutate: async cocktailId => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<
+        Favorite[] | FavoriteDetails[]
+      >(queryKey);
+      if (previous) {
+        if (mode === "ids") {
+          const next = (previous as Favorite[]).filter(
+            favorite => favorite.cocktail_id !== cocktailId
+          );
+          queryClient.setQueryData(queryKey, next);
+          writeCachedIds(next);
+        } else {
+          queryClient.setQueryData(
+            queryKey,
+            (previous as FavoriteDetails[]).filter(
+              favorite => favorite.id !== cocktailId
+            )
+          );
+        }
+      }
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey }),
   });
 
   return { favoritesQuery, addFavorite, removeFavorite };

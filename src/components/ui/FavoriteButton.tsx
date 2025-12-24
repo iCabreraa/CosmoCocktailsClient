@@ -3,51 +3,52 @@
 import { useMemo } from "react";
 import { useFavorites } from "@/hooks/queries/useFavorites";
 import { HiOutlineHeart, HiHeart } from "react-icons/hi2";
-import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/components/feedback/ToastProvider";
 
 interface FavoriteButtonProps {
   cocktailId: string;
+  show?: boolean;
   className?: string;
 }
 
 export default function FavoriteButton({
   cocktailId,
+  show = false,
   className = "",
 }: FavoriteButtonProps) {
-  const { user } = useAuthUnified();
   const { t } = useLanguage();
   const { notify } = useToast();
-  const isAuthenticated = Boolean(user);
   const { favoritesQuery, addFavorite, removeFavorite } = useFavorites({
-    enabled: isAuthenticated,
+    enabled: show,
+    mode: "ids",
   });
-  const isFavorite = useMemo(
-    () => (favoritesQuery.data ?? []).some(f => f.cocktail_id === cocktailId),
-    [favoritesQuery.data, cocktailId]
-  );
+  const favoriteIds = useMemo(() => {
+    const data = favoritesQuery.data ?? [];
+    return new Set(
+      (data as Array<{ cocktail_id?: string; id?: string }>).map(
+        favorite => favorite.cocktail_id ?? favorite.id ?? ""
+      )
+    );
+  }, [favoritesQuery.data]);
 
-  if (!isAuthenticated) {
+  const isFavorite = favoriteIds.has(cocktailId);
+
+  if (!show) {
     return null;
   }
 
-  const loading =
-    addFavorite.isPending ||
-    removeFavorite.isPending ||
-    favoritesQuery.isLoading;
+  const isMutating = addFavorite.isPending || removeFavorite.isPending;
 
   const handleToggle = async () => {
-    if (loading) return;
+    if (isMutating) return;
     if (isFavorite) {
+      notify({
+        type: "info",
+        title: t("feedback.favorite_removed_title"),
+        message: t("feedback.favorite_removed_message"),
+      });
       removeFavorite.mutate(cocktailId, {
-        onSuccess: () => {
-          notify({
-            type: "info",
-            title: t("feedback.favorite_removed_title"),
-            message: t("feedback.favorite_removed_message"),
-          });
-        },
         onError: () => {
           notify({
             type: "error",
@@ -57,18 +58,16 @@ export default function FavoriteButton({
         },
       });
     } else {
-      addFavorite.mutate(cocktailId, {
-        onSuccess: () => {
-          notify({
-            type: "success",
-            title: t("feedback.favorite_added_title"),
-            message: t("feedback.favorite_added_message"),
-            action: {
-              label: t("feedback.undo"),
-              onClick: () => removeFavorite.mutate(cocktailId),
-            },
-          });
+      notify({
+        type: "success",
+        title: t("feedback.favorite_added_title"),
+        message: t("feedback.favorite_added_message"),
+        action: {
+          label: t("feedback.undo"),
+          onClick: () => removeFavorite.mutate(cocktailId),
         },
+      });
+      addFavorite.mutate(cocktailId, {
         onError: () => {
           notify({
             type: "error",
@@ -83,17 +82,16 @@ export default function FavoriteButton({
   return (
     <button
       onClick={handleToggle}
-      disabled={loading}
+      disabled={isMutating}
       className={`p-2 rounded-full transition-all duration-200 ${
         isFavorite
           ? "bg-red-500 text-white hover:bg-red-600"
           : "bg-gray-800/50 text-gray-400 hover:bg-gray-700/50 hover:text-red-400"
-      } ${loading ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
+      } ${isMutating ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
       title={isFavorite ? "Quitar de favoritos" : "Añadir a favoritos"}
+      aria-busy={isMutating || favoritesQuery.isFetching}
     >
-      {loading ? (
-        <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-      ) : isFavorite ? (
+      {isFavorite ? (
         <HiHeart className="h-4 w-4" />
       ) : (
         <HiOutlineHeart className="h-4 w-4" />

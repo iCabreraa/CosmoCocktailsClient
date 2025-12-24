@@ -13,9 +13,13 @@ import FavoriteButton from "@/components/ui/FavoriteButton";
 
 interface CocktailCardProps {
   cocktail: CocktailWithPrice;
+  showFavorites?: boolean;
 }
 
-export default function CocktailCard({ cocktail }: CocktailCardProps) {
+export default function CocktailCard({
+  cocktail,
+  showFavorites = false,
+}: CocktailCardProps) {
   const { t } = useLanguage();
   const { notify } = useToast();
   const addToCart = useCart(state => state.addToCart);
@@ -159,7 +163,7 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
       </Link>
 
       <div className="absolute right-8 top-8">
-        <FavoriteButton cocktailId={cocktail.id} />
+        <FavoriteButton cocktailId={cocktail.id} show={showFavorites} />
       </div>
     </div>
   );

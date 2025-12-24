@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   HiOutlineHeart,
@@ -11,68 +10,32 @@ import {
 } from "react-icons/hi2";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
-
-interface FavoriteCocktail {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image_url: string;
-  category: string;
-  added_at: string;
-  sizes?: Array<{
-    id: string;
-    name: string;
-    volume_ml: number;
-    price: number;
-  }>;
-}
+import { useAuthUnified } from "@/hooks/useAuthUnified";
+import {
+  useFavorites,
+  FavoriteDetails,
+} from "@/hooks/queries/useFavorites";
 
 export default function UserFavorites() {
-  const [favorites, setFavorites] = useState<FavoriteCocktail[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const { t } = useLanguage();
+  const { user } = useAuthUnified();
+  const { favoritesQuery, removeFavorite } = useFavorites({
+    enabled: Boolean(user),
+    mode: "details",
+  });
+  const favorites = (favoritesQuery.data ?? []) as FavoriteDetails[];
+  const loading = favoritesQuery.isLoading;
+  const error =
+    favoritesQuery.error instanceof Error
+      ? favoritesQuery.error.message
+      : "";
 
-  useEffect(() => {
-    fetchFavorites();
-  }, [t]);
-
-  const fetchFavorites = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/favorites");
-      if (!res.ok) throw new Error("No se pudieron cargar favoritos");
-      const data = await res.json();
-      setFavorites(data.favorites || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const removeFavorite = async (cocktailId: string) => {
-    try {
-      await fetch(`/api/favorites?cocktail_id=${cocktailId}`, {
-        method: "DELETE",
-      });
-      setFavorites(prev => prev.filter(fav => fav.id !== cocktailId));
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Error al remover favorito"
-      );
-    }
-  };
-
-  const addToCart = async (cocktail: FavoriteCocktail) => {
+  const addToCart = async (cocktail: FavoriteDetails) => {
     try {
       // Aquí implementarías la lógica para añadir al carrito
       console.log("Añadiendo al carrito:", cocktail);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Error al añadir al carrito"
-      );
+      console.error("Error al añadir al carrito:", err);
     }
   };
 
@@ -93,7 +56,7 @@ export default function UserFavorites() {
         </p>
         <p className="text-red-600 text-sm mt-2">{error}</p>
         <button
-          onClick={fetchFavorites}
+          onClick={() => favoritesQuery.refetch()}
           className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
         >
           {t("common.retry")}
@@ -132,7 +95,7 @@ export default function UserFavorites() {
                 />
                 <div className="absolute top-4 right-4">
                   <button
-                    onClick={() => removeFavorite(cocktail.id)}
+                    onClick={() => removeFavorite.mutate(cocktail.id)}
                     className="p-2 bg-white rounded-full shadow-md hover:bg-red-50 transition-colors"
                   >
                     <HiOutlineTrash className="h-4 w-4 text-red-600" />
