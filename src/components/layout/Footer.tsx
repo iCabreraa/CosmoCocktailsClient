@@ -56,7 +56,7 @@ export default function Footer() {
         </div>
 
         {/* Center: Branding */}
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center border-t border-white/10 pt-6 md:border-t-0 md:border-l md:pl-8 md:pt-0">
           <h4 className="text-cosmic-gold uppercase font-logo tracking-widest text-lg">
             CosmoCocktails
           </h4>
@@ -66,7 +66,7 @@ export default function Footer() {
         </div>
 
         {/* Right: Contact & Socials */}
-        <div className="md:text-right">
+        <div className="border-t border-white/10 pt-6 md:border-t-0 md:border-l md:pl-8 md:pt-0 md:text-right">
           <h4 className="text-cosmic-gold uppercase font-display tracking-wide mb-3">
             {t("nav.contact")}
           </h4>
