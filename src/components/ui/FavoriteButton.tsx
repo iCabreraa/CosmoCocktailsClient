@@ -38,22 +38,18 @@ export default function FavoriteButton({
     return null;
   }
 
-  const loading =
-    addFavorite.isPending ||
-    removeFavorite.isPending ||
-    favoritesQuery.isLoading;
+  const isMutating = addFavorite.isPending || removeFavorite.isPending;
+  const isInitialLoading = favoritesQuery.isLoading && favoriteIds.size === 0;
 
   const handleToggle = async () => {
-    if (loading) return;
+    if (isMutating) return;
     if (isFavorite) {
+      notify({
+        type: "info",
+        title: t("feedback.favorite_removed_title"),
+        message: t("feedback.favorite_removed_message"),
+      });
       removeFavorite.mutate(cocktailId, {
-        onSuccess: () => {
-          notify({
-            type: "info",
-            title: t("feedback.favorite_removed_title"),
-            message: t("feedback.favorite_removed_message"),
-          });
-        },
         onError: () => {
           notify({
             type: "error",
@@ -63,18 +59,16 @@ export default function FavoriteButton({
         },
       });
     } else {
-      addFavorite.mutate(cocktailId, {
-        onSuccess: () => {
-          notify({
-            type: "success",
-            title: t("feedback.favorite_added_title"),
-            message: t("feedback.favorite_added_message"),
-            action: {
-              label: t("feedback.undo"),
-              onClick: () => removeFavorite.mutate(cocktailId),
-            },
-          });
+      notify({
+        type: "success",
+        title: t("feedback.favorite_added_title"),
+        message: t("feedback.favorite_added_message"),
+        action: {
+          label: t("feedback.undo"),
+          onClick: () => removeFavorite.mutate(cocktailId),
         },
+      });
+      addFavorite.mutate(cocktailId, {
         onError: () => {
           notify({
             type: "error",
@@ -89,15 +83,16 @@ export default function FavoriteButton({
   return (
     <button
       onClick={handleToggle}
-      disabled={loading}
+      disabled={isMutating}
       className={`p-2 rounded-full transition-all duration-200 ${
         isFavorite
           ? "bg-red-500 text-white hover:bg-red-600"
           : "bg-gray-800/50 text-gray-400 hover:bg-gray-700/50 hover:text-red-400"
-      } ${loading ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
+      } ${isMutating ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
       title={isFavorite ? "Quitar de favoritos" : "Añadir a favoritos"}
+      aria-busy={isMutating || isInitialLoading}
     >
-      {loading ? (
+      {isInitialLoading ? (
         <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
       ) : isFavorite ? (
         <HiHeart className="h-4 w-4" />

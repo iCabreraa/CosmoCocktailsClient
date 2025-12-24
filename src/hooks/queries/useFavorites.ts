@@ -20,6 +20,35 @@ export type FavoriteDetails = {
 };
 
 type FavoritesMode = "ids" | "details";
+const FAVORITES_IDS_CACHE_KEY = "cosmic-favorites-ids";
+
+const readCachedIds = (): Favorite[] | undefined => {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const raw = window.localStorage.getItem(FAVORITES_IDS_CACHE_KEY);
+    if (!raw) return undefined;
+    const ids = JSON.parse(raw);
+    if (!Array.isArray(ids)) return undefined;
+    return ids
+      .filter((id: unknown) => typeof id === "string" && id.length > 0)
+      .map(id => ({ id, cocktail_id: id }));
+  } catch {
+    return undefined;
+  }
+};
+
+const writeCachedIds = (favorites: Favorite[]) => {
+  if (typeof window === "undefined") return;
+  try {
+    const ids = favorites.map(favorite => favorite.cocktail_id);
+    window.localStorage.setItem(
+      FAVORITES_IDS_CACHE_KEY,
+      JSON.stringify(ids)
+    );
+  } catch {
+    // ignore storage errors
+  }
+};
 
 export function useFavorites(
   options: { enabled?: boolean; mode?: FavoritesMode } = {}
@@ -36,17 +65,21 @@ export function useFavorites(
       const data = await res.json();
       const favorites = data.favorites ?? [];
       if (mode === "ids") {
-        return favorites.map((favorite: any) => ({
+        const normalized = favorites.map((favorite: any) => ({
           id: favorite.id ?? favorite.cocktail_id,
           cocktail_id: favorite.cocktail_id ?? favorite.id,
         }));
+        writeCachedIds(normalized);
+        return normalized;
       }
       return favorites as FavoriteDetails[];
     },
     enabled,
-    staleTime: mode === "ids" ? 5 * 60 * 1000 : 2 * 60 * 1000,
+    staleTime: mode === "ids" ? 10 * 60 * 1000 : 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnMount: mode === "ids" ? false : "always",
+    initialData: mode === "ids" ? readCachedIds() : undefined,
   });
 
   const addFavorite = useMutation({
@@ -74,6 +107,9 @@ export function useFavorites(
               { id: cocktailId, cocktail_id: cocktailId },
             ];
         queryClient.setQueryData(queryKey, next);
+        if (next) {
+          writeCachedIds(next);
+        }
       }
       return { previous };
     },
@@ -99,12 +135,11 @@ export function useFavorites(
       >(queryKey);
       if (previous) {
         if (mode === "ids") {
-          queryClient.setQueryData(
-            queryKey,
-            (previous as Favorite[]).filter(
-              favorite => favorite.cocktail_id !== cocktailId
-            )
+          const next = (previous as Favorite[]).filter(
+            favorite => favorite.cocktail_id !== cocktailId
           );
+          queryClient.setQueryData(queryKey, next);
+          writeCachedIds(next);
         } else {
           queryClient.setQueryData(
             queryKey,
