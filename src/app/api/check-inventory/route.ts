@@ -7,6 +7,11 @@ const supabase = createClient(
   envServer.SUPABASE_SERVICE_ROLE_KEY
 );
 
+type InventoryItem = {
+  cocktail_id: string;
+  sizes_id: string;
+};
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -23,15 +28,20 @@ export async function POST(request: NextRequest) {
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (items) {
-      const normalizedItems = items
-        .map((item: any) => ({
-          cocktail_id: item?.cocktail_id,
-          sizes_id: item?.sizes_id,
+      const normalizedItems = (
+        items as Array<{ cocktail_id?: string; sizes_id?: string }>
+      )
+        .map(item => ({
+          cocktail_id: String(item?.cocktail_id ?? ""),
+          sizes_id: String(item?.sizes_id ?? ""),
         }))
-        .filter((item: any) => item.cocktail_id && item.sizes_id);
+        .filter(
+          (item): item is InventoryItem =>
+            item.cocktail_id !== "" && item.sizes_id !== ""
+        );
 
       const validItems = normalizedItems.filter(
-        (item: any) =>
+        item =>
           uuidRegex.test(item.cocktail_id) && uuidRegex.test(item.sizes_id)
       );
 

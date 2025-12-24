@@ -150,6 +150,7 @@ export default function AddressForm({
           }
           const data = await res.json();
           const saved = normalizeAddress(data.address);
+          const savedName = saved.name ?? "";
           setAddresses(prev => {
             const next = editingAddress
               ? prev.map(addr => (addr.id === saved.id ? saved : addr))
@@ -169,10 +170,10 @@ export default function AddressForm({
               : t("feedback.address_added_title"),
             message: editingAddress
               ? t("feedback.address_updated_message", {
-                  name: saved.name,
+                  name: savedName,
                 })
               : t("feedback.address_added_message", {
-                  name: saved.name,
+                  name: savedName,
                 }),
           });
         } catch (error) {
@@ -184,6 +185,7 @@ export default function AddressForm({
       void saveAddress();
     } else {
       if (editingAddress) {
+        const newAddressName = newAddress.name ?? "";
         setAddresses(prev =>
           prev.map(addr => {
             if (addr.id === editingAddress.id) {
@@ -199,10 +201,11 @@ export default function AddressForm({
           type: "success",
           title: t("feedback.address_updated_title"),
           message: t("feedback.address_updated_message", {
-            name: newAddress.name,
+            name: newAddressName,
           }),
         });
       } else {
+        const newAddressName = newAddress.name ?? "";
         setAddresses(prev => {
           const next = newAddress.is_default
             ? prev.map(addr => ({ ...addr, is_default: false }))
@@ -213,7 +216,7 @@ export default function AddressForm({
           type: "success",
           title: t("feedback.address_added_title"),
           message: t("feedback.address_added_message", {
-            name: newAddress.name,
+            name: newAddressName,
           }),
         });
       }
@@ -281,11 +284,12 @@ export default function AddressForm({
             onAddressSelect(remaining.find(addr => addr.is_default) || remaining[0] || null);
           }
           if (toDelete) {
+            const deleteName = toDelete.name ?? "";
             notify({
               type: "warning",
               title: t("feedback.address_deleted_title"),
               message: t("feedback.address_deleted_message", {
-                name: toDelete.name,
+                name: deleteName,
               }),
             });
           }
@@ -306,10 +310,11 @@ export default function AddressForm({
         onAddressSelect(next.find(addr => addr.is_default) || next[0] || null);
       }
       if (toDelete) {
+        const deleteName = toDelete.name ?? "";
         notify({
           type: "warning",
           title: t("feedback.address_deleted_title"),
-          message: t("feedback.address_deleted_message", { name: toDelete.name }),
+          message: t("feedback.address_deleted_message", { name: deleteName }),
         });
       }
     }

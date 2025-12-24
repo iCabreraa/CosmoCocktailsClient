@@ -90,16 +90,17 @@ export default function FeaturedBanner() {
             nextEl: nextRef.current,
           }}
           onBeforeInit={swiper => {
-            if (typeof swiper.params.navigation !== "boolean") {
-              swiper.params.navigation.prevEl = prevRef.current;
-              swiper.params.navigation.nextEl = nextRef.current;
-            }
+            const navigation = swiper.params.navigation;
+            if (!navigation || typeof navigation === "boolean") return;
+            navigation.prevEl = prevRef.current;
+            navigation.nextEl = nextRef.current;
           }}
           onSwiper={swiper => {
-            if (typeof swiper.params.navigation === "boolean") return;
+            const navigation = swiper.params.navigation;
+            if (!navigation || typeof navigation === "boolean") return;
             if (prevRef.current && nextRef.current) {
-              swiper.params.navigation.prevEl = prevRef.current;
-              swiper.params.navigation.nextEl = nextRef.current;
+              navigation.prevEl = prevRef.current;
+              navigation.nextEl = nextRef.current;
               swiper.navigation.init();
               swiper.navigation.update();
             }

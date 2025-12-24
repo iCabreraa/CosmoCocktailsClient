@@ -204,8 +204,12 @@ export default function CheckoutClient() {
     }
   };
 
-  const handlePaymentSuccess = async (paymentIntent: any) => {
-    console.log("Payment successful:", paymentIntent);
+  const handlePaymentSuccess = async (payload: {
+    orderId: string;
+    orderRef?: string;
+    paymentIntentId: string;
+  }) => {
+    console.log("Payment successful:", payload);
 
     // Guardar datos del cliente solo si NO está autenticado
     if (shouldSaveClientData) {
@@ -226,8 +230,30 @@ export default function CheckoutClient() {
       console.log("✅ Authenticated user - skipping client data save");
     }
 
+    if (typeof window !== "undefined") {
+      const successPayload = {
+        orderId: payload.orderId,
+        orderRef: payload.orderRef,
+        orderDate: new Date().toISOString(),
+        storedAt: Date.now(),
+        items,
+        subtotal,
+        vat_amount,
+        shipping_cost,
+        total,
+        item_count,
+        shippingAddress: selectedAddress,
+      };
+      sessionStorage.setItem(
+        "checkout-success",
+        JSON.stringify(successPayload)
+      );
+    }
+
     clearCart();
-    // La redirección al detalle del pedido la realiza StripePaymentComplete
+    window.location.href = `/checkout/success?order_id=${payload.orderId}${
+      payload.orderRef ? `&order_ref=${payload.orderRef}` : ""
+    }`;
   };
 
   const handlePaymentError = (error: string) => {
@@ -678,6 +704,7 @@ export default function CheckoutClient() {
                   total={total}
                   user={authUser}
                   shippingAddress={selectedAddress}
+                  contactEmail={form.email}
                   onPaymentSuccess={handlePaymentSuccess}
                   onPaymentError={handlePaymentError}
                 />

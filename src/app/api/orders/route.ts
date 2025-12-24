@@ -34,12 +34,17 @@ export async function GET(request: NextRequest) {
     const selectClause =
       summary || !includeItems ? summarySelect : detailSelect;
 
-    const { data: orders, error } = await supabase
+    let query = supabase
       .from("orders")
       .select(selectClause)
       .eq("user_id", user.id)
-      .order("order_date", { ascending: false })
-      .limit(limit ?? undefined);
+      .order("order_date", { ascending: false });
+
+    if (typeof limit === "number" && !Number.isNaN(limit)) {
+      query = query.limit(limit);
+    }
+
+    const { data: orders, error } = await query;
 
     if (error) {
       console.error("Error fetching orders:", error.message);

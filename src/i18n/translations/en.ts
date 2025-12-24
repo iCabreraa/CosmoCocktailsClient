@@ -415,6 +415,8 @@ const en = {
       "order_details_title": "Order Details",
       "order_id_label": "Order ID:",
       "confirmation_note": "You will receive a confirmation email shortly with all order details.",
+      "summary_title": "Order Summary",
+      "summary_empty": "We couldn't load the summary here. You'll find it in your order details.",
       "next_steps_title": "Next Steps",
       "step1_title": "Confirmation",
       "step1_description": "You will receive a confirmation email",
@@ -424,6 +426,8 @@ const en = {
       "step3_description": "We will notify you when it's on the way",
       "continue_shopping": "Continue Shopping",
       "go_home": "Go Home",
+      "view_order": "View Order Details",
+      "view_orders": "View My Orders",
       "support_text": "Have any questions?",
       "contact_us": "Contact us"
     },

@@ -420,6 +420,8 @@ const nl = {
       "order_details_title": "Bestelgegevens",
       "order_id_label": "Bestel-ID:",
       "confirmation_note": "Je ontvangt binnenkort een bevestigingsmail met alle bestelgegevens.",
+      "summary_title": "Bestellingsoverzicht",
+      "summary_empty": "We konden het overzicht hier niet laden. Je vindt het in de bestelgegevens.",
       "next_steps_title": "Volgende stappen",
       "step1_title": "Bevestiging",
       "step1_description": "Je ontvangt een bevestigingsmail",
@@ -429,9 +431,13 @@ const nl = {
       "step3_description": "We laten het weten zodra het onderweg is",
       "continue_shopping": "Verder Winkelen",
       "go_home": "Naar Home",
+      "view_order": "Bestelling bekijken",
+      "view_orders": "Mijn bestellingen",
       "support_text": "Heb je vragen?",
       "contact_us": "Neem contact op"
-    }
+    },
+    "order_number": "Bestelnummer",
+    "estimated_delivery": "Geschatte levering"
   },
   "admin": {
     "panel_title": "Admin Panel",
