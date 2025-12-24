@@ -61,10 +61,35 @@ export default function ShopClient({
     "pagination"
   );
   const [hasMore, setHasMore] = useState(initialHasMore);
-  const supabase = createClient();
+  const [showFavorites, setShowFavorites] = useState(false);
+  const supabase = useMemo(() => createClient(), []);
   const hasMountedRef = useRef(false);
 
   const PAGE_SIZE = 12;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!isMounted) return;
+      setShowFavorites(Boolean(data.session?.user));
+    };
+
+    loadSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
+      setShowFavorites(Boolean(session?.user));
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   async function fetchCocktailsPage(
     page: number,
@@ -486,7 +511,7 @@ export default function ShopClient({
               transition={{ duration: 0.3 }}
               layout
             >
-              <CocktailGrid cocktails={cocktails} />
+              <CocktailGrid cocktails={cocktails} showFavorites={showFavorites} />
 
               {totalPages > 1 && (
                 <div className="flex flex-wrap items-center justify-center gap-6">
@@ -530,7 +555,7 @@ export default function ShopClient({
               layout
             >
               {hasSearch ? (
-                <CocktailGrid cocktails={cocktails} />
+                <CocktailGrid cocktails={cocktails} showFavorites={showFavorites} />
               ) : (
                 <>
                   {/* Sección Principal - Todos los Cócteles */}
@@ -538,6 +563,7 @@ export default function ShopClient({
                     title={t("shop.all_cocktails")}
                     cocktails={cocktails}
                     showTitle={false}
+                    showFavorites={showFavorites}
                   />
 
                   {/* Secciones Agrupadas - Solo mostrar si hay cócteles */}
@@ -545,6 +571,7 @@ export default function ShopClient({
                     <CocktailRow
                       title={t("shop.non_alcoholic")}
                       cocktails={nonAlcoholicCocktails}
+                      showFavorites={showFavorites}
                     />
                   )}
 
@@ -552,6 +579,7 @@ export default function ShopClient({
                     <CocktailRow
                       title={t("shop.strong_drinks")}
                       cocktails={strongCocktails}
+                      showFavorites={showFavorites}
                     />
                   )}
 
@@ -559,6 +587,7 @@ export default function ShopClient({
                     <CocktailRow
                       title={t("shop.light_fresh")}
                       cocktails={lightCocktails}
+                      showFavorites={showFavorites}
                     />
                   )}
 
@@ -566,6 +595,7 @@ export default function ShopClient({
                     <CocktailRow
                       title={t("shop.tropical")}
                       cocktails={tropicalCocktails}
+                      showFavorites={showFavorites}
                     />
                   )}
                 </>

@@ -10,6 +10,10 @@ create index if not exists idx_cocktail_sizes_cocktail_available
 create index if not exists idx_cocktail_sizes_sizes_id
   on public.cocktail_sizes (sizes_id);
 
+-- Favorites queries (user favorites ordered by time)
+create index if not exists idx_user_favorites_user_created_at
+  on public.user_favorites (user_id, created_at desc);
+
 -- Optional: speed up ilike searches on name (requires pg_trgm extension)
 create extension if not exists pg_trgm;
 create index if not exists idx_cocktails_name_trgm

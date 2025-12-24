@@ -3,25 +3,25 @@
 import { useMemo } from "react";
 import { useFavorites } from "@/hooks/queries/useFavorites";
 import { HiOutlineHeart, HiHeart } from "react-icons/hi2";
-import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/components/feedback/ToastProvider";
 
 interface FavoriteButtonProps {
   cocktailId: string;
+  show?: boolean;
   className?: string;
 }
 
 export default function FavoriteButton({
   cocktailId,
+  show = false,
   className = "",
 }: FavoriteButtonProps) {
-  const { user } = useAuthUnified();
   const { t } = useLanguage();
   const { notify } = useToast();
-  const isAuthenticated = Boolean(user);
   const { favoritesQuery, addFavorite, removeFavorite } = useFavorites({
-    enabled: isAuthenticated,
+    enabled: show,
+    mode: "ids",
   });
   const favoriteIds = useMemo(() => {
     const data = favoritesQuery.data ?? [];
@@ -34,12 +34,11 @@ export default function FavoriteButton({
 
   const isFavorite = favoriteIds.has(cocktailId);
 
-  if (!isAuthenticated) {
+  if (!show) {
     return null;
   }
 
   const isMutating = addFavorite.isPending || removeFavorite.isPending;
-  const isInitialLoading = favoritesQuery.isLoading && favoriteIds.size === 0;
 
   const handleToggle = async () => {
     if (isMutating) return;
@@ -90,11 +89,9 @@ export default function FavoriteButton({
           : "bg-gray-800/50 text-gray-400 hover:bg-gray-700/50 hover:text-red-400"
       } ${isMutating ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
       title={isFavorite ? "Quitar de favoritos" : "Añadir a favoritos"}
-      aria-busy={isMutating || isInitialLoading}
+      aria-busy={isMutating || favoritesQuery.isFetching}
     >
-      {isInitialLoading ? (
-        <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-      ) : isFavorite ? (
+      {isFavorite ? (
         <HiHeart className="h-4 w-4" />
       ) : (
         <HiOutlineHeart className="h-4 w-4" />
