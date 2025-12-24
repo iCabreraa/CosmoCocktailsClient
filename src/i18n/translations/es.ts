@@ -145,6 +145,7 @@ const es = {
   },
   "footer": {
     "explore": "Explorar",
+    "legal": "Legal",
     "description": "Bebidas curadas y experiencias premium de cócteles, servidas con sabor estelar.",
     "contact": "Contacto:",
     "copyright": "© 2025 CosmoCocktails. Todos los derechos reservados."

@@ -145,6 +145,7 @@ const nl = {
   },
   "footer": {
     "explore": "Verken",
+    "legal": "Juridisch",
     "description": "Gecureerde drankjes & premium cocktail ervaringen, geserveerd met sterren smaak.",
     "contact": "Contact:",
     "copyright": "© 2025 CosmoCocktails. Alle rechten voorbehouden."
