@@ -26,6 +26,7 @@ import LanguageSelector from "@/components/ui/LanguageSelector";
 import UserAvatar from "@/components/ui/UserAvatar";
 import RoleBadge from "@/components/ui/RoleBadge";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
+import { useFavorites } from "@/hooks/queries/useFavorites";
 import { createClient } from "@/lib/supabase/client";
 import { usePathname } from "next/navigation";
 import "@fontsource/major-mono-display";
@@ -40,6 +41,11 @@ export default function Navbar() {
   const { t } = useLanguage();
   const { canAccess: canAccessAdmin } = useAdminAccess();
   const pathname = usePathname();
+  const hasFavoritesAccess = Boolean(user);
+  const { favoritesQuery } = useFavorites({ enabled: hasFavoritesAccess });
+  const favoritesCount = hasFavoritesAccess
+    ? favoritesQuery.data?.length ?? 0
+    : 0;
 
   const showBg = scrolled || hovered;
 
@@ -498,6 +504,20 @@ export default function Navbar() {
 
                 {/* Right Side Elements - More space from edge */}
                 <div className="absolute right-12 top-0 flex items-center space-x-4">
+                  {hasFavoritesAccess && (
+                    <Link
+                      href="/account?tab=favorites"
+                      className="relative hover:text-cosmic-gold transition-colors duration-200"
+                      aria-label={t("account.tabs.favorites")}
+                    >
+                      <HiOutlineHeart className="w-5 h-5" />
+                      {favoritesCount > 0 && (
+                        <span className="absolute -top-2 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-cosmic-gold px-1 text-[10px] font-semibold text-black">
+                          {favoritesCount > 9 ? "9+" : favoritesCount}
+                        </span>
+                      )}
+                    </Link>
+                  )}
                   <Link
                     href="/cart"
                     className="hover:text-cosmic-gold transition-colors duration-200"

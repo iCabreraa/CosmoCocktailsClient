@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export type Favorite = { id: string; cocktail_id: string };
 
-export function useFavorites() {
+export function useFavorites(options: { enabled?: boolean } = {}) {
+  const { enabled = true } = options;
   const queryClient = useQueryClient();
 
   const favoritesQuery = useQuery<Favorite[]>({
@@ -15,6 +16,7 @@ export function useFavorites() {
       const data = await res.json();
       return (data.favorites as Favorite[]) ?? [];
     },
+    enabled,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
