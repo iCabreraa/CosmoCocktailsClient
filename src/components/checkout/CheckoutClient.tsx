@@ -34,7 +34,7 @@ export default function CheckoutClient() {
     hasHydrated,
   } = useCart();
 
-  const { getFormDataForEmail, saveClientData } = useClientData();
+  const { saveClientData } = useClientData();
   const { user: authUser } = useAuthUnified();
 
   const [form, setForm] = useState({
@@ -153,20 +153,7 @@ export default function CheckoutClient() {
         return;
       }
 
-      // Prioridad 2: Buscar en datos de clientes (guest)
-      const clientData = await getFormDataForEmail(value);
-      if (clientData) {
-        setForm(prev => ({
-          ...prev,
-          name: clientData.name || prev.name,
-          phone: clientData.phone || prev.phone,
-        }));
-
-        if (clientData.address) {
-          setSelectedAddress(clientData.address);
-        }
-        console.log("✅ Auto-filled from client data:", clientData);
-      }
+      // Para invitados no se autocompletan datos por privacidad.
     }
   };
 
