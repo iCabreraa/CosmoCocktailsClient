@@ -110,31 +110,44 @@ export function useValidation<T extends Record<string, any>>(
   // Establecer valor de un campo
   const setValue = useCallback(
     (field: keyof T, value: any) => {
-      setData(prev => ({ ...prev, [field]: value }));
-      setIsDirty(true);
+      setData(prev => {
+        const nextData = { ...prev, [field]: value };
+        const fieldErrors = validateData(nextData).filter(
+          error => error.field === field
+        );
 
-      // Validar campo en tiempo real
-      setTimeout(() => {
-        validateField(field);
-      }, 0);
+        setErrors(prevErrors => [
+          ...prevErrors.filter(error => error.field !== field),
+          ...fieldErrors,
+        ]);
+
+        return nextData;
+      });
+      setIsDirty(true);
     },
-    [validateField]
+    [validateData]
   );
 
   // Establecer múltiples valores
   const setValues = useCallback(
     (values: Partial<T>) => {
-      setData(prev => ({ ...prev, ...values }));
-      setIsDirty(true);
+      setData(prev => {
+        const nextData = { ...prev, ...values };
+        const fields = Object.keys(values);
+        const fieldErrors = validateData(nextData).filter(error =>
+          fields.includes(error.field)
+        );
 
-      // Validar campos afectados
-      setTimeout(() => {
-        Object.keys(values).forEach(field => {
-          validateField(field as keyof T);
-        });
-      }, 0);
+        setErrors(prevErrors => [
+          ...prevErrors.filter(error => !fields.includes(error.field)),
+          ...fieldErrors,
+        ]);
+
+        return nextData;
+      });
+      setIsDirty(true);
     },
-    [validateField]
+    [validateData]
   );
 
   // Resetear formulario

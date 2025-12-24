@@ -143,7 +143,7 @@ export default function CocktailRow({
                     <FavoriteButton cocktailId={cocktail.id} />
                   </div>
                 </div>
-                {cocktail.min_price !== null && cocktail.min_size_id && (
+                {cocktail.min_price !== null && cocktail.min_size_id ? (
                   <AddToCartButton
                     cocktail={{
                       id: cocktail.id,
@@ -161,6 +161,14 @@ export default function CocktailRow({
                     minPrice={cocktail.min_price}
                     minSizeId={cocktail.min_size_id}
                   />
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cosmic-gold/40 text-cosmic-gold/60 bg-cosmic-gold/10 cursor-not-allowed text-sm"
+                  >
+                    {t("shop.coming_soon")}
+                  </button>
                 )}
               </div>
             ))}
