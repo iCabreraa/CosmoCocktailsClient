@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FaInstagram, FaLinkedinIn } from "react-icons/fa";
+import { FaInstagram } from "react-icons/fa";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Footer() {
@@ -10,49 +10,45 @@ export default function Footer() {
   return (
     <footer className="bg-transparent text-cosmic-text mt-20 px-6">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 py-12 text-sm items-center text-center md:text-left">
-        {/* Left: Quick Links - split in 2 columns */}
+        {/* Left: Account Links */}
         <div>
           <h4 className="text-cosmic-gold uppercase font-display tracking-wide mb-3">
-            {t("footer.explore")}
+            {t("nav.account")}
           </h4>
-          <div className="grid grid-cols-2">
-            <ul className="space-y-1">
-              <li>
-                <Link
-                  href="/shop"
-                  className="hover:text-cosmic-gold transition"
-                >
-                  {t("nav.shop")}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/events"
-                  className="hover:text-cosmic-gold transition"
-                >
-                  {t("nav.events")}
-                </Link>
-              </li>
-            </ul>
-            <ul className="space-y-1">
-              <li>
-                <Link
-                  href="/about"
-                  className="hover:text-cosmic-gold transition"
-                >
-                  {t("nav.about")}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact"
-                  className="hover:text-cosmic-gold transition"
-                >
-                  {t("nav.contact")}
-                </Link>
-              </li>
-            </ul>
-          </div>
+          <ul className="space-y-1">
+            <li>
+              <Link
+                href="/account?tab=dashboard"
+                className="hover:text-cosmic-gold transition"
+              >
+                {t("account.tabs.dashboard")}
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/account?tab=orders"
+                className="hover:text-cosmic-gold transition"
+              >
+                {t("account.tabs.orders")}
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/account?tab=favorites"
+                className="hover:text-cosmic-gold transition"
+              >
+                {t("account.tabs.favorites")}
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/account?tab=settings"
+                className="hover:text-cosmic-gold transition"
+              >
+                {t("account.tabs.settings")}
+              </Link>
+            </li>
+          </ul>
         </div>
 
         {/* Center: Branding */}
