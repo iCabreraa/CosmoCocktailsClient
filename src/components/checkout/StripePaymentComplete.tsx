@@ -109,9 +109,9 @@ function PaymentForm({
       const orderResult = await response.json();
       console.log("Order created successfully:", orderResult);
       if (orderResult?.id) {
-        window.location.href = `/checkout/success?order_id=${orderResult.id}`;
+        window.location.href = `/order/${orderResult.id}`;
       } else if (orderResult?.order?.id) {
-        window.location.href = `/checkout/success?order_id=${orderResult.order.id}`;
+        window.location.href = `/order/${orderResult.order.id}`;
       }
     } catch (error) {
       console.error("Error creating order:", error);

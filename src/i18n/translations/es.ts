@@ -418,7 +418,6 @@ const es = {
       "step2_description": "Preparamos tu pedido con cuidado",
       "step3_title": "Envío",
       "step3_description": "Te notificaremos cuando esté en camino",
-      "view_order_details": "Ver detalles del pedido",
       "continue_shopping": "Seguir Comprando",
       "go_home": "Ir al Inicio",
       "support_text": "¿Tienes alguna pregunta?",
