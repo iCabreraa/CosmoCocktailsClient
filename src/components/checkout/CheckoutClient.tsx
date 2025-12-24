@@ -544,9 +544,33 @@ export default function CheckoutClient() {
                 )}
               </div>
 
-              <div className="rounded-lg border border-cosmic-gold/10 bg-black/20 p-4 text-sm text-cosmic-fog">
-                {t("checkout.preparing_payment")}
-              </div>
+              {paymentError && (
+                <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 mb-4">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span className="text-sm">{paymentError}</span>
+                </div>
+              )}
+
+              {clientSecret && privacyAccepted ? (
+                <StripePaymentComplete
+                  clientSecret={clientSecret}
+                  items={items}
+                  total={total}
+                  user={authUser}
+                  shippingAddress={selectedAddress}
+                  onPaymentSuccess={handlePaymentSuccess}
+                  onPaymentError={handlePaymentError}
+                />
+              ) : (
+                <div className="bg-cosmic-fog/10 rounded-lg p-4 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cosmic-gold mx-auto mb-2"></div>
+                  <p className="text-cosmic-fog text-sm">
+                    {privacyAccepted
+                      ? t("checkout.preparing_payment")
+                      : t("checkout.privacy_consent_required")}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -620,36 +644,6 @@ export default function CheckoutClient() {
                   <p className="text-xs text-cosmic-fog mt-4 text-center">
                     {t("checkout.free_shipping_note")}
                   </p>
-                )}
-              </div>
-
-              <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-cosmic-gold/10">
-                {paymentError && (
-                  <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 mb-4">
-                    <AlertTriangle className="w-4 h-4" />
-                    <span className="text-sm">{paymentError}</span>
-                  </div>
-                )}
-
-                {clientSecret && privacyAccepted ? (
-                  <StripePaymentComplete
-                    clientSecret={clientSecret}
-                    items={items}
-                    total={total}
-                    user={authUser}
-                    shippingAddress={selectedAddress}
-                    onPaymentSuccess={handlePaymentSuccess}
-                    onPaymentError={handlePaymentError}
-                  />
-                ) : (
-                  <div className="bg-cosmic-fog/10 rounded-lg p-4 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cosmic-gold mx-auto mb-2"></div>
-                    <p className="text-cosmic-fog text-sm">
-                      {privacyAccepted
-                        ? t("checkout.preparing_payment")
-                        : t("checkout.privacy_consent_required")}
-                    </p>
-                  </div>
                 )}
               </div>
             </div>
