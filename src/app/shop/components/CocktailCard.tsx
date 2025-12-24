@@ -99,36 +99,52 @@ export default function CocktailCard({ cocktail }: CocktailCardProps) {
                 quality={75}
               />
             </div>
-            {cocktail.sizes && cocktail.sizes.length > 0 && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                <div className="pointer-events-auto w-[82%] max-w-[280px] rounded-2xl border border-cosmic-gold/30 bg-black/55 backdrop-blur-xl px-4 py-3 shadow-[0_0_24px_rgba(219,184,99,0.18)]">
-                  <div className="flex flex-col gap-2">
-                    {cocktail.sizes.map(size => (
-                      <button
-                        key={size.id}
-                        type="button"
-                        onClick={event => handleAddToCart(event, size)}
-                        className="group/button flex items-center justify-between gap-3 rounded-xl border border-cosmic-gold/30 bg-white/5 px-4 py-2 text-left text-[11px] uppercase tracking-[0.12em] text-cosmic-silver transition hover:border-cosmic-gold hover:bg-cosmic-gold/10 hover:text-white"
-                      >
-                        <span className="flex flex-col">
-                          <span className="text-[10px] text-cosmic-gold/80 group-hover/button:text-white">
-                            {formatSizeLabel(size)}
-                          </span>
-                          <span className="text-[9px] uppercase tracking-[0.2em] text-cosmic-silver/70 group-hover/button:text-white/80">
-                            {size.volume_ml ? `${size.volume_ml}ml` : "Limited"}
-                          </span>
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+            <div className="pointer-events-auto w-[82%] max-w-[280px] rounded-2xl border border-cosmic-gold/30 bg-black/55 backdrop-blur-xl px-4 py-3 shadow-[0_0_24px_rgba(219,184,99,0.18)]">
+              <div className="flex flex-col gap-2">
+                {cocktail.sizes && cocktail.sizes.length > 0 ? (
+                  cocktail.sizes.map(size => (
+                    <button
+                      key={size.id}
+                      type="button"
+                      onClick={event => handleAddToCart(event, size)}
+                      className="group/button flex items-center justify-between gap-3 rounded-xl border border-cosmic-gold/30 bg-white/5 px-4 py-2 text-left text-[11px] uppercase tracking-[0.12em] text-cosmic-silver transition hover:border-cosmic-gold hover:bg-cosmic-gold/10 hover:text-white"
+                    >
+                      <span className="flex flex-col">
+                        <span className="text-[10px] text-cosmic-gold/80 group-hover/button:text-white">
+                          {formatSizeLabel(size)}
                         </span>
-                        <span className="flex items-center gap-1 text-cosmic-gold group-hover/button:text-white">
-                          €{size.price.toFixed(2)}
-                          <Plus className="h-3 w-3" />
+                        <span className="text-[9px] uppercase tracking-[0.2em] text-cosmic-silver/70 group-hover/button:text-white/80">
+                          {size.volume_ml ? `${size.volume_ml}ml` : "Limited"}
                         </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                      </span>
+                      <span className="flex items-center gap-1 text-cosmic-gold group-hover/button:text-white">
+                        €{size.price.toFixed(2)}
+                        <Plus className="h-3 w-3" />
+                      </span>
+                    </button>
+                  ))
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    className="flex items-center justify-between gap-3 rounded-xl border border-cosmic-gold/20 bg-white/5 px-4 py-2 text-left text-[11px] uppercase tracking-[0.12em] text-cosmic-silver/70"
+                  >
+                    <span className="flex flex-col">
+                      <span className="text-[10px] text-cosmic-gold/70">
+                        {t("shop.coming_soon")}
+                      </span>
+                      <span className="text-[9px] uppercase tracking-[0.2em] text-cosmic-silver/50">
+                        {t("shop.coming_soon")}
+                      </span>
+                    </span>
+                    <span className="text-cosmic-gold/60">€--</span>
+                  </button>
+                )}
               </div>
-            )}
+            </div>
           </div>
+        </div>
 
           {/* Información */}
           <div className="text-center">
