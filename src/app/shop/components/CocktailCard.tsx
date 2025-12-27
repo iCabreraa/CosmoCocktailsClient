@@ -201,13 +201,13 @@ export default function CocktailCard({
                         />
                       </span>
                       {outOfStock && (
-                        <span className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 rotate-45 whitespace-nowrap bg-red-500/90 px-14 py-0.5 text-[9px] uppercase tracking-[0.2em] text-white">
-                          {t("shop.out_of_stock")}
+                        <span className="pointer-events-none absolute -right-6 top-2 rotate-45 whitespace-nowrap bg-red-500/90 px-8 py-0.5 text-[9px] uppercase tracking-[0.2em] text-white">
+                          {t("shop.out_of_stock_short")}
                         </span>
                       )}
                       {missing && (
-                        <span className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 rotate-45 whitespace-nowrap bg-gradient-to-r from-cosmic-gold/80 via-sky-200/80 to-cosmic-gold/80 px-14 py-0.5 text-[9px] uppercase tracking-[0.2em] text-black">
-                          {t("shop.coming_soon")}
+                        <span className="pointer-events-none absolute -right-6 top-2 rotate-45 whitespace-nowrap bg-gradient-to-r from-cosmic-gold/80 via-sky-200/80 to-cosmic-gold/80 px-8 py-0.5 text-[9px] uppercase tracking-[0.2em] text-black">
+                          {t("shop.coming_soon_short")}
                         </span>
                       )}
                     </button>
