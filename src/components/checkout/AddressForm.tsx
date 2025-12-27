@@ -22,6 +22,39 @@ interface AddressFormData {
   isDefault: boolean;
 }
 
+const NL_CITIES = [
+  "Amsterdam",
+  "Rotterdam",
+  "Den Haag",
+  "Utrecht",
+  "Eindhoven",
+  "Groningen",
+  "Tilburg",
+  "Almere",
+  "Breda",
+  "Nijmegen",
+  "Apeldoorn",
+  "Haarlem",
+  "Enschede",
+  "Arnhem",
+  "Zaanstad",
+  "Amersfoort",
+  "Maastricht",
+  "Dordrecht",
+  "Leiden",
+  "Zwolle",
+  "'s-Hertogenbosch",
+  "Alkmaar",
+  "Delft",
+  "Leeuwarden",
+  "Heerlen",
+  "Hilversum",
+  "Venlo",
+  "Amstelveen",
+  "Gouda",
+  "Haarlemmermeer",
+];
+
 export default function AddressForm({
   onAddressSelect,
   selectedAddress,
@@ -29,6 +62,7 @@ export default function AddressForm({
 }: AddressFormProps) {
   const { t } = useLanguage();
   const { notify } = useToast();
+  const defaultCountry = t("checkout.netherlands");
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
   const [addressError, setAddressError] = useState("");
@@ -40,7 +74,7 @@ export default function AddressForm({
     street: "",
     city: "",
     postalCode: "",
-    country: "",
+    country: defaultCountry,
     phone: "",
     isDefault: false,
   });
@@ -124,7 +158,7 @@ export default function AddressForm({
       street: "",
       city: "",
       postalCode: "",
-      country: "",
+      country: defaultCountry,
       phone: "",
       isDefault: false,
     });
@@ -257,7 +291,7 @@ export default function AddressForm({
       street: formData.street,
       city: formData.city,
       postal_code: formData.postalCode,
-      country: formData.country,
+      country: formData.country || defaultCountry,
       phone: formData.phone,
       is_default: shouldBeDefault,
       created_at: editingAddress?.created_at || new Date().toISOString(),
@@ -308,7 +342,7 @@ export default function AddressForm({
       street: address.street || "",
       city: address.city,
       postalCode: address.postal_code || "",
-      country: address.country,
+      country: address.country || defaultCountry,
       phone: address.phone || "",
       isDefault: isAuthenticated && !isTemp ? address.is_default || false : false,
     });
@@ -522,14 +556,19 @@ export default function AddressForm({
                 <label className="block text-sm text-cosmic-fog mb-2">
                   {t("checkout.city")} *
                 </label>
-                <input
-                  type="text"
+                <select
                   required
-                  placeholder={t("checkout.city_placeholder")}
                   className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
                   value={formData.city}
                   onChange={e => handleInputChange("city", e.target.value)}
-                />
+                >
+                  <option value="">{t("checkout.city_select_placeholder")}</option>
+                  {NL_CITIES.map(city => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm text-cosmic-fog mb-2">
@@ -550,14 +589,15 @@ export default function AddressForm({
                 <label className="block text-sm text-cosmic-fog mb-2">
                   {t("checkout.country")} *
                 </label>
-                <input
-                  type="text"
+                <select
                   required
-                  placeholder={t("checkout.country_placeholder")}
-                  className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
+                  disabled
+                  className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 text-cosmic-fog/70 focus:border-cosmic-gold focus:outline-none transition"
                   value={formData.country}
                   onChange={e => handleInputChange("country", e.target.value)}
-                />
+                >
+                  <option value={defaultCountry}>{defaultCountry}</option>
+                </select>
               </div>
             </div>
 
