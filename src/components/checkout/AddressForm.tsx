@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapPin, Plus, Edit2, Trash2, Check } from "lucide-react";
 import { Address } from "@/types/shared";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -13,8 +13,9 @@ interface AddressFormProps {
 }
 
 interface AddressFormData {
-  name: string;
   street: string;
+  houseNumber: string;
+  unit: string;
   city: string;
   postalCode: string;
   country: string;
@@ -70,8 +71,9 @@ export default function AddressForm({
   const [showForm, setShowForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
   const [formData, setFormData] = useState<AddressFormData>({
-    name: "",
     street: "",
+    houseNumber: "",
+    unit: "",
     city: "",
     postalCode: "",
     country: defaultCountry,
@@ -80,6 +82,8 @@ export default function AddressForm({
   });
   const [pendingAddress, setPendingAddress] = useState<Address | null>(null);
   const [showSavePrompt, setShowSavePrompt] = useState(false);
+  const [isCityOpen, setIsCityOpen] = useState(false);
+  const cityRef = useRef<HTMLDivElement | null>(null);
 
   const isTempAddressId = (addressId?: string) =>
     Boolean(addressId && addressId.startsWith("temp-"));
@@ -145,6 +149,33 @@ export default function AddressForm({
     }
   }, [isAuthenticated, addresses.length]);
 
+  useEffect(() => {
+    if (!isCityOpen) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!cityRef.current) return;
+      if (!cityRef.current.contains(event.target as Node)) {
+        setIsCityOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isCityOpen]);
+
+  const cityOptions = formData.city && !NL_CITIES.includes(formData.city)
+    ? [formData.city, ...NL_CITIES]
+    : NL_CITIES;
+
+  const formatStreetLine = (address: Address) => {
+    const street = address.street || "";
+    const house = address.name || "";
+    if (!street) return house;
+    if (!house) return street;
+    if (!/\d/.test(house)) {
+      return street;
+    }
+    return `${street} ${house}`;
+  };
+
   const handleInputChange = (
     field: keyof AddressFormData,
     value: string | boolean
@@ -154,8 +185,9 @@ export default function AddressForm({
 
   const resetFormState = () => {
     setFormData({
-      name: "",
       street: "",
+      houseNumber: "",
+      unit: "",
       city: "",
       postalCode: "",
       country: defaultCountry,
@@ -284,10 +316,14 @@ export default function AddressForm({
     );
     const shouldBeDefault =
       formData.isDefault || savedAddresses.length === 0;
+    const houseLabel = [formData.houseNumber, formData.unit]
+      .map(value => value.trim())
+      .filter(Boolean)
+      .join(" ");
 
     const baseAddress: Address = {
       id: editingAddress?.id || `addr-${Date.now()}`,
-      name: formData.name,
+      name: houseLabel,
       street: formData.street,
       city: formData.city,
       postal_code: formData.postalCode,
@@ -337,9 +373,11 @@ export default function AddressForm({
   const handleEdit = (address: Address) => {
     setEditingAddress(address);
     const isTemp = isTempAddressId(address.id);
+    const [houseNumber, ...unitParts] = (address.name || "").split(" ");
     setFormData({
-      name: address.name || "",
       street: address.street || "",
+      houseNumber: houseNumber || "",
+      unit: unitParts.join(" ").trim(),
       city: address.city,
       postalCode: address.postal_code || "",
       country: address.country || defaultCountry,
@@ -450,7 +488,7 @@ export default function AddressForm({
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-medium text-cosmic-text">
-                    {address.name}
+                    {formatStreetLine(address) || address.name || address.street}
                   </h4>
                   {address.is_default && (
                     <span className="px-2 py-1 text-xs bg-cosmic-gold text-black rounded-full">
@@ -466,7 +504,6 @@ export default function AddressForm({
                     <Check className="w-4 h-4 text-cosmic-gold" />
                   )}
                 </div>
-                <p className="text-sm text-cosmic-fog">{address.street}</p>
                 <p className="text-sm text-cosmic-fog">
                   {address.city}, {address.postal_code}, {address.country}
                 </p>
@@ -524,51 +561,81 @@ export default function AddressForm({
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm text-cosmic-fog mb-2">
-                  {t("checkout.address_name")} *
+                  {t("checkout.street_name")} *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder={t("checkout.address_name_placeholder")}
+                  placeholder={t("checkout.street_name_placeholder")}
                   className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
-                  value={formData.name}
-                  onChange={e => handleInputChange("name", e.target.value)}
+                  value={formData.street}
+                  onChange={e => handleInputChange("street", e.target.value)}
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm text-cosmic-fog mb-2">
-                {t("checkout.address")} *
-              </label>
-              <input
-                type="text"
-                required
-                placeholder={t("checkout.address_placeholder")}
-                className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
-                value={formData.street}
-                onChange={e => handleInputChange("street", e.target.value)}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-cosmic-fog mb-2">
+                  {t("checkout.house_number")} *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder={t("checkout.house_number_placeholder")}
+                  className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
+                  value={formData.houseNumber}
+                  onChange={e =>
+                    handleInputChange("houseNumber", e.target.value)
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-cosmic-fog mb-2">
+                  {t("checkout.unit_optional")}
+                </label>
+                <input
+                  type="text"
+                  placeholder={t("checkout.unit_placeholder")}
+                  className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
+                  value={formData.unit}
+                  onChange={e => handleInputChange("unit", e.target.value)}
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
+              <div ref={cityRef} className="relative">
                 <label className="block text-sm text-cosmic-fog mb-2">
                   {t("checkout.city")} *
                 </label>
-                <select
-                  required
-                  className="w-full bg-transparent border border-cosmic-fog/30 rounded-md p-3 focus:border-cosmic-gold focus:outline-none transition"
-                  value={formData.city}
-                  onChange={e => handleInputChange("city", e.target.value)}
+                <button
+                  type="button"
+                  className="w-full rounded-md border border-cosmic-fog/30 bg-transparent px-3 py-3 text-left text-sm text-cosmic-text transition focus:border-cosmic-gold focus:outline-none"
+                  onClick={() => setIsCityOpen(prev => !prev)}
                 >
-                  <option value="">{t("checkout.city_select_placeholder")}</option>
-                  {NL_CITIES.map(city => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
+                  <span className={formData.city ? "text-cosmic-text" : "text-cosmic-fog"}>
+                    {formData.city || t("checkout.city_select_placeholder")}
+                  </span>
+                </button>
+                <input type="hidden" required value={formData.city} />
+                {isCityOpen && (
+                  <div className="absolute z-20 mt-2 w-full max-h-40 overflow-y-auto rounded-lg border border-cosmic-gold/30 bg-cosmic-bg/95 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
+                    {cityOptions.map(city => (
+                      <button
+                        key={city}
+                        type="button"
+                        className="w-full border-b border-cosmic-gold/10 px-4 py-2.5 text-left text-sm text-cosmic-text transition hover:bg-cosmic-gold/10 last:border-b-0"
+                        onClick={() => {
+                          handleInputChange("city", city);
+                          setIsCityOpen(false);
+                        }}
+                      >
+                        {city}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm text-cosmic-fog mb-2">
@@ -621,8 +688,11 @@ export default function AddressForm({
                 type="submit"
                 className="px-6 py-3 rounded-full bg-cosmic-gold text-black hover:bg-cosmic-gold/80 transition font-medium"
               >
-                {editingAddress ? t("checkout.update") : t("checkout.save")}{" "}
-                {t("checkout.address")}
+                {editingAddress
+                  ? t("checkout.update")
+                  : isAuthenticated
+                    ? t("checkout.save")
+                    : t("checkout.confirm_address")}
               </button>
               <button
                 type="button"
