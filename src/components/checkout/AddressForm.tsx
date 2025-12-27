@@ -44,6 +44,11 @@ export default function AddressForm({
     phone: "",
     isDefault: false,
   });
+  const [pendingAddress, setPendingAddress] = useState<Address | null>(null);
+  const [showSavePrompt, setShowSavePrompt] = useState(false);
+
+  const isTempAddressId = (addressId?: string) =>
+    Boolean(addressId && addressId.startsWith("temp-"));
 
   const normalizeAddress = (address: Address): Address => {
     const fallbackId = `addr-${Date.now()}-${Math.round(Math.random() * 1000)}`;
@@ -113,122 +118,7 @@ export default function AddressForm({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const newAddress: Address = {
-      id: editingAddress?.id || `addr-${Date.now()}`,
-      name: formData.name,
-      street: formData.street,
-      city: formData.city,
-      postal_code: formData.postalCode,
-      country: formData.country,
-      phone: formData.phone,
-      is_default: isAuthenticated
-        ? formData.isDefault || addresses.length === 0
-        : false,
-      created_at: editingAddress?.created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    if (isAuthenticated) {
-      const saveAddress = async () => {
-        try {
-          setAddressError("");
-          const payload = {
-            ...newAddress,
-            is_default: newAddress.is_default,
-            type: "shipping",
-          };
-          const res = await fetch("/api/addresses", {
-            method: editingAddress ? "PUT" : "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
-          if (!res.ok) {
-            throw new Error("Failed to save address");
-          }
-          const data = await res.json();
-          const saved = normalizeAddress(data.address);
-          const savedName = saved.name ?? "";
-          setAddresses(prev => {
-            const next = editingAddress
-              ? prev.map(addr => (addr.id === saved.id ? saved : addr))
-              : [...prev, saved];
-            return saved.is_default
-              ? next.map(addr => ({
-                  ...addr,
-                  is_default: addr.id === saved.id,
-                }))
-              : next;
-          });
-          onAddressSelect(saved);
-          notify({
-            type: "success",
-            title: editingAddress
-              ? t("feedback.address_updated_title")
-              : t("feedback.address_added_title"),
-            message: editingAddress
-              ? t("feedback.address_updated_message", {
-                  name: savedName,
-                })
-              : t("feedback.address_added_message", {
-                  name: savedName,
-                }),
-          });
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : "Error saving address";
-          setAddressError(message);
-        }
-      };
-      void saveAddress();
-    } else {
-      if (editingAddress) {
-        const newAddressName = newAddress.name ?? "";
-        setAddresses(prev =>
-          prev.map(addr => {
-            if (addr.id === editingAddress.id) {
-              return newAddress;
-            }
-            if (newAddress.is_default) {
-              return { ...addr, is_default: false };
-            }
-            return addr;
-          })
-        );
-        notify({
-          type: "success",
-          title: t("feedback.address_updated_title"),
-          message: t("feedback.address_updated_message", {
-            name: newAddressName,
-          }),
-        });
-      } else {
-        const newAddressName = newAddress.name ?? "";
-        setAddresses(prev => {
-          const next = newAddress.is_default
-            ? prev.map(addr => ({ ...addr, is_default: false }))
-            : prev;
-          return [...next, newAddress];
-        });
-        notify({
-          type: "success",
-          title: t("feedback.address_added_title"),
-          message: t("feedback.address_added_message", {
-            name: newAddressName,
-          }),
-        });
-      }
-      onAddressSelect(newAddress);
-    }
-
-    // Si es la dirección por defecto o la primera, seleccionarla automáticamente
-    if (!isAuthenticated) {
-      onAddressSelect(newAddress);
-    }
-
-    // Reset form
+  const resetFormState = () => {
     setFormData({
       name: "",
       street: "",
@@ -242,8 +132,177 @@ export default function AddressForm({
     setEditingAddress(null);
   };
 
+  const upsertLocalAddress = (
+    address: Address,
+    isEdit: boolean,
+    toastType: "added" | "updated" | "temporary"
+  ) => {
+    const addressName = address.name ?? "";
+    setAddresses(prev => {
+      if (isEdit) {
+        return prev.map(addr => (addr.id === address.id ? address : addr));
+      }
+      const next = address.is_default
+        ? prev.map(addr => ({ ...addr, is_default: false }))
+        : prev;
+      return [...next, address];
+    });
+    onAddressSelect(address);
+    if (toastType === "updated") {
+      notify({
+        type: "success",
+        title: t("feedback.address_updated_title"),
+        message: t("feedback.address_updated_message", { name: addressName }),
+      });
+      return;
+    }
+    if (toastType === "temporary") {
+      notify({
+        type: "success",
+        title: t("feedback.address_temporary_title"),
+        message: t("feedback.address_temporary_message", { name: addressName }),
+      });
+      return;
+    }
+    notify({
+      type: "success",
+      title: t("feedback.address_added_title"),
+      message: t("feedback.address_added_message", { name: addressName }),
+    });
+  };
+
+  const saveAddressToAccount = async (address: Address, isEdit: boolean) => {
+    try {
+      setAddressError("");
+      const payload = {
+        ...address,
+        is_default: address.is_default,
+        type: "shipping",
+      };
+      const res = await fetch("/api/addresses", {
+        method: isEdit ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to save address");
+      }
+      const data = await res.json();
+      const saved = normalizeAddress(data.address);
+      const savedName = saved.name ?? "";
+      setAddresses(prev => {
+        const next = isEdit
+          ? prev.map(addr => (addr.id === saved.id ? saved : addr))
+          : [...prev, saved];
+        return saved.is_default
+          ? next.map(addr => ({
+              ...addr,
+              is_default: addr.id === saved.id,
+            }))
+          : next;
+      });
+      onAddressSelect(saved);
+      notify({
+        type: "success",
+        title: isEdit
+          ? t("feedback.address_updated_title")
+          : t("feedback.address_added_title"),
+        message: isEdit
+          ? t("feedback.address_updated_message", { name: savedName })
+          : t("feedback.address_added_message", { name: savedName }),
+      });
+      resetFormState();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error saving address";
+      setAddressError(message);
+    }
+  };
+
+  const handleSaveDecision = (shouldSave: boolean) => {
+    if (!pendingAddress) return;
+    const savedAddresses = addresses.filter(addr => !isTempAddressId(addr.id));
+    if (shouldSave) {
+      const addressToSave = {
+        ...pendingAddress,
+        is_default:
+          pendingAddress.is_default || savedAddresses.length === 0,
+      };
+      void saveAddressToAccount(addressToSave, false);
+    } else {
+      const tempAddress: Address = {
+        ...pendingAddress,
+        id: pendingAddress.id || `temp-${Date.now()}`,
+        is_default: false,
+      };
+      upsertLocalAddress(tempAddress, false, "temporary");
+      resetFormState();
+    }
+    setPendingAddress(null);
+    setShowSavePrompt(false);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const savedAddresses = addresses.filter(
+      address => !isTempAddressId(address.id)
+    );
+    const shouldBeDefault =
+      formData.isDefault || savedAddresses.length === 0;
+
+    const baseAddress: Address = {
+      id: editingAddress?.id || `addr-${Date.now()}`,
+      name: formData.name,
+      street: formData.street,
+      city: formData.city,
+      postal_code: formData.postalCode,
+      country: formData.country,
+      phone: formData.phone,
+      is_default: shouldBeDefault,
+      created_at: editingAddress?.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (!isAuthenticated) {
+      upsertLocalAddress(baseAddress, Boolean(editingAddress), editingAddress ? "updated" : "added");
+      resetFormState();
+      return;
+    }
+
+    const editingIsTemp = editingAddress && isTempAddressId(editingAddress.id);
+
+    if (editingAddress && !editingIsTemp) {
+      const addressToSave = {
+        ...baseAddress,
+        is_default: shouldBeDefault,
+      };
+      void saveAddressToAccount(addressToSave, true);
+      return;
+    }
+
+    if (editingAddress && editingIsTemp) {
+      const tempAddress = {
+        ...baseAddress,
+        id: editingAddress.id,
+        is_default: false,
+      };
+      upsertLocalAddress(tempAddress, true, "updated");
+      resetFormState();
+      return;
+    }
+
+    setPendingAddress({
+      ...baseAddress,
+      id: `temp-${Date.now()}`,
+      is_default: formData.isDefault,
+    });
+    setShowSavePrompt(true);
+  };
+
   const handleEdit = (address: Address) => {
     setEditingAddress(address);
+    const isTemp = isTempAddressId(address.id);
     setFormData({
       name: address.name || "",
       street: address.street || "",
@@ -251,7 +310,7 @@ export default function AddressForm({
       postalCode: address.postal_code || "",
       country: address.country,
       phone: address.phone || "",
-      isDefault: isAuthenticated ? address.is_default || false : false,
+      isDefault: isAuthenticated && !isTemp ? address.is_default || false : false,
     });
     setShowForm(true);
   };
@@ -259,7 +318,7 @@ export default function AddressForm({
   const handleDelete = (addressId: string) => {
     const toDelete = addresses.find(addr => addr.id === addressId);
     const wasDefault = Boolean(toDelete?.is_default);
-    if (isAuthenticated) {
+    if (isAuthenticated && !isTempAddressId(addressId)) {
       const removeAddress = async () => {
         try {
           setAddressError("");
@@ -362,6 +421,11 @@ export default function AddressForm({
                   {address.is_default && (
                     <span className="px-2 py-1 text-xs bg-cosmic-gold text-black rounded-full">
                       {t("checkout.default")}
+                    </span>
+                  )}
+                  {isTempAddressId(address.id) && (
+                    <span className="px-2 py-1 text-xs border border-cosmic-gold/60 text-cosmic-gold rounded-full">
+                      {t("checkout.one_time_address")}
                     </span>
                   )}
                   {selectedAddress?.id === address.id && (
@@ -523,17 +587,7 @@ export default function AddressForm({
               <button
                 type="button"
                 onClick={() => {
-                  setShowForm(false);
-                  setEditingAddress(null);
-                  setFormData({
-                    name: "",
-                    street: "",
-                    city: "",
-                    postalCode: "",
-                    country: t("checkout.spain"),
-                    phone: "",
-                    isDefault: false,
-                  });
+                  resetFormState();
                 }}
                 className="px-6 py-3 rounded-full border border-cosmic-fog text-cosmic-fog hover:border-cosmic-gold hover:text-cosmic-gold transition"
               >
@@ -541,6 +595,61 @@ export default function AddressForm({
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {showSavePrompt && pendingAddress && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-6"
+          onClick={() => {
+            setShowSavePrompt(false);
+            setPendingAddress(null);
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="save-address-title"
+        >
+          <div
+            className="w-full max-w-md rounded-xl border border-cosmic-gold/30 bg-cosmic-bg/95 p-6 shadow-2xl"
+            onClick={event => event.stopPropagation()}
+          >
+            <h3
+              id="save-address-title"
+              className="text-xl font-semibold text-white"
+            >
+              {t("checkout.save_address_prompt_title")}
+            </h3>
+            <p className="mt-2 text-sm text-cosmic-fog">
+              {t("checkout.save_address_prompt_body")}
+            </p>
+
+            <div className="mt-6 flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => handleSaveDecision(true)}
+                className="w-full rounded-md bg-cosmic-gold px-4 py-2 text-sm font-medium text-black transition hover:bg-cosmic-gold/80"
+              >
+                {t("checkout.save_address_prompt_save")}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSaveDecision(false)}
+                className="w-full rounded-md border border-cosmic-gold/40 px-4 py-2 text-sm font-medium text-cosmic-gold transition hover:bg-cosmic-gold/10"
+              >
+                {t("checkout.save_address_prompt_skip")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSavePrompt(false);
+                  setPendingAddress(null);
+                }}
+                className="w-full rounded-md border border-white/10 px-4 py-2 text-sm text-cosmic-fog transition hover:border-cosmic-gold/40 hover:text-cosmic-gold"
+              >
+                {t("common.cancel")}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
