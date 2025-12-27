@@ -24,6 +24,8 @@ export type CocktailWithPrice = {
     sizes_id: string;
     size_name: string | null;
     volume_ml: number | null;
+    available?: boolean | null;
+    stock_quantity?: number | null;
   }>;
   tags?: string[];
   created_at?: string;

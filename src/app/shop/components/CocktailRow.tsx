@@ -3,12 +3,13 @@
 import { CocktailWithPrice } from "@/types";
 import Link from "next/link";
 import Image from "next/image";
-import AddToCartButton from "@/components/cart/AddToCartButton";
 import FavoriteButton from "@/components/ui/FavoriteButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import clsx from "clsx";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useCart } from "@/store/cart";
+import { useToast } from "@/components/feedback/ToastProvider";
 
 type CocktailRowProps = {
   title: string;
@@ -24,11 +25,63 @@ export default function CocktailRow({
   showFavorites = false,
 }: CocktailRowProps) {
   const { t } = useLanguage();
+  const { notify } = useToast();
+  const addToCart = useCart(state => state.addToCart);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [pageCount, setPageCount] = useState(0);
   const [activePage, setActivePage] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const sizeSlots = [
+    { key: "shot", label: t("sizes.shot") },
+    { key: "small_bottle", label: t("sizes.small_bottle") },
+  ];
+
+  const resolveSlotKey = (
+    size: NonNullable<CocktailWithPrice["sizes"]>[number]
+  ) => {
+    const rawName = (size.size_name ?? "").toLowerCase();
+    if (rawName.includes("shot")) return "shot";
+    if (rawName.includes("small") || rawName.includes("bottle")) {
+      return "small_bottle";
+    }
+    if (typeof size.volume_ml === "number") {
+      return size.volume_ml <= 60 ? "shot" : "small_bottle";
+    }
+    return null;
+  };
+
+  const isOutOfStock = (
+    size: NonNullable<CocktailWithPrice["sizes"]>[number]
+  ) =>
+    size.available === false ||
+    (typeof size.stock_quantity === "number" && size.stock_quantity <= 0);
+
+  const handleAddToCart = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    cocktail: CocktailWithPrice,
+    size: NonNullable<CocktailWithPrice["sizes"]>[number]
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    addToCart({
+      cocktail_id: cocktail.id,
+      sizes_id: size.sizes_id,
+      quantity: 1,
+      unit_price: size.price,
+      cocktail_name: cocktail.name,
+      size_name: size.size_name ?? `${size.volume_ml ?? 0}ml`,
+      volume_ml: size.volume_ml ?? 0,
+      image_url: cocktail.image_url,
+      is_alcoholic: cocktail.alcohol_percentage > 0,
+    });
+    notify({
+      type: "success",
+      title: t("feedback.cart_added_title"),
+      message: t("feedback.cart_added_message", { name: cocktail.name }),
+    });
+  };
 
   const pageIndexes = useMemo(
     () => Array.from({ length: pageCount }, (_, index) => index),
@@ -132,12 +185,21 @@ export default function CocktailRow({
                       {cocktail.name}
                     </h3>
                     <p className="text-cosmic-silver text-sm italic">
-                      {cocktail.min_price
-                        ? t("shop.from_price").replace(
+                      {(() => {
+                        const hasSizes = (cocktail.sizes ?? []).length > 0;
+                        const hasAvailable = (cocktail.sizes ?? []).some(
+                          size => !isOutOfStock(size)
+                        );
+                        if (hasAvailable && cocktail.min_price !== null) {
+                          return t("shop.from_price").replace(
                             "{price}",
                             cocktail.min_price.toString()
-                          )
-                        : t("shop.coming_soon")}
+                          );
+                        }
+                        return hasSizes
+                          ? t("shop.out_of_stock")
+                          : t("shop.coming_soon");
+                      })()}
                     </p>
                   </Link>
                   {/* Botón de favoritos */}
@@ -148,33 +210,98 @@ export default function CocktailRow({
                     />
                   </div>
                 </div>
-                {cocktail.min_price !== null && cocktail.min_size_id ? (
-                  <AddToCartButton
-                    cocktail={{
-                      id: cocktail.id,
-                      name: cocktail.name,
-                      description: cocktail.description,
-                      image_url: cocktail.image_url,
-                      alcohol_percentage: cocktail.alcohol_percentage,
-                      has_non_alcoholic_version:
-                        cocktail.has_non_alcoholic_version,
-                      tags: [],
-                      is_active: true,
-                      created_at: new Date().toISOString(),
-                      updated_at: new Date().toISOString(),
-                    }}
-                    minPrice={cocktail.min_price}
-                    minSizeId={cocktail.min_size_id}
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    disabled
-                    className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cosmic-gold/40 text-cosmic-gold/60 bg-cosmic-gold/10 cursor-not-allowed text-sm"
-                  >
-                    {t("shop.coming_soon")}
-                  </button>
-                )}
+                {(() => {
+                  const sizeMap = sizeSlots.reduce<
+                    Record<string, NonNullable<CocktailWithPrice["sizes"]>[number] | undefined>
+                  >((acc, slot) => {
+                    acc[slot.key] = undefined;
+                    return acc;
+                  }, {});
+
+                  (cocktail.sizes ?? []).forEach(size => {
+                    const slotKey = resolveSlotKey(size);
+                    if (!slotKey || sizeMap[slotKey]) return;
+                    sizeMap[slotKey] = size;
+                  });
+
+                  return (
+                    <div className="mt-3 space-y-2">
+                      {sizeSlots.map(slot => {
+                        const size = sizeMap[slot.key];
+                        const missing = !size;
+                        const outOfStock = size ? isOutOfStock(size) : false;
+                        const disabled = missing || outOfStock;
+                        const secondaryLabel = missing
+                          ? t("shop.coming_soon")
+                          : outOfStock
+                            ? t("shop.out_of_stock")
+                            : size?.volume_ml
+                              ? `${size.volume_ml}ml`
+                              : "Limited";
+                        const priceLabel = missing
+                          ? t("shop.coming_soon")
+                          : `€${size?.price.toFixed(2)}`;
+
+                        return (
+                          <button
+                            key={slot.key}
+                            type="button"
+                            aria-disabled={disabled}
+                            onClick={event => {
+                              if (!size || disabled) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                return;
+                              }
+                              handleAddToCart(event, cocktail, size);
+                            }}
+                            className={`group/button relative flex w-full items-center justify-between gap-3 overflow-hidden rounded-xl border px-3 py-2 text-left text-[11px] uppercase tracking-[0.12em] transition ${
+                              disabled
+                                ? "cursor-not-allowed border-cosmic-gold/20 bg-white/5 text-cosmic-silver/60"
+                                : "border-cosmic-gold/30 bg-white/5 text-cosmic-silver hover:border-cosmic-gold hover:bg-cosmic-gold/10 hover:text-white"
+                            }`}
+                          >
+                            <span className="flex flex-col">
+                              <span
+                                className={`text-[10px] ${
+                                  disabled
+                                    ? "text-cosmic-gold/60"
+                                    : "text-cosmic-gold/80 group-hover/button:text-white"
+                                }`}
+                              >
+                                {slot.label}
+                              </span>
+                              <span
+                                className={`text-[9px] uppercase tracking-[0.2em] ${
+                                  disabled
+                                    ? "text-cosmic-silver/50"
+                                    : "text-cosmic-silver/70 group-hover/button:text-white/80"
+                                }`}
+                              >
+                                {secondaryLabel}
+                              </span>
+                            </span>
+                            <span
+                              className={`flex items-center gap-1 ${
+                                disabled
+                                  ? "text-cosmic-gold/60"
+                                  : "text-cosmic-gold group-hover/button:text-white"
+                              }`}
+                            >
+                              {priceLabel}
+                              {!disabled && <Plus className="h-3 w-3" />}
+                            </span>
+                            {outOfStock && (
+                              <span className="pointer-events-none absolute -right-10 top-3 rotate-45 bg-red-500/90 px-10 py-0.5 text-[9px] uppercase tracking-[0.2em] text-white">
+                                {t("shop.out_of_stock")}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             ))}
           </div>

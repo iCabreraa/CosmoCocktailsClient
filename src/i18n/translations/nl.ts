@@ -24,6 +24,7 @@ const nl = {
     "non_alcoholic_description": "Cocktails die indruk maken — zonder alcohol.",
     "from_price": "Vanaf €{price}",
     "coming_soon": "Binnenkort",
+    "out_of_stock": "Uitverkocht",
     "add_to_cart": "Toevoegen aan Winkelwagen",
     "choose_size": "Kies een maat",
     "no_sizes_available": "Geen maten beschikbaar",

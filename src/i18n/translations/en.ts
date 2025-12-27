@@ -24,6 +24,7 @@ const en = {
     "non_alcoholic_description": "Cocktails that impress — without the alcohol.",
     "from_price": "From €{price}",
     "coming_soon": "Coming Soon",
+    "out_of_stock": "Out of stock",
     "add_to_cart": "Add to Cart",
     "choose_size": "Choose a size",
     "no_sizes_available": "No sizes available",

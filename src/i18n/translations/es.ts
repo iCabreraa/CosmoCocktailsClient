@@ -24,6 +24,7 @@ const es = {
     "non_alcoholic_description": "Cócteles que impresionan — sin alcohol.",
     "from_price": "Desde €{price}",
     "coming_soon": "Próximamente",
+    "out_of_stock": "Agotado",
     "add_to_cart": "Añadir al Carrito",
     "choose_size": "Elige un tamaño",
     "no_sizes_available": "No hay tamaños disponibles",

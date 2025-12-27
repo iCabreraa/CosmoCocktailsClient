@@ -27,19 +27,43 @@ export default function CocktailCard({
   const halfInset = "calc(50% - 0.5px)";
   const imageSizes =
     "(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 25vw";
-  const formatSizeLabel = (
+  const sizeSlots = [
+    { key: "shot", label: t("sizes.shot") },
+    { key: "small_bottle", label: t("sizes.small_bottle") },
+  ];
+
+  const resolveSlotKey = (
     size: NonNullable<CocktailWithPrice["sizes"]>[number]
   ) => {
-    if (size.size_name) {
-      return size.size_name;
+    const rawName = (size.size_name ?? "").toLowerCase();
+    if (rawName.includes("shot")) return "shot";
+    if (rawName.includes("small") || rawName.includes("bottle")) {
+      return "small_bottle";
     }
-
     if (typeof size.volume_ml === "number") {
-      return size.volume_ml <= 60 ? "Shot" : "Small Bottle";
+      return size.volume_ml <= 60 ? "shot" : "small_bottle";
     }
-
-    return "Size";
+    return null;
   };
+
+  const sizeMap = sizeSlots.reduce<
+    Record<string, NonNullable<CocktailWithPrice["sizes"]>[number] | undefined>
+  >((acc, slot) => {
+    acc[slot.key] = undefined;
+    return acc;
+  }, {});
+
+  (cocktail.sizes ?? []).forEach(size => {
+    const slotKey = resolveSlotKey(size);
+    if (!slotKey || sizeMap[slotKey]) return;
+    sizeMap[slotKey] = size;
+  });
+
+  const isOutOfStock = (
+    size: NonNullable<CocktailWithPrice["sizes"]>[number]
+  ) =>
+    size.available === false ||
+    (typeof size.stock_quantity === "number" && size.stock_quantity <= 0);
 
   const handleAddToCart = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -64,6 +88,17 @@ export default function CocktailCard({
       title: t("feedback.cart_added_title"),
       message: t("feedback.cart_added_message", { name: cocktail.name }),
     });
+  };
+
+  const handleSizeClick = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    size: NonNullable<CocktailWithPrice["sizes"]>[number] | undefined,
+    disabled: boolean
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!size || disabled) return;
+    handleAddToCart(event, size);
   };
 
   return (
@@ -107,45 +142,72 @@ export default function CocktailCard({
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
             <div className="pointer-events-auto w-[82%] max-w-[280px] rounded-2xl border border-cosmic-gold/30 bg-black/55 backdrop-blur-xl px-4 py-3 shadow-[0_0_24px_rgba(219,184,99,0.18)]">
               <div className="flex flex-col gap-2">
-                {cocktail.sizes && cocktail.sizes.length > 0 ? (
-                  cocktail.sizes.map(size => (
+                {sizeSlots.map(slot => {
+                  const size = sizeMap[slot.key];
+                  const missing = !size;
+                  const outOfStock = size ? isOutOfStock(size) : false;
+                  const disabled = missing || outOfStock;
+                  const secondaryLabel = missing
+                    ? t("shop.coming_soon")
+                    : outOfStock
+                      ? t("shop.out_of_stock")
+                      : size?.volume_ml
+                        ? `${size.volume_ml}ml`
+                        : "Limited";
+                  const priceLabel = missing
+                    ? t("shop.coming_soon")
+                    : `€${size?.price.toFixed(2)}`;
+
+                  return (
                     <button
-                      key={size.id}
+                      key={slot.key}
                       type="button"
-                      onClick={event => handleAddToCart(event, size)}
-                      className="group/button flex items-center justify-between gap-3 rounded-xl border border-cosmic-gold/30 bg-white/5 px-4 py-2 text-left text-[11px] uppercase tracking-[0.12em] text-cosmic-silver transition hover:border-cosmic-gold hover:bg-cosmic-gold/10 hover:text-white"
+                      aria-disabled={disabled}
+                      onClick={event => handleSizeClick(event, size, disabled)}
+                      className={`group/button relative flex items-center justify-between gap-3 overflow-hidden rounded-xl border px-4 py-2 text-left text-[11px] uppercase tracking-[0.12em] transition ${
+                        disabled
+                          ? "cursor-not-allowed border-cosmic-gold/20 bg-white/5 text-cosmic-silver/60"
+                          : "border-cosmic-gold/30 bg-white/5 text-cosmic-silver hover:border-cosmic-gold hover:bg-cosmic-gold/10 hover:text-white"
+                      }`}
                     >
                       <span className="flex flex-col">
-                        <span className="text-[10px] text-cosmic-gold/80 group-hover/button:text-white">
-                          {formatSizeLabel(size)}
+                        <span
+                          className={`text-[10px] ${
+                            disabled
+                              ? "text-cosmic-gold/60"
+                              : "text-cosmic-gold/80 group-hover/button:text-white"
+                          }`}
+                        >
+                          {slot.label}
                         </span>
-                        <span className="text-[9px] uppercase tracking-[0.2em] text-cosmic-silver/70 group-hover/button:text-white/80">
-                          {size.volume_ml ? `${size.volume_ml}ml` : "Limited"}
+                        <span
+                          className={`text-[9px] uppercase tracking-[0.2em] ${
+                            disabled
+                              ? "text-cosmic-silver/50"
+                              : "text-cosmic-silver/70 group-hover/button:text-white/80"
+                          }`}
+                        >
+                          {secondaryLabel}
                         </span>
                       </span>
-                      <span className="flex items-center gap-1 text-cosmic-gold group-hover/button:text-white">
-                        €{size.price.toFixed(2)}
-                        <Plus className="h-3 w-3" />
+                      <span
+                        className={`flex items-center gap-1 ${
+                          disabled
+                            ? "text-cosmic-gold/60"
+                            : "text-cosmic-gold group-hover/button:text-white"
+                        }`}
+                      >
+                        {priceLabel}
+                        {!disabled && <Plus className="h-3 w-3" />}
                       </span>
+                      {outOfStock && (
+                        <span className="pointer-events-none absolute -right-10 top-3 rotate-45 bg-red-500/90 px-10 py-0.5 text-[9px] uppercase tracking-[0.2em] text-white">
+                          {t("shop.out_of_stock")}
+                        </span>
+                      )}
                     </button>
-                  ))
-                ) : (
-                  <button
-                    type="button"
-                    disabled
-                    className="flex items-center justify-between gap-3 rounded-xl border border-cosmic-gold/20 bg-white/5 px-4 py-2 text-left text-[11px] uppercase tracking-[0.12em] text-cosmic-silver/70"
-                  >
-                    <span className="flex flex-col">
-                      <span className="text-[10px] text-cosmic-gold/70">
-                        {t("shop.coming_soon")}
-                      </span>
-                      <span className="text-[9px] uppercase tracking-[0.2em] text-cosmic-silver/50">
-                        {t("shop.coming_soon")}
-                      </span>
-                    </span>
-                    <span className="text-cosmic-gold/60">€--</span>
-                  </button>
-                )}
+                  );
+                })}
               </div>
             </div>
           </div>

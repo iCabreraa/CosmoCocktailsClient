@@ -4,6 +4,8 @@ import { useCart } from "@/store/cart";
 import Link from "next/link";
 import { ShoppingCart, Trash2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useState } from "react";
+import PrivacyModal from "@/components/privacy/PrivacyModal";
 
 export default function CartClient() {
   const { t, isInitialized } = useLanguage();
@@ -18,7 +20,10 @@ export default function CartClient() {
     isLoading,
     error,
     hasHydrated,
+    privacyAccepted,
+    setPrivacyAccepted,
   } = useCart();
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   // Wait for language context to be initialized
   if (!isInitialized || !hasHydrated) {
@@ -150,13 +155,49 @@ export default function CartClient() {
             </div>
 
             <div className="space-y-3">
-              <Link
-                href="/checkout"
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-cosmic-gold text-black hover:bg-cosmic-gold/80 transition font-medium"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                {t("cart.checkout_button")}
-              </Link>
+              <label className="flex items-start gap-2 text-sm text-cosmic-fog">
+                <input
+                  type="checkbox"
+                  checked={privacyAccepted}
+                  onChange={e => setPrivacyAccepted(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-cosmic-fog/50 bg-transparent text-cosmic-gold focus:ring-cosmic-gold"
+                />
+                <span>
+                  {t("checkout.privacy_consent_prefix")}{" "}
+                  <button
+                    type="button"
+                    onClick={() => setIsPrivacyOpen(true)}
+                    className="text-cosmic-gold hover:text-cosmic-gold/80 underline"
+                  >
+                    {t("checkout.privacy_policy")}
+                  </button>
+                  {t("checkout.privacy_consent_suffix")}
+                </span>
+              </label>
+              {!privacyAccepted && (
+                <p className="text-xs text-red-400">
+                  {t("checkout.privacy_consent_required")}
+                </p>
+              )}
+
+              {privacyAccepted ? (
+                <Link
+                  href="/checkout"
+                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-cosmic-gold text-black hover:bg-cosmic-gold/80 transition font-medium"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  {t("cart.checkout_button")}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-cosmic-gold/40 text-black/50 cursor-not-allowed font-medium"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  {t("cart.checkout_button")}
+                </button>
+              )}
 
               <button
                 onClick={clearCart}
@@ -175,6 +216,11 @@ export default function CartClient() {
           </div>
         </div>
       </div>
+
+      <PrivacyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
     </main>
   );
 }

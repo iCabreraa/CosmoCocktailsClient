@@ -13,7 +13,6 @@ import Link from "next/link";
 import AddressForm from "./AddressForm";
 import InventoryValidation from "./InventoryValidation";
 import StripePaymentComplete from "./StripePaymentComplete";
-import PrivacyModal from "@/components/privacy/PrivacyModal";
 import { Address } from "@/types/shared";
 import { useClientData } from "@/hooks/useClientData";
 import { useAuthUnified } from "@/hooks/useAuthUnified";
@@ -32,6 +31,7 @@ export default function CheckoutClient() {
     isLoading,
     error,
     hasHydrated,
+    privacyAccepted,
   } = useCart();
 
   const { saveClientData } = useClientData();
@@ -44,8 +44,6 @@ export default function CheckoutClient() {
   });
 
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-  const [privacyAccepted, setPrivacyAccepted] = useState(false);
-  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inventoryValid, setInventoryValid] = useState(true);
   const [unavailableItems, setUnavailableItems] = useState<string[]>([]);
@@ -284,7 +282,7 @@ export default function CheckoutClient() {
       form.name &&
       form.email &&
       privacyAccepted &&
-      currentStep >= 4 &&
+      currentStep >= 3 &&
       !clientSecret
     ) {
       console.log("🚀 Creating payment intent...");
@@ -670,32 +668,20 @@ export default function CheckoutClient() {
                 </h2>
               </div>
 
-              <div className="mb-4 space-y-2">
-                <label className="flex items-start gap-2 text-sm text-cosmic-fog">
-                  <input
-                    type="checkbox"
-                    checked={privacyAccepted}
-                    onChange={e => setPrivacyAccepted(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-cosmic-fog/50 bg-transparent text-cosmic-gold focus:ring-cosmic-gold"
-                  />
+              {!privacyAccepted && (
+                <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
+                  <AlertTriangle className="mt-0.5 h-4 w-4" />
                   <span>
-                    {t("checkout.privacy_consent_prefix")}{" "}
-                    <button
-                      type="button"
-                      onClick={() => setIsPrivacyOpen(true)}
-                      className="text-cosmic-gold hover:text-cosmic-gold/80 underline"
+                    {t("checkout.privacy_consent_required")}{" "}
+                    <Link
+                      href="/cart"
+                      className="text-cosmic-gold underline underline-offset-4 hover:text-cosmic-gold/80"
                     >
-                      {t("checkout.privacy_policy")}
-                    </button>
-                    {t("checkout.privacy_consent_suffix")}
+                      {t("cart.title")}
+                    </Link>
                   </span>
-                </label>
-                {showStepErrors && !privacyAccepted && (
-                  <p className="text-sm text-red-400">
-                    {t("checkout.privacy_consent_required")}
-                  </p>
-                )}
-              </div>
+                </div>
+              )}
 
               {paymentError && (
                 <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 mb-4">
@@ -761,10 +747,6 @@ export default function CheckoutClient() {
         </div>
       </div>
 
-      <PrivacyModal
-        isOpen={isPrivacyOpen}
-        onClose={() => setIsPrivacyOpen(false)}
-      />
     </main>
   );
 }
