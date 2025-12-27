@@ -28,8 +28,8 @@ export default function CocktailCard({
   const imageSizes =
     "(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 25vw";
   const sizeSlots = [
-    { key: "shot", label: t("sizes.shot") },
-    { key: "small_bottle", label: t("sizes.small_bottle") },
+    { key: "shot", label: t("sizes.shot"), volume: 20 },
+    { key: "small_bottle", label: t("sizes.small_bottle"), volume: 200 },
   ];
 
   const resolveSlotKey = (
@@ -147,15 +147,11 @@ export default function CocktailCard({
                   const missing = !size;
                   const outOfStock = size ? isOutOfStock(size) : false;
                   const disabled = missing || outOfStock;
-                  const secondaryLabel = missing
-                    ? t("shop.coming_soon")
-                    : outOfStock
-                      ? t("shop.out_of_stock")
-                      : size?.volume_ml
-                        ? `${size.volume_ml}ml`
-                        : "Limited";
+                  const volumeValue =
+                    size?.volume_ml ?? slot.volume ?? 0;
+                  const volumeLabel = `${volumeValue}ml`.toUpperCase();
                   const priceLabel = missing
-                    ? t("shop.coming_soon")
+                    ? t("shop.price_placeholder")
                     : `€${size?.price.toFixed(2)}`;
 
                   return (
@@ -187,7 +183,7 @@ export default function CocktailCard({
                               : "text-cosmic-silver/70 group-hover/button:text-white/80"
                           }`}
                         >
-                          {secondaryLabel}
+                          {volumeLabel}
                         </span>
                       </span>
                       <span
@@ -198,11 +194,20 @@ export default function CocktailCard({
                         }`}
                       >
                         {priceLabel}
-                        {!disabled && <Plus className="h-3 w-3" />}
+                        <Plus
+                          className={`h-3 w-3 ${
+                            disabled ? "opacity-40" : ""
+                          }`}
+                        />
                       </span>
                       {outOfStock && (
-                        <span className="pointer-events-none absolute -right-10 top-3 rotate-45 bg-red-500/90 px-10 py-0.5 text-[9px] uppercase tracking-[0.2em] text-white">
+                        <span className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 rotate-45 whitespace-nowrap bg-red-500/90 px-14 py-0.5 text-[9px] uppercase tracking-[0.2em] text-white">
                           {t("shop.out_of_stock")}
+                        </span>
+                      )}
+                      {missing && (
+                        <span className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 rotate-45 whitespace-nowrap bg-gradient-to-r from-cosmic-gold/80 via-sky-200/80 to-cosmic-gold/80 px-14 py-0.5 text-[9px] uppercase tracking-[0.2em] text-black">
+                          {t("shop.coming_soon")}
                         </span>
                       )}
                     </button>

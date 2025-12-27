@@ -17,6 +17,7 @@ import { Address } from "@/types/shared";
 import { useClientData } from "@/hooks/useClientData";
 import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { envClient } from "@/lib/env-client";
 
 export default function CheckoutClient() {
   const { t } = useLanguage();
@@ -36,6 +37,12 @@ export default function CheckoutClient() {
 
   const { saveClientData } = useClientData();
   const { user: authUser } = useAuthUnified();
+  const isTestKey =
+    envClient.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.startsWith("pk_test_");
+  const allowTestPayments =
+    envClient.NEXT_PUBLIC_STRIPE_ALLOW_TEST_PAYMENTS === "true";
+  const stripeMode = isTestKey ? "test" : "live";
+  const stripeEnabled = stripeMode === "live" || allowTestPayments;
 
   const [form, setForm] = useState({
     name: "",
@@ -283,6 +290,7 @@ export default function CheckoutClient() {
       form.email &&
       privacyAccepted &&
       currentStep >= 3 &&
+      stripeEnabled &&
       !clientSecret
     ) {
       console.log("🚀 Creating payment intent...");
@@ -299,9 +307,11 @@ export default function CheckoutClient() {
                 ? "no email provided"
                 : !privacyAccepted
                   ? "privacy consent not accepted"
-                : clientSecret
-                  ? "already has client secret"
-                  : "unknown",
+                  : !stripeEnabled
+                    ? "stripe disabled"
+                  : clientSecret
+                    ? "already has client secret"
+                    : "unknown",
       });
     }
   }, [
@@ -312,6 +322,7 @@ export default function CheckoutClient() {
     privacyAccepted,
     clientSecret,
     currentStep,
+    stripeEnabled,
   ]);
 
   const handleInventoryValidation = (
@@ -666,6 +677,11 @@ export default function CheckoutClient() {
                   <CreditCard className="w-5 h-5" />
                   {t("checkout.payment_info")}
                 </h2>
+                {stripeMode === "test" && (
+                  <span className="rounded-full border border-cosmic-gold/40 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-cosmic-gold">
+                    {t("checkout.stripe_test_mode")}
+                  </span>
+                )}
               </div>
 
               {!privacyAccepted && (
@@ -690,7 +706,11 @@ export default function CheckoutClient() {
                 </div>
               )}
 
-              {clientSecret && privacyAccepted ? (
+              {!stripeEnabled ? (
+                <div className="bg-cosmic-fog/10 rounded-lg p-4 text-center text-sm text-cosmic-fog">
+                  {t("checkout.stripe_payments_disabled")}
+                </div>
+              ) : clientSecret && privacyAccepted ? (
                 <StripePaymentComplete
                   clientSecret={clientSecret}
                   items={items}

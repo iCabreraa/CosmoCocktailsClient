@@ -10,6 +10,7 @@ const clientEnvSchema = z.object({
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z
     .string()
     .min(1, "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is required"),
+  NEXT_PUBLIC_STRIPE_ALLOW_TEST_PAYMENTS: z.string().optional(),
   NEXT_PUBLIC_APP_URL: z.string().optional(),
   NEXT_PUBLIC_MANAGEMENT_URL: z.string().optional(),
 });
@@ -22,6 +23,8 @@ export const envClient: ClientEnv = (() => {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_STRIPE_ALLOW_TEST_PAYMENTS:
+      process.env.NEXT_PUBLIC_STRIPE_ALLOW_TEST_PAYMENTS,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_MANAGEMENT_URL: process.env.NEXT_PUBLIC_MANAGEMENT_URL,
   });

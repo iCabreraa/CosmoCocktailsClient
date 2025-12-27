@@ -6,12 +6,14 @@ import { envClient } from "@/lib/env-client";
 import {
   Elements,
   PaymentElement,
+  PaymentRequestButtonElement,
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
 import { CreditCard, Lock, AlertTriangle, CheckCircle } from "lucide-react";
 import { CartItem } from "@/types/shared";
 import { useLanguage } from "@/contexts/LanguageContext";
+import type { StripePaymentRequest } from "@stripe/stripe-js";
 
 const stripePromise = loadStripe(envClient.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
@@ -46,6 +48,103 @@ function PaymentForm({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const [paymentRequest, setPaymentRequest] =
+    useState<StripePaymentRequest | null>(null);
+  const [canUsePaymentRequest, setCanUsePaymentRequest] = useState(false);
+
+  useEffect(() => {
+    if (!stripe || !clientSecret) return;
+    let isMounted = true;
+    const pr = stripe.paymentRequest({
+      country: "NL",
+      currency: "eur",
+      total: {
+        label: "CosmoCocktails",
+        amount: Math.round(total * 100),
+      },
+      requestPayerName: true,
+      requestPayerEmail: true,
+    });
+
+    pr.canMakePayment().then(result => {
+      if (!isMounted) return;
+      if (result) {
+        setPaymentRequest(pr);
+        setCanUsePaymentRequest(true);
+      } else {
+        setPaymentRequest(null);
+        setCanUsePaymentRequest(false);
+      }
+    });
+
+    pr.on("paymentmethod", async event => {
+      if (!stripe) return;
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const { error: confirmError, paymentIntent } =
+          await stripe.confirmCardPayment(
+            clientSecret,
+            { payment_method: event.paymentMethod.id },
+            { handleActions: false }
+          );
+
+        if (confirmError || !paymentIntent) {
+          event.complete("fail");
+          const errorMessage =
+            confirmError?.message ?? t("checkout.unexpected_error");
+          setError(errorMessage);
+          onPaymentError(errorMessage);
+          setIsLoading(false);
+          return;
+        }
+
+        event.complete("success");
+
+        if (paymentIntent.status === "requires_action") {
+          const { error: actionError, paymentIntent: nextIntent } =
+            await stripe.confirmCardPayment(clientSecret);
+          if (actionError) {
+            const errorMessage =
+              actionError.message ?? t("checkout.unexpected_error");
+            setError(errorMessage);
+            onPaymentError(errorMessage);
+            setIsLoading(false);
+            return;
+          }
+          if (nextIntent?.status !== "succeeded") {
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        if (paymentIntent.status === "succeeded") {
+          const orderResult = await createOrder(paymentIntent);
+          if (orderResult?.id) {
+            onPaymentSuccess({
+              orderId: orderResult.id,
+              orderRef: orderResult.order_ref,
+              paymentIntentId: paymentIntent.id,
+            });
+          } else {
+            onPaymentError(t("checkout.failed_create_order"));
+          }
+        }
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : t("checkout.unexpected_error");
+        setError(errorMessage);
+        onPaymentError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [stripe, clientSecret, total, t, onPaymentError, onPaymentSuccess]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -145,6 +244,27 @@ function PaymentForm({
         </div>
 
         <div className="space-y-4">
+          {canUsePaymentRequest && paymentRequest && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-cosmic-silver">
+                <span className="h-[1px] flex-1 bg-cosmic-gold/20" />
+                <span>{t("checkout.express_wallets")}</span>
+                <span className="h-[1px] flex-1 bg-cosmic-gold/20" />
+              </div>
+              <PaymentRequestButtonElement
+                options={{
+                  paymentRequest,
+                  style: {
+                    paymentRequestButton: {
+                      type: "buy",
+                      theme: "dark",
+                      height: "44px",
+                    },
+                  },
+                }}
+              />
+            </div>
+          )}
           <PaymentElement
             options={{
               layout: "tabs",
@@ -225,7 +345,13 @@ export default function StripePaymentComplete({
   }
 
   return (
-    <Elements stripe={stripePromise} options={{ clientSecret }}>
+    <Elements
+      stripe={stripePromise}
+      options={{
+        clientSecret,
+        paymentMethodOrder: ["apple_pay", "google_pay", "card", "ideal"],
+      }}
+    >
       <PaymentForm
         clientSecret={clientSecret}
         items={items}

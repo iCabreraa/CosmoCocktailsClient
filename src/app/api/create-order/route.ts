@@ -46,6 +46,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (payment_intent_id) {
+      const { data: existingOrder, error: existingError } = await supabase
+        .from("orders")
+        .select("id, order_ref")
+        .eq("payment_intent_id", payment_intent_id)
+        .maybeSingle();
+
+      if (existingError) {
+        console.error("❌ Error checking existing order:", existingError);
+      }
+
+      if (existingOrder) {
+        return NextResponse.json({
+          id: existingOrder.id,
+          order_ref: existingOrder.order_ref,
+        });
+      }
+    }
+
     let normalizedItems;
     try {
       normalizedItems = normalizeOrderItems(items);

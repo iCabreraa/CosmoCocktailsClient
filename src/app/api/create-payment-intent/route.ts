@@ -57,6 +57,9 @@ export async function POST(request: NextRequest) {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: total,
       currency: "eur",
+      automatic_payment_methods: {
+        enabled: true,
+      },
       metadata: {
         items_count: items.length.toString(),
         subtotal: subtotal.toString(),
