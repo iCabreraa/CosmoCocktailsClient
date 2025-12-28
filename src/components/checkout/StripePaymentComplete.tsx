@@ -367,7 +367,6 @@ export default function StripePaymentComplete({
       stripe={stripePromise}
       options={{
         clientSecret,
-        paymentMethodOrder: ["apple_pay", "google_pay", "card", "ideal"],
       }}
     >
       <PaymentForm
