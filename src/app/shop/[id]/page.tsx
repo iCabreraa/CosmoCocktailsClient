@@ -248,11 +248,10 @@ export default function CocktailDetailPage({
         const primaryMedia =
           mediaData.find(item => item.is_primary) ?? mediaData[0] ?? null;
 
+        const tagsData = (tagsResponse.data ?? []) as CocktailTagRow[];
         let relatedData: RelatedCocktailRow[] = [];
         const tagIds =
-          (tagsResponse.data ?? [])
-            .map(item => item.tags?.id)
-            .filter(Boolean) ?? [];
+          tagsData.map(item => item.tags?.id).filter(Boolean) ?? [];
 
         if (tagIds.length > 0) {
           const relatedResponse = await supabase
@@ -278,7 +277,7 @@ export default function CocktailDetailPage({
         );
         setAllergens((allergensResponse.data ?? []) as CocktailAllergenRow[]);
         setWarnings((warningsResponse.data ?? []) as CocktailWarningRow[]);
-        setTags((tagsResponse.data ?? []) as CocktailTagRow[]);
+        setTags(tagsData);
         setMedia(mediaData);
         setActiveMedia(primaryMedia?.url ?? cocktailData.image_url ?? null);
 
