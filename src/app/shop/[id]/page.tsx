@@ -27,6 +27,15 @@ interface CocktailSize {
   } | null;
 }
 
+type CocktailRow = {
+  id: string;
+  name: string;
+  description: string | null;
+  image_url: string | null;
+  alcohol_percentage: number;
+  has_non_alcoholic_version: boolean | null;
+};
+
 type FlavorProfile = {
   sweet: number;
   bitter: number;
@@ -145,13 +154,14 @@ export default function CocktailDetailPage({
   useEffect(() => {
     async function fetchCocktail() {
       try {
-        const { data: cocktailData, error: cocktailError } = await supabase
+        const { data: cocktailDataRaw, error: cocktailError } = await supabase
           .from("cocktails")
           .select(
             "id, name, description, image_url, alcohol_percentage, has_non_alcoholic_version"
           )
           .eq("id", params.id)
           .single();
+        const cocktailData = cocktailDataRaw as CocktailRow | null;
 
         if (!cocktailData || cocktailError) {
           setError("Cocktail not found");
