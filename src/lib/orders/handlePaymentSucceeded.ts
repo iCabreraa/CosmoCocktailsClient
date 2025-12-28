@@ -2,7 +2,6 @@ import { createClient } from "@supabase/supabase-js";
 import { envServer } from "@/lib/env-server";
 import {
   normalizeOrderItems,
-  toOrderItemMetadata,
   type NormalizedOrderItem,
   type OrderItemInput,
 } from "@/types/order-item-utils";
@@ -72,24 +71,77 @@ export async function handlePaymentSucceeded({
     return;
   }
 
-  const payloadItems = normalizedItems.map(item => toOrderItemMetadata(item));
+  const { data: order, error: orderError } = await (supabase as any)
+    .from("orders")
+    .insert({
+      total_amount: amountReceived / 100,
+      status: "paid",
+      is_paid: true,
+      payment_intent_id: paymentIntentId,
+    })
+    .select()
+    .single();
 
-  // Use a single RPC to ensure stock decrement is conditional (stock >= quantity)
-  const { error } = await (supabase as any).rpc(
-    "decrement_stock_and_create_order",
-    {
-      p_payment_intent_id: paymentIntentId,
-      p_total_amount: amountReceived / 100,
-      p_items: payloadItems,
-    }
-  );
-
-  if (error) {
+  if (orderError) {
     await (supabase as any).from("security_events").insert({
       type: "payment_intent_succeeded_order_error",
-      payload: { payment_intent_id: paymentIntentId, error: error.message },
+      payload: { payment_intent_id: paymentIntentId, error: orderError.message },
     });
-    throw new Error(error.message);
+    throw new Error(orderError.message);
+  }
+
+  const orderItems = normalizedItems.map(item => ({
+    order_id: order.id,
+    cocktail_id: item.cocktail_id,
+    size_id: item.sizes_id,
+    quantity: item.quantity,
+    unit_price: item.unit_price,
+    item_total: item.item_total ?? item.unit_price * item.quantity,
+  }));
+
+  const { error: itemsError } = await (supabase as any)
+    .from("order_items")
+    .insert(orderItems);
+
+  if (itemsError) {
+    await (supabase as any).from("security_events").insert({
+      type: "payment_intent_succeeded_items_error",
+      payload: { payment_intent_id: paymentIntentId, error: itemsError.message },
+    });
+    throw new Error(itemsError.message);
+  }
+
+  for (const item of normalizedItems) {
+    const { data: currentStock, error: fetchError } = await (supabase as any)
+      .from("cocktail_sizes")
+      .select("stock_quantity")
+      .eq("cocktail_id", item.cocktail_id)
+      .eq("sizes_id", item.sizes_id)
+      .single();
+
+    if (fetchError) {
+      await (supabase as any).from("security_events").insert({
+        type: "payment_intent_succeeded_stock_fetch_error",
+        payload: { payment_intent_id: paymentIntentId, error: fetchError.message },
+      });
+      continue;
+    }
+
+    const newStock = (currentStock?.stock_quantity || 0) - item.quantity;
+    const isAvailable = newStock > 0;
+
+    const { error: stockError } = await (supabase as any)
+      .from("cocktail_sizes")
+      .update({ stock_quantity: newStock, available: isAvailable })
+      .eq("cocktail_id", item.cocktail_id)
+      .eq("sizes_id", item.sizes_id);
+
+    if (stockError) {
+      await (supabase as any).from("security_events").insert({
+        type: "payment_intent_succeeded_stock_update_error",
+        payload: { payment_intent_id: paymentIntentId, error: stockError.message },
+      });
+    }
   }
 
   // No necesitamos actualizar de 'ordered' a 'paid' porque ahora creamos directamente en 'paid'
