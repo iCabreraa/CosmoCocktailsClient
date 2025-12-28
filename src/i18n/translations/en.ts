@@ -361,6 +361,7 @@ const en = {
     "privacy_consent_required": "Please accept the privacy policy to continue.",
     "stripe_test_mode": "Test mode",
     "stripe_payments_disabled": "Stripe is in test mode. Payments are disabled until live keys are configured.",
+    "stripe_payments_locked": "Payments disabled",
     "preparing_payment": "Preparing secure payment...",
     "express_wallets": "Apple Pay / Google Pay",
     "products_unavailable": "Some products are not available. Check your cart.",

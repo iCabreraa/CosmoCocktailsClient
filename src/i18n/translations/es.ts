@@ -364,6 +364,7 @@ const es = {
     "privacy_consent_required": "Debes aceptar la política de privacidad para continuar.",
     "stripe_test_mode": "Modo prueba",
     "stripe_payments_disabled": "Stripe está en modo prueba. Los pagos están desactivados hasta configurar claves live.",
+    "stripe_payments_locked": "Pagos desactivados",
     "preparing_payment": "Preparando pago seguro...",
     "express_wallets": "Apple Pay / Google Pay",
     "products_unavailable": "Algunos productos no están disponibles. Revisa tu carrito.",

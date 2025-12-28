@@ -366,6 +366,7 @@ const nl = {
     "privacy_consent_required": "Accepteer de privacyverklaring om verder te gaan.",
     "stripe_test_mode": "Testmodus",
     "stripe_payments_disabled": "Stripe staat in testmodus. Betalingen zijn uitgeschakeld totdat live-sleutels zijn ingesteld.",
+    "stripe_payments_locked": "Betalingen uitgeschakeld",
     "preparing_payment": "Veilige betaling voorbereiden...",
     "express_wallets": "Apple Pay / Google Pay",
     "products_unavailable": "Sommige producten zijn niet beschikbaar. Controleer je winkelwagen.",
