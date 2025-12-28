@@ -26,14 +26,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const sanitizedItems = normalizedItems
+      .map(item => ({
+        ...item,
+        unit_price: Number(item.unit_price),
+        quantity: Number(item.quantity),
+      }))
+      .filter(
+        item =>
+          Number.isFinite(item.unit_price) &&
+          Number.isFinite(item.quantity) &&
+          item.unit_price >= 0 &&
+          item.quantity > 0
+      );
+
+    if (sanitizedItems.length === 0) {
+      return NextResponse.json(
+        { error: "No valid order items provided" },
+        { status: 400 }
+      );
+    }
+
     // Calcular total
-    const subtotal = items.reduce(
-      (acc: number, item: any) => acc + item.unit_price * item.quantity,
+    const subtotal = sanitizedItems.reduce(
+      (acc, item) => acc + item.unit_price * item.quantity,
       0
     );
     const vat = subtotal * 0.21;
     const shipping = subtotal >= 50 ? 0 : 4.99;
     const total = Math.round((subtotal + vat + shipping) * 100); // Convertir a céntimos
+
+    if (!Number.isFinite(total) || total <= 0) {
+      return NextResponse.json(
+        {
+          error: "Invalid order total",
+          details: { subtotal, vat, shipping, total },
+        },
+        { status: 400 }
+      );
+    }
 
     console.log("💰 Total calculation:", { subtotal, vat, shipping, total });
 
@@ -41,7 +72,7 @@ export async function POST(request: NextRequest) {
     console.log("💳 Creating Stripe payment intent...");
 
     // Simplificar metadatos para evitar el límite de 500 caracteres
-    const simplifiedItems = normalizedItems.map(item =>
+    const simplifiedItems = sanitizedItems.map(item =>
       toOrderItemMetadata(item)
     );
 
@@ -59,7 +90,7 @@ export async function POST(request: NextRequest) {
       currency: "eur",
       payment_method_types: ["card", "ideal"],
       metadata: {
-        items_count: items.length.toString(),
+        items_count: sanitizedItems.length.toString(),
         subtotal: subtotal.toString(),
         vat: vat.toString(),
         shipping: shipping.toString(),
