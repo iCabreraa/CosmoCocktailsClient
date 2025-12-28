@@ -42,7 +42,8 @@ export default function CheckoutClient() {
   const allowTestPayments =
     envClient.NEXT_PUBLIC_STRIPE_ALLOW_TEST_PAYMENTS === "true";
   const stripeMode = isTestKey ? "test" : "live";
-  const stripeEnabled = stripeMode === "live" || allowTestPayments;
+  const stripePaymentsEnabled =
+    stripeMode === "live" || allowTestPayments;
 
   const [form, setForm] = useState({
     name: "",
@@ -290,7 +291,6 @@ export default function CheckoutClient() {
       form.email &&
       privacyAccepted &&
       currentStep >= 3 &&
-      stripeEnabled &&
       !clientSecret
     ) {
       console.log("🚀 Creating payment intent...");
@@ -305,13 +305,11 @@ export default function CheckoutClient() {
               ? "no name provided"
               : !form.email
                 ? "no email provided"
-                : !privacyAccepted
-                  ? "privacy consent not accepted"
-                  : !stripeEnabled
-                    ? "stripe disabled"
-                  : clientSecret
-                    ? "already has client secret"
-                    : "unknown",
+                  : !privacyAccepted
+                    ? "privacy consent not accepted"
+                    : clientSecret
+                      ? "already has client secret"
+                      : "unknown",
       });
     }
   }, [
@@ -322,7 +320,6 @@ export default function CheckoutClient() {
     privacyAccepted,
     clientSecret,
     currentStep,
-    stripeEnabled,
   ]);
 
   const handleInventoryValidation = (
@@ -706,11 +703,13 @@ export default function CheckoutClient() {
                 </div>
               )}
 
-              {!stripeEnabled ? (
-                <div className="bg-cosmic-fog/10 rounded-lg p-4 text-center text-sm text-cosmic-fog">
+              {!stripePaymentsEnabled && (
+                <div className="mb-4 rounded-lg border border-cosmic-gold/30 bg-cosmic-gold/10 p-3 text-sm text-cosmic-gold">
                   {t("checkout.stripe_payments_disabled")}
                 </div>
-              ) : clientSecret && privacyAccepted ? (
+              )}
+
+              {clientSecret && privacyAccepted ? (
                 <StripePaymentComplete
                   clientSecret={clientSecret}
                   items={items}
@@ -718,6 +717,7 @@ export default function CheckoutClient() {
                   user={authUser}
                   shippingAddress={addressWithPhone}
                   contactEmail={form.email}
+                  paymentsEnabled={stripePaymentsEnabled}
                   onPaymentSuccess={handlePaymentSuccess}
                   onPaymentError={handlePaymentError}
                 />

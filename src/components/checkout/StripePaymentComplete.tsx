@@ -24,6 +24,7 @@ interface StripePaymentCompleteProps {
   user?: any;
   shippingAddress?: any;
   contactEmail?: string;
+  paymentsEnabled?: boolean;
   onPaymentSuccess: (payload: {
     orderId: string;
     orderRef?: string;
@@ -39,6 +40,7 @@ function PaymentForm({
   user,
   shippingAddress,
   contactEmail,
+  paymentsEnabled = true,
   onPaymentSuccess,
   onPaymentError,
 }: StripePaymentCompleteProps) {
@@ -54,6 +56,11 @@ function PaymentForm({
 
   useEffect(() => {
     if (!stripe || !clientSecret) return;
+    if (!paymentsEnabled) {
+      setPaymentRequest(null);
+      setCanUsePaymentRequest(false);
+      return;
+    }
     let isMounted = true;
     const pr = stripe.paymentRequest({
       country: "NL",
@@ -149,6 +156,11 @@ function PaymentForm({
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
+    if (!paymentsEnabled) {
+      setError(t("checkout.stripe_payments_locked"));
+      onPaymentError(t("checkout.stripe_payments_locked"));
+      return;
+    }
     if (!stripe || !elements) {
       return;
     }
@@ -244,12 +256,12 @@ function PaymentForm({
         </div>
 
         <div className="space-y-4">
-          {canUsePaymentRequest && paymentRequest && (
+          {paymentsEnabled && canUsePaymentRequest && paymentRequest && (
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-cosmic-silver">
-                <span className="h-[1px] flex-1 bg-cosmic-gold/20" />
+                <span className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-cosmic-gold/40 to-transparent" />
                 <span>{t("checkout.express_wallets")}</span>
-                <span className="h-[1px] flex-1 bg-cosmic-gold/20" />
+                <span className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-cosmic-gold/40 to-transparent" />
               </div>
               <PaymentRequestButtonElement
                 options={{
@@ -295,7 +307,7 @@ function PaymentForm({
 
         <button
           type="submit"
-          disabled={!stripe || isLoading || isCreatingOrder}
+          disabled={!stripe || isLoading || isCreatingOrder || !paymentsEnabled}
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isCreatingOrder ? (
@@ -307,6 +319,11 @@ function PaymentForm({
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
               {t("checkout.processing_payment")}
+            </>
+          ) : !paymentsEnabled ? (
+            <>
+              <Lock className="w-4 h-4" />
+              {t("checkout.stripe_payments_locked")}
             </>
           ) : (
             <>
@@ -327,6 +344,7 @@ export default function StripePaymentComplete({
   user,
   shippingAddress,
   contactEmail,
+  paymentsEnabled,
   onPaymentSuccess,
   onPaymentError,
 }: StripePaymentCompleteProps) {
@@ -359,6 +377,7 @@ export default function StripePaymentComplete({
         user={user}
         shippingAddress={shippingAddress}
         contactEmail={contactEmail}
+        paymentsEnabled={paymentsEnabled}
         onPaymentSuccess={onPaymentSuccess}
         onPaymentError={onPaymentError}
       />
