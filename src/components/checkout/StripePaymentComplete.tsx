@@ -13,7 +13,7 @@ import {
 import { CreditCard, Lock, AlertTriangle, CheckCircle } from "lucide-react";
 import { CartItem } from "@/types/shared";
 import { useLanguage } from "@/contexts/LanguageContext";
-import type { StripePaymentRequest } from "@stripe/stripe-js";
+import type { PaymentRequest } from "@stripe/stripe-js";
 
 const stripePromise = loadStripe(envClient.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
@@ -51,7 +51,7 @@ function PaymentForm({
   const [error, setError] = useState<string | null>(null);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [paymentRequest, setPaymentRequest] =
-    useState<StripePaymentRequest | null>(null);
+    useState<PaymentRequest | null>(null);
   const [canUsePaymentRequest, setCanUsePaymentRequest] = useState(false);
 
   useEffect(() => {
