@@ -43,21 +43,23 @@ export default function AddToCartWithQuantity({
   }
 
   return (
-    <div className="flex items-center gap-2 mt-3">
-      <div className="flex items-center border border-cosmic-gold rounded">
+    <div className="flex flex-wrap items-center gap-3">
+      <div className="flex items-center gap-1 rounded-full border border-cosmic-gold/30 bg-black/40 px-2 py-1">
         <button
           type="button"
           onClick={decrease}
-          className="px-2 py-1 hover:bg-cosmic-gold hover:text-black focus:outline-none focus:ring-2 focus:ring-cosmic-gold transition"
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-cosmic-gold/30 text-cosmic-gold/90 transition hover:border-cosmic-gold hover:bg-cosmic-gold/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-cosmic-gold/60"
           aria-label="Decrease quantity"
         >
           <Minus size={12} />
         </button>
-        <span className="px-2 min-w-4 text-center">{qty}</span>
+        <span className="min-w-6 text-center text-sm text-cosmic-gold">
+          {qty}
+        </span>
         <button
           type="button"
           onClick={increase}
-          className="px-2 py-1 hover:bg-cosmic-gold hover:text-black focus:outline-none focus:ring-2 focus:ring-cosmic-gold transition"
+          className="flex h-7 w-7 items-center justify-center rounded-full border border-cosmic-gold/30 text-cosmic-gold/90 transition hover:border-cosmic-gold hover:bg-cosmic-gold/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-cosmic-gold/60"
           aria-label="Increase quantity"
         >
           <Plus size={12} />
@@ -82,9 +84,9 @@ export default function AddToCartWithQuantity({
             message: t("feedback.cart_added_message", { name: cocktailName }),
           });
         }}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black focus:outline-none focus:ring-2 focus:ring-cosmic-gold transition-all text-sm"
+        className="inline-flex items-center gap-2 rounded-full border border-cosmic-gold/40 bg-white/5 px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-cosmic-gold transition hover:border-cosmic-gold hover:bg-cosmic-gold/15 hover:text-white focus:outline-none focus:ring-2 focus:ring-cosmic-gold/60"
       >
-        <ShoppingCart className="w-4 h-4" />
+        <ShoppingCart className="h-4 w-4" />
         {t("shop.add_to_cart")}
       </button>
     </div>
