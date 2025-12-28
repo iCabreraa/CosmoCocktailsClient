@@ -24,6 +24,28 @@ export async function handlePaymentSucceeded({
     envServer.SUPABASE_SERVICE_ROLE_KEY
   );
 
+  if (paymentIntentId) {
+    const { data: existingOrder, error: existingError } = await (supabase as any)
+      .from("orders")
+      .select("id")
+      .eq("payment_intent_id", paymentIntentId)
+      .maybeSingle();
+
+    if (existingError) {
+      await (supabase as any).from("security_events").insert({
+        type: "payment_intent_succeeded_order_check_error",
+        payload: {
+          payment_intent_id: paymentIntentId,
+          error: existingError.message,
+        },
+      });
+    }
+
+    if (existingOrder) {
+      return;
+    }
+  }
+
   // Parse items from metadata (created earlier)
   let items: OrderItemInput[] = [];
   try {

@@ -5,6 +5,7 @@ type RawSize = {
   price: number;
   sizes_id: string | null;
   available: boolean | null;
+  stock_quantity?: number | null;
   sizes: {
     id: string;
     name: string | null;
@@ -28,7 +29,7 @@ export function mapCocktailsWithPrices(
   return rows.map(cocktail => {
     const sizes =
       cocktail.cocktail_sizes
-        ?.filter(size => Boolean(size) && size.available !== false)
+        ?.filter(size => Boolean(size))
         .filter(size => Boolean(size.sizes_id))
         .map(size => ({
           id: size.id,
@@ -36,11 +37,18 @@ export function mapCocktailsWithPrices(
           sizes_id: size.sizes_id as string,
           size_name: size.sizes?.name ?? null,
           volume_ml: size.sizes?.volume_ml ?? null,
+          available: size.available ?? true,
+          stock_quantity: size.stock_quantity ?? null,
         })) ?? [];
 
     sizes.sort((a, b) => a.price - b.price);
 
-    const minSize = sizes[0];
+    const inStockSizes = sizes.filter(
+      size =>
+        size.available !== false &&
+        (size.stock_quantity === null || size.stock_quantity > 0)
+    );
+    const minSize = inStockSizes[0];
 
     return {
       id: cocktail.id,

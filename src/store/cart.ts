@@ -15,6 +15,8 @@ interface CartState extends Cart {
   recalculateTotals: () => void;
   hasHydrated: boolean;
   setHasHydrated: (value: boolean) => void;
+  privacyAccepted: boolean;
+  setPrivacyAccepted: (value: boolean) => void;
 
   // Estado de carga
   isLoading: boolean;
@@ -38,6 +40,7 @@ export const useCart = create<CartState>()(
       hasHydrated: false,
       isLoading: false,
       error: null,
+      privacyAccepted: false,
 
       // Agregar item al carrito
       addToCart: newItem => {
@@ -118,6 +121,7 @@ export const useCart = create<CartState>()(
           total: 0,
           item_count: 0,
           error: null,
+          privacyAccepted: false,
         });
       },
 
@@ -158,6 +162,9 @@ export const useCart = create<CartState>()(
       setHasHydrated: value => {
         set({ hasHydrated: value });
       },
+      setPrivacyAccepted: value => {
+        set({ privacyAccepted: value });
+      },
     }),
     {
       name: "cosmic-cocktails-cart",
@@ -169,6 +176,7 @@ export const useCart = create<CartState>()(
         shipping_cost: state.shipping_cost,
         total: state.total,
         item_count: state.item_count,
+        privacyAccepted: state.privacyAccepted,
       }),
       onRehydrateStorage: () => (state, error) => {
         if (error) {

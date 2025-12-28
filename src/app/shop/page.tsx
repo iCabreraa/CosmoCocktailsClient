@@ -23,6 +23,7 @@ async function getInitialShopData() {
           price,
           sizes_id,
           available,
+          stock_quantity,
           sizes (
             id,
             name,

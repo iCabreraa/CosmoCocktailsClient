@@ -133,6 +133,7 @@ export default function ShopClient({
             price,
             sizes_id,
             available,
+            stock_quantity,
             sizes (
               id,
               name,
@@ -172,6 +173,7 @@ export default function ShopClient({
           price: number;
           sizes_id: string | null;
           available: boolean | null;
+          stock_quantity: number | null;
           sizes: {
             id: string;
             name: string | null;

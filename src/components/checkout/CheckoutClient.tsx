@@ -13,11 +13,11 @@ import Link from "next/link";
 import AddressForm from "./AddressForm";
 import InventoryValidation from "./InventoryValidation";
 import StripePaymentComplete from "./StripePaymentComplete";
-import PrivacyModal from "@/components/privacy/PrivacyModal";
 import { Address } from "@/types/shared";
 import { useClientData } from "@/hooks/useClientData";
 import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { envClient } from "@/lib/env-client";
 
 export default function CheckoutClient() {
   const { t } = useLanguage();
@@ -32,10 +32,17 @@ export default function CheckoutClient() {
     isLoading,
     error,
     hasHydrated,
+    privacyAccepted,
   } = useCart();
 
   const { saveClientData } = useClientData();
   const { user: authUser } = useAuthUnified();
+  const isTestKey =
+    envClient.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.startsWith("pk_test_");
+  const allowTestPayments =
+    envClient.NEXT_PUBLIC_STRIPE_ALLOW_TEST_PAYMENTS === "true";
+  const stripeMode = isTestKey ? "test" : "live";
+  const stripeEnabled = stripeMode === "live" || allowTestPayments;
 
   const [form, setForm] = useState({
     name: "",
@@ -44,8 +51,6 @@ export default function CheckoutClient() {
   });
 
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-  const [privacyAccepted, setPrivacyAccepted] = useState(false);
-  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inventoryValid, setInventoryValid] = useState(true);
   const [unavailableItems, setUnavailableItems] = useState<string[]>([]);
@@ -284,7 +289,8 @@ export default function CheckoutClient() {
       form.name &&
       form.email &&
       privacyAccepted &&
-      currentStep >= 4 &&
+      currentStep >= 3 &&
+      stripeEnabled &&
       !clientSecret
     ) {
       console.log("🚀 Creating payment intent...");
@@ -301,9 +307,11 @@ export default function CheckoutClient() {
                 ? "no email provided"
                 : !privacyAccepted
                   ? "privacy consent not accepted"
-                : clientSecret
-                  ? "already has client secret"
-                  : "unknown",
+                  : !stripeEnabled
+                    ? "stripe disabled"
+                  : clientSecret
+                    ? "already has client secret"
+                    : "unknown",
       });
     }
   }, [
@@ -314,6 +322,7 @@ export default function CheckoutClient() {
     privacyAccepted,
     clientSecret,
     currentStep,
+    stripeEnabled,
   ]);
 
   const handleInventoryValidation = (
@@ -668,34 +677,27 @@ export default function CheckoutClient() {
                   <CreditCard className="w-5 h-5" />
                   {t("checkout.payment_info")}
                 </h2>
-              </div>
-
-              <div className="mb-4 space-y-2">
-                <label className="flex items-start gap-2 text-sm text-cosmic-fog">
-                  <input
-                    type="checkbox"
-                    checked={privacyAccepted}
-                    onChange={e => setPrivacyAccepted(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-cosmic-fog/50 bg-transparent text-cosmic-gold focus:ring-cosmic-gold"
-                  />
-                  <span>
-                    {t("checkout.privacy_consent_prefix")}{" "}
-                    <button
-                      type="button"
-                      onClick={() => setIsPrivacyOpen(true)}
-                      className="text-cosmic-gold hover:text-cosmic-gold/80 underline"
-                    >
-                      {t("checkout.privacy_policy")}
-                    </button>
-                    {t("checkout.privacy_consent_suffix")}
+                {stripeMode === "test" && (
+                  <span className="rounded-full border border-cosmic-gold/40 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-cosmic-gold">
+                    {t("checkout.stripe_test_mode")}
                   </span>
-                </label>
-                {showStepErrors && !privacyAccepted && (
-                  <p className="text-sm text-red-400">
-                    {t("checkout.privacy_consent_required")}
-                  </p>
                 )}
               </div>
+
+              {!privacyAccepted && (
+                <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
+                  <AlertTriangle className="mt-0.5 h-4 w-4" />
+                  <span>
+                    {t("checkout.privacy_consent_required")}{" "}
+                    <Link
+                      href="/cart"
+                      className="text-cosmic-gold underline underline-offset-4 hover:text-cosmic-gold/80"
+                    >
+                      {t("cart.title")}
+                    </Link>
+                  </span>
+                </div>
+              )}
 
               {paymentError && (
                 <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 mb-4">
@@ -704,7 +706,11 @@ export default function CheckoutClient() {
                 </div>
               )}
 
-              {clientSecret && privacyAccepted ? (
+              {!stripeEnabled ? (
+                <div className="bg-cosmic-fog/10 rounded-lg p-4 text-center text-sm text-cosmic-fog">
+                  {t("checkout.stripe_payments_disabled")}
+                </div>
+              ) : clientSecret && privacyAccepted ? (
                 <StripePaymentComplete
                   clientSecret={clientSecret}
                   items={items}
@@ -761,10 +767,6 @@ export default function CheckoutClient() {
         </div>
       </div>
 
-      <PrivacyModal
-        isOpen={isPrivacyOpen}
-        onClose={() => setIsPrivacyOpen(false)}
-      />
     </main>
   );
 }
