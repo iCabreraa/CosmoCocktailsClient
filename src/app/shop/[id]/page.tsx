@@ -1804,6 +1804,7 @@ export default function CocktailDetailPage({
                   <Link
                     key={`${item.cocktail_id}-${slot.position}`}
                     href={`/shop/${item.cocktails.id}`}
+                    prefetch={false}
                     className="absolute left-1/2 top-1/2 w-52 sm:w-60 rounded-[22px] border border-white/10 bg-white/5 p-4 shadow-[0_20px_40px_rgba(0,0,0,0.35)] backdrop-blur-md transition-[transform,opacity,filter] duration-700 ease-out"
                     style={positionStyles}
                   >
