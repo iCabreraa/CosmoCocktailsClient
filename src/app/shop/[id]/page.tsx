@@ -158,6 +158,27 @@ const DETAIL_TABS: DetailTab[] = [
   "reviews",
 ];
 
+const withTimeout = async <T,>(
+  promise: Promise<T>,
+  label: string,
+  ms = 10000
+): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`[PDP] ${label} timed out after ${ms}ms`));
+    }, ms);
+  });
+
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+};
+
 export default function CocktailDetailPage({
   params,
 }: {
@@ -222,22 +243,142 @@ export default function CocktailDetailPage({
       setLoading(true);
       setError(null);
       try {
-        const { data: cocktailDataRaw, error: cocktailError } = await supabase
-          .from("cocktails")
-          .select(
-            "id, name, description, image_url, alcohol_percentage, has_non_alcoholic_version"
-          )
-          .eq("id", params.id)
-          .single();
+        const { data: cocktailDataRaw, error: cocktailError } =
+          await withTimeout(
+            supabase
+              .from("cocktails")
+              .select(
+                "id, name, description, image_url, alcohol_percentage, has_non_alcoholic_version"
+              )
+              .eq("id", params.id)
+              .single(),
+            "cocktails"
+          );
         const cocktailData = cocktailDataRaw as CocktailRow | null;
 
         if (!cocktailData || cocktailError) {
+          if (cocktailError) {
+            // eslint-disable-next-line no-console
+            console.error("[PDP] cocktails query error:", cocktailError);
+          }
           if (isMounted) {
             setError("Cocktail not found");
           }
           return;
         }
 
+        const queryLabels = [
+          "cocktail_sizes",
+          "sizes",
+          "cocktail_profiles",
+          "cocktail_flavor_profiles",
+          "cocktail_serving",
+          "cocktail_serving_steps",
+          "cocktail_ingredients",
+          "cocktail_allergens",
+          "allergens",
+          "cocktail_warnings",
+          "cocktail_tags",
+          "cocktail_media",
+        ];
+
+        const queryPromises = [
+          withTimeout(
+            supabase
+              .from("cocktail_sizes")
+              .select("id, price, available, sizes_id, stock_quantity")
+              .eq("cocktail_id", params.id),
+            "cocktail_sizes"
+          ),
+          withTimeout(
+            supabase
+              .from("sizes")
+              .select("id, name, volume_ml")
+              .order("volume_ml", { ascending: true }),
+            "sizes"
+          ),
+          withTimeout(
+            supabase
+              .from("cocktail_profiles")
+              .select("summary, why_love, story")
+              .eq("cocktail_id", params.id)
+              .maybeSingle(),
+            "cocktail_profiles"
+          ),
+          withTimeout(
+            supabase
+              .from("cocktail_flavor_profiles")
+              .select("sweet, bitter, sour, tropical")
+              .eq("cocktail_id", params.id)
+              .maybeSingle(),
+            "cocktail_flavor_profiles"
+          ),
+          withTimeout(
+            supabase
+              .from("cocktail_serving")
+              .select("glassware, ice, garnish, notes")
+              .eq("cocktail_id", params.id)
+              .maybeSingle(),
+            "cocktail_serving"
+          ),
+          withTimeout(
+            supabase
+              .from("cocktail_serving_steps")
+              .select("step_number, instruction")
+              .eq("cocktail_id", params.id)
+              .order("step_number", { ascending: true }),
+            "cocktail_serving_steps"
+          ),
+          withTimeout(
+            supabase
+              .from("cocktail_ingredients")
+              .select(
+                "amount, is_garnish, display_order, ingredients(name, description)"
+              )
+              .eq("cocktail_id", params.id)
+              .order("display_order", { ascending: true }),
+            "cocktail_ingredients"
+          ),
+          withTimeout(
+            supabase
+              .from("cocktail_allergens")
+              .select("presence, allergens(id, name, icon, description)")
+              .eq("cocktail_id", params.id),
+            "cocktail_allergens"
+          ),
+          withTimeout(
+            supabase
+              .from("allergens")
+              .select("id, name, icon, description")
+              .order("name", { ascending: true }),
+            "allergens"
+          ),
+          withTimeout(
+            supabase
+              .from("cocktail_warnings")
+              .select("warnings(title, description)")
+              .eq("cocktail_id", params.id),
+            "cocktail_warnings"
+          ),
+          withTimeout(
+            supabase
+              .from("cocktail_tags")
+              .select("tags(id, name, category)")
+              .eq("cocktail_id", params.id),
+            "cocktail_tags"
+          ),
+          withTimeout(
+            supabase
+              .from("cocktail_media")
+              .select("url, alt_text, is_primary, sort_order")
+              .eq("cocktail_id", params.id)
+              .order("is_primary", { ascending: false })
+              .order("sort_order", { ascending: true }),
+            "cocktail_media"
+          ),
+        ];
+
+        const settled = await Promise.allSettled(queryPromises);
         const [
           sizesResponse,
           sizeCatalogResponse,
@@ -251,65 +392,42 @@ export default function CocktailDetailPage({
           warningsResponse,
           tagsResponse,
           mediaResponse,
-        ] = await Promise.all([
-          supabase
-            .from("cocktail_sizes")
-            .select("id, price, available, sizes_id, stock_quantity")
-            .eq("cocktail_id", params.id),
-          supabase
-            .from("sizes")
-            .select("id, name, volume_ml")
-            .order("volume_ml", { ascending: true }),
-          supabase
-            .from("cocktail_profiles")
-            .select("summary, why_love, story")
-            .eq("cocktail_id", params.id)
-            .maybeSingle(),
-          supabase
-            .from("cocktail_flavor_profiles")
-            .select("sweet, bitter, sour, tropical")
-            .eq("cocktail_id", params.id)
-            .maybeSingle(),
-          supabase
-            .from("cocktail_serving")
-            .select("glassware, ice, garnish, notes")
-            .eq("cocktail_id", params.id)
-            .maybeSingle(),
-          supabase
-            .from("cocktail_serving_steps")
-            .select("step_number, instruction")
-            .eq("cocktail_id", params.id)
-            .order("step_number", { ascending: true }),
-          supabase
-            .from("cocktail_ingredients")
-            .select(
-              "amount, is_garnish, display_order, ingredients(name, description)"
-            )
-            .eq("cocktail_id", params.id)
-            .order("display_order", { ascending: true }),
-          supabase
-            .from("cocktail_allergens")
-            .select("presence, allergens(id, name, icon, description)")
-            .eq("cocktail_id", params.id),
-          supabase
-            .from("allergens")
-            .select("id, name, icon, description")
-            .order("name", { ascending: true }),
-          supabase
-            .from("cocktail_warnings")
-            .select("warnings(title, description)")
-            .eq("cocktail_id", params.id),
-          supabase
-            .from("cocktail_tags")
-            .select("tags(id, name, category)")
-            .eq("cocktail_id", params.id),
-          supabase
-            .from("cocktail_media")
-            .select("url, alt_text, is_primary, sort_order")
-            .eq("cocktail_id", params.id)
-            .order("is_primary", { ascending: false })
-            .order("sort_order", { ascending: true }),
-        ]);
+        ] = settled.map((result, index) => {
+          if (result.status === "fulfilled") {
+            return result.value;
+          }
+          // eslint-disable-next-line no-console
+          console.error(
+            `[PDP] ${queryLabels[index]} failed:`,
+            result.reason
+          );
+          return { data: null, error: result.reason };
+        });
+
+        const responsesWithLabels = [
+          sizesResponse,
+          sizeCatalogResponse,
+          profileResponse,
+          flavorResponse,
+          servingResponse,
+          servingStepsResponse,
+          ingredientsResponse,
+          allergensResponse,
+          allAllergensResponse,
+          warningsResponse,
+          tagsResponse,
+          mediaResponse,
+        ];
+
+        responsesWithLabels.forEach((response, index) => {
+          if (response?.error) {
+            // eslint-disable-next-line no-console
+            console.error(
+              `[PDP] ${queryLabels[index]} error:`,
+              response.error
+            );
+          }
+        });
 
         const sizeCatalog = (sizeCatalogResponse.data ?? []) as SizeCatalogRow[];
         const cocktailSizes = (sizesResponse.data ?? []) as CocktailSizeRow[];
