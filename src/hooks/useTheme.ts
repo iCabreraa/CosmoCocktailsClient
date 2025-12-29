@@ -7,6 +7,10 @@ export function useTheme() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 2500);
+
     // Cargar tema desde localStorage o preferencias del usuario
     const loadPreferences = async () => {
       try {
@@ -21,7 +25,10 @@ export function useTheme() {
         }
 
         // Si no hay preferencias guardadas, cargar desde la API
-        const response = await fetch("/api/preferences");
+        const response = await fetch("/api/preferences", {
+          signal: controller.signal,
+        });
+        if (!isMounted) return;
         if (response.ok) {
           const data = await response.json();
           const userTheme = data.preferences?.theme || "dark";
@@ -38,6 +45,7 @@ export function useTheme() {
           applyTheme(systemTheme);
         }
       } catch (error) {
+        if (!isMounted) return;
         console.error("Error loading preferences:", error);
         // Fallback al tema del sistema
         const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
@@ -47,11 +55,19 @@ export function useTheme() {
         setTheme(systemTheme);
         applyTheme(systemTheme);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     loadPreferences();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      window.clearTimeout(timeoutId);
+    };
   }, []);
 
   const applyTheme = (newTheme: "light" | "dark") => {

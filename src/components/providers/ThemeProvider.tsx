@@ -8,7 +8,7 @@ export default function ThemeProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { theme, loading } = useTheme();
+  const { theme } = useTheme();
 
   useEffect(() => {
     // Aplicar tema al HTML cuando cambie
@@ -22,15 +22,6 @@ export default function ThemeProvider({
       root.classList.remove("dark");
     }
   }, [theme]);
-
-  // Mostrar loading mientras se carga el tema
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return <>{children}</>;
 }
