@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { envClient } from "@/lib/env-client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/store/cart";
 import { useToast } from "@/components/feedback/ToastProvider";
@@ -258,9 +259,45 @@ export default function CocktailDetailPage({
             data: CocktailRow | null;
             error: unknown;
           };
-        const cocktailData = cocktailDataRaw as CocktailRow | null;
+        let cocktailData = cocktailDataRaw as CocktailRow | null;
 
-        if (!cocktailData || cocktailError) {
+        if (!cocktailData) {
+          try {
+            const restUrl = new URL(
+              "/rest/v1/cocktails",
+              envClient.NEXT_PUBLIC_SUPABASE_URL
+            );
+            restUrl.searchParams.set("id", `eq.${params.id}`);
+            restUrl.searchParams.set(
+              "select",
+              "id,name,description,image_url,alcohol_percentage,has_non_alcoholic_version"
+            );
+
+            const restResponse = await fetch(restUrl.toString(), {
+              headers: {
+                apikey: envClient.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+                Authorization: `Bearer ${envClient.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+              },
+            });
+
+            if (restResponse.ok) {
+              const restData = (await restResponse.json()) as CocktailRow[];
+              cocktailData = restData?.[0] ?? null;
+            } else {
+              // eslint-disable-next-line no-console
+              console.error(
+                "[PDP] REST cocktail fallback failed:",
+                restResponse.status,
+                restResponse.statusText
+              );
+            }
+          } catch (fallbackError) {
+            // eslint-disable-next-line no-console
+            console.error("[PDP] REST cocktail fallback error:", fallbackError);
+          }
+        }
+
+        if (!cocktailData) {
           if (cocktailError) {
             // eslint-disable-next-line no-console
             console.error("[PDP] cocktails query error:", cocktailError);
@@ -269,6 +306,11 @@ export default function CocktailDetailPage({
             setError("Cocktail not found");
           }
           return;
+        }
+
+        if (cocktailError) {
+          // eslint-disable-next-line no-console
+          console.warn("[PDP] cocktails query error (ignored):", cocktailError);
         }
 
         const queryLabels = [
