@@ -97,75 +97,7 @@ const nextConfig = {
     ];
   },
 
-  // Webpack optimizations
-  webpack: (config, { dev, isServer }) => {
-    // Optimizaciones de producción
-    if (!dev && !isServer) {
-      config.optimization.splitChunks = {
-        chunks: "all",
-        minSize: 20000,
-        maxSize: 100000,
-        cacheGroups: {
-          default: {
-            minChunks: 2,
-            priority: -20,
-            reuseExistingChunk: true,
-          },
-          // Chunk para librerías de UI
-          ui: {
-            test: /[\\/]node_modules[\\/](react|react-dom|framer-motion|@headlessui)[\\/]/,
-            name: "ui",
-            chunks: "all",
-            priority: 20,
-            maxSize: 50000,
-          },
-          // Chunk para librerías de datos
-          data: {
-            test: /[\\/]node_modules[\\/](@tanstack|zustand|@supabase)[\\/]/,
-            name: "data",
-            chunks: "all",
-            priority: 15,
-            maxSize: 60000,
-          },
-          // Chunk para librerías de utilidades
-          utils: {
-            test: /[\\/]node_modules[\\/](lodash|date-fns|clsx|tailwind-merge)[\\/]/,
-            name: "utils",
-            chunks: "all",
-            priority: 10,
-            maxSize: 30000,
-          },
-          // Chunk para librerías de pago
-          payment: {
-            test: /[\\/]node_modules[\\/](stripe|@stripe)[\\/]/,
-            name: "payment",
-            chunks: "all",
-            priority: 25,
-            maxSize: 40000,
-          },
-          // Chunk común optimizado
-          common: {
-            name: "common",
-            minChunks: 2,
-            chunks: "all",
-            priority: 5,
-            maxSize: 50000, // 50KB límite
-            reuseExistingChunk: true,
-          },
-          // Chunk para vendors restantes
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: "vendors",
-            priority: -10,
-            chunks: "all",
-            maxSize: 80000,
-          },
-        },
-      };
-    }
-
-    return config;
-  },
+  // Leave webpack chunking to Next defaults to avoid invalid asset tags.
 };
 
 module.exports = withBundleAnalyzer(nextConfig);
