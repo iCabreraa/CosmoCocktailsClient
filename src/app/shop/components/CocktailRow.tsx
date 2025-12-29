@@ -165,7 +165,7 @@ export default function CocktailRow({
                 className="min-w-[220px] flex-shrink-0 snap-start rounded-lg bg-white/5 backdrop-blur-sm p-4 border border-cosmic-gold/10 hover:border-cosmic-gold/30 hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-cosmic-gold/20 transform-gpu"
               >
                 <div className="relative">
-                  <Link href={`/shop/${cocktail.id}`}>
+                  <Link href={`/shop/${cocktail.id}`} prefetch={false}>
                     <div className="relative w-full h-48 rounded-lg overflow-hidden mb-4">
                       <Image
                         src={

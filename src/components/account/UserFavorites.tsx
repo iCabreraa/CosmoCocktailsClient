@@ -150,6 +150,7 @@ export default function UserFavorites() {
                 <div className="flex space-x-2">
                   <Link
                     href={`/shop/${cocktail.id}`}
+                    prefetch={false}
                     className="flex-1 flex items-center justify-center px-4 py-2 border border-slate-600 text-slate-200 rounded-lg hover:bg-white/10 transition-colors"
                   >
                     <HiOutlineEye className="h-4 w-4 mr-2" />

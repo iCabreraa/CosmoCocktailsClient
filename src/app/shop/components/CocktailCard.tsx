@@ -103,7 +103,7 @@ export default function CocktailCard({
 
   return (
     <div className="group relative">
-      <Link href={`/shop/${cocktail.id}`} className="block">
+      <Link href={`/shop/${cocktail.id}`} prefetch={false} className="block">
         <motion.div
           whileHover={{ scale: 1.03 }}
           transition={{ type: "spring", stiffness: 200, damping: 20 }}
