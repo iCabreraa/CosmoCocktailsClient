@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { createPublicClient } from "@/lib/supabase/public-client";
 import { envClient } from "@/lib/env-client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/store/cart";
@@ -187,7 +187,7 @@ export default function CocktailDetailPage({
   params: { id: string };
 }) {
   const { t } = useLanguage();
-  const supabase = createClient();
+  const supabase = createPublicClient();
   const addToCart = useCart(state => state.addToCart);
   const { notify } = useToast();
 
