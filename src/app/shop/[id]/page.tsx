@@ -159,7 +159,7 @@ const DETAIL_TABS: DetailTab[] = [
 ];
 
 const withTimeout = async <T,>(
-  promise: Promise<T>,
+  promise: PromiseLike<T>,
   label: string,
   ms = 10000
 ): Promise<T> => {
@@ -171,7 +171,8 @@ const withTimeout = async <T,>(
   });
 
   try {
-    return await Promise.race([promise, timeout]);
+    const safePromise = Promise.resolve(promise);
+    return await Promise.race([safePromise, timeout]);
   } finally {
     if (timeoutId) {
       clearTimeout(timeoutId);
@@ -244,7 +245,7 @@ export default function CocktailDetailPage({
       setError(null);
       try {
         const { data: cocktailDataRaw, error: cocktailError } =
-          await withTimeout(
+          (await withTimeout(
             supabase
               .from("cocktails")
               .select(
@@ -253,7 +254,10 @@ export default function CocktailDetailPage({
               .eq("id", params.id)
               .single(),
             "cocktails"
-          );
+          )) as {
+            data: CocktailRow | null;
+            error: unknown;
+          };
         const cocktailData = cocktailDataRaw as CocktailRow | null;
 
         if (!cocktailData || cocktailError) {
