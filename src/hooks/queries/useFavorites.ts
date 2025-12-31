@@ -10,10 +10,12 @@ export type FavoriteDetails = {
   description: string;
   price: number;
   image_url: string;
+  alcohol_percentage: number;
   category: string;
   added_at: string;
   sizes?: Array<{
     id: string;
+    sizes_id: string;
     name: string;
     volume_ml: number;
     price: number;

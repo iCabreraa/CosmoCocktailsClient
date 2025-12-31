@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
         alcohol_percentage,
         cocktail_sizes(
           id,
+          sizes_id,
           price,
           sizes(id, name, volume_ml)
         )
@@ -60,6 +61,7 @@ export async function GET(request: NextRequest) {
     const sizes =
       row.cocktails?.cocktail_sizes?.map((cs: any) => ({
         id: cs.id,
+        sizes_id: cs.sizes_id ?? cs.sizes?.id,
         name: cs.sizes?.name || "Tamaño",
         volume_ml: cs.sizes?.volume_ml || 0,
         price: cs.price,
@@ -70,6 +72,7 @@ export async function GET(request: NextRequest) {
       name: row.cocktails?.name,
       description: row.cocktails?.description,
       image_url: row.cocktails?.image_url,
+      alcohol_percentage: row.cocktails?.alcohol_percentage ?? 0,
       price: minPrice,
       category:
         row.cocktails?.alcohol_percentage > 0 ? "Alcohólico" : "Sin alcohol",
