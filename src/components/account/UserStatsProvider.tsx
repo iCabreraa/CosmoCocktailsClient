@@ -40,7 +40,7 @@ export default function UserStatsProvider({
       setError("");
 
       const [ordersResponse, favoritesResponse] = await Promise.all([
-        fetch("/api/orders?summary=1"),
+        fetch("/api/orders?summary=1&limit=3"),
         fetch("/api/favorites?mode=ids"),
       ]);
 
@@ -87,5 +87,4 @@ export default function UserStatsProvider({
 
   return <>{children({ ...stats, loading, error, refresh: fetchUserStats })}</>;
 }
-
 

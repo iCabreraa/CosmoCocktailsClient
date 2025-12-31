@@ -32,7 +32,7 @@ async function getOrder(id: string) {
   if (order && (order as any).user_id) {
     const { data: user } = await supabase
       .from("users")
-      .select("name, email")
+      .select("full_name, email")
       .eq("id", (order as any).user_id)
       .single();
     userData = user;
@@ -242,7 +242,7 @@ export default function OrderDetailPage({
               <div>
                 <span className="opacity-70">{t("order.name")}:</span>{" "}
                 {order.shipping_address?.name ||
-                  order.users?.name ||
+                  order.users?.full_name ||
                   t("order.user")}
               </div>
               <div>

@@ -54,11 +54,16 @@ const writeCachedIds = (favorites: Favorite[]) => {
 };
 
 export function useFavorites(
-  options: { enabled?: boolean; mode?: FavoritesMode } = {}
+  options: {
+    enabled?: boolean;
+    mode?: FavoritesMode;
+    page?: number;
+    pageSize?: number;
+  } = {}
 ) {
-  const { enabled = true, mode = "ids" } = options;
+  const { enabled = true, mode = "ids", page, pageSize } = options;
   const queryClient = useQueryClient();
-  const queryKey = ["favorites", mode];
+  const queryKey = ["favorites", mode, page ?? 1, pageSize ?? null];
   const supabase = createClient();
   const favoritesTable = supabase.from("user_favorites") as any;
   const getSessionUserId = async () => {
@@ -91,7 +96,14 @@ export function useFavorites(
         writeCachedIds(normalized);
         return normalized;
       }
-      const res = await fetch(`/api/favorites?mode=${mode}`);
+      const params = new URLSearchParams({ mode });
+      if (typeof page === "number") {
+        params.set("page", String(page));
+      }
+      if (typeof pageSize === "number") {
+        params.set("pageSize", String(pageSize));
+      }
+      const res = await fetch(`/api/favorites?${params.toString()}`);
       if (!res.ok) return [];
       const data = await res.json();
       const favorites = data.favorites ?? [];

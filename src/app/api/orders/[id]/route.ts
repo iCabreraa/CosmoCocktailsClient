@@ -43,7 +43,7 @@ export async function GET(
   if (order.user_id) {
     const { data: user } = await (supabase as any)
       .from("users")
-      .select("name, email")
+      .select("full_name, email")
       .eq("id", order.user_id)
       .single();
     userData = user;

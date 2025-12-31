@@ -35,6 +35,10 @@ export async function GET(request: NextRequest) {
     const includeItems = searchParams.get("includeItems") !== "0";
     const limitParam = searchParams.get("limit");
     const limit = limitParam ? Number(limitParam) : null;
+    const pageParam = searchParams.get("page");
+    const pageSizeParam = searchParams.get("pageSize");
+    const page = pageParam ? Number(pageParam) : null;
+    const pageSize = pageSizeParam ? Number(pageSizeParam) : null;
 
     const baseSelect =
       "id, total_amount, status, order_date, delivery_date";
@@ -57,7 +61,16 @@ export async function GET(request: NextRequest) {
       .eq("user_id", userId)
       .order("order_date", { ascending: false });
 
-    if (typeof limit === "number" && !Number.isNaN(limit)) {
+    if (
+      typeof page === "number" &&
+      page >= 1 &&
+      typeof pageSize === "number" &&
+      pageSize > 0
+    ) {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
+    } else if (typeof limit === "number" && !Number.isNaN(limit)) {
       query = query.limit(limit);
     }
 

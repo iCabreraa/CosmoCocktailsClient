@@ -7,6 +7,7 @@ import {
   HiOutlineEye,
   HiOutlineSparkles,
 } from "react-icons/hi2";
+import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
 import { useAuthUnified } from "@/hooks/useAuthUnified";
@@ -22,9 +23,13 @@ export default function UserFavorites() {
   const { user } = useAuthUnified();
   const addToCart = useCart(state => state.addToCart);
   const { notify } = useToast();
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
   const { favoritesQuery, removeFavorite } = useFavorites({
     enabled: Boolean(user),
     mode: "details",
+    page,
+    pageSize,
   });
   const favorites = (favoritesQuery.data ?? []) as FavoriteDetails[];
   const loading = favoritesQuery.isLoading;
@@ -75,6 +80,9 @@ export default function UserFavorites() {
     });
   };
 
+  const canPrev = page > 1;
+  const canNext = favorites.length === pageSize;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -114,7 +122,8 @@ export default function UserFavorites() {
 
       {/* Favorites Grid */}
       {favorites.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {favorites.map(cocktail => {
             const sizeMap = sizeSlots.reduce<
               Record<
@@ -226,7 +235,36 @@ export default function UserFavorites() {
               </div>
             );
           })}
-        </div>
+          </div>
+
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setPage(prev => Math.max(1, prev - 1))}
+              disabled={!canPrev}
+              className={`px-4 py-2 rounded-full border text-xs font-semibold uppercase tracking-[0.2em] transition ${
+                canPrev
+                  ? "border-cosmic-gold/40 text-cosmic-gold hover:bg-cosmic-gold/10"
+                  : "border-white/10 text-slate-500 cursor-not-allowed"
+              }`}
+            >
+              {t("common.prev")}
+            </button>
+            <span className="text-xs text-slate-400">{page}</span>
+            <button
+              type="button"
+              onClick={() => setPage(prev => prev + 1)}
+              disabled={!canNext}
+              className={`px-4 py-2 rounded-full border text-xs font-semibold uppercase tracking-[0.2em] transition ${
+                canNext
+                  ? "border-cosmic-gold/40 text-cosmic-gold hover:bg-cosmic-gold/10"
+                  : "border-white/10 text-slate-500 cursor-not-allowed"
+              }`}
+            >
+              {t("common.next")}
+            </button>
+          </div>
+        </>
       ) : (
         <div className="bg-white/5 backdrop-blur-md rounded-lg border border-slate-700/40 p-12 text-center">
           <HiOutlineHeart className="h-16 w-16 text-gray-400 mx-auto mb-4" />

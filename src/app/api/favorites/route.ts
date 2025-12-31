@@ -10,6 +10,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const mode = request.nextUrl.searchParams.get("mode");
+  const pageParam = request.nextUrl.searchParams.get("page");
+  const pageSizeParam = request.nextUrl.searchParams.get("pageSize");
+  const page = pageParam ? Number(pageParam) : null;
+  const pageSize = pageSizeParam ? Number(pageSizeParam) : null;
 
   if (mode === "ids") {
     const { data, error } = await supabase
@@ -25,7 +29,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ favorites: data ?? [] });
   }
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("user_favorites")
     .select(
       `
@@ -47,6 +51,15 @@ export async function GET(request: NextRequest) {
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
+
+  if (page && page >= 1) {
+    const size = pageSize && pageSize > 0 ? pageSize : 5;
+    const from = (page - 1) * size;
+    const to = from + size - 1;
+    query = query.range(from, to);
+  }
+
+  const { data, error } = await query;
 
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });

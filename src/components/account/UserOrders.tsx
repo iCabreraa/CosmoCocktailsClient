@@ -30,7 +30,11 @@ export default function UserOrders() {
   const { t, language } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const pageSize = 5;
 
   const locale = useMemo(() => {
     if (language === "en") return "en-GB";
@@ -56,25 +60,35 @@ export default function UserOrders() {
     }).format(value ?? 0);
 
   useEffect(() => {
-    fetchUserOrders();
+    fetchUserOrders(1, false);
   }, [t]);
 
-  const fetchUserOrders = async () => {
+  const fetchUserOrders = async (pageToLoad = 1, append = false) => {
     try {
-      setLoading(true);
-      setError("");
-      const response = await fetch("/api/orders?summary=1&includeItems=0");
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+        setError("");
+      }
+      const response = await fetch(
+        `/api/orders?summary=1&includeItems=0&page=${pageToLoad}&pageSize=${pageSize}`
+      );
       if (response.status === 401) {
         throw new Error(t("auth.session_expired_message"));
       }
       if (!response.ok) throw new Error(t("common.error"));
 
       const data = await response.json();
-      setOrders(data.orders || []);
+      const nextOrders = data.orders || [];
+      setOrders(prev => (append ? [...prev, ...nextOrders] : nextOrders));
+      setHasMore(nextOrders.length === pageSize);
+      setPage(pageToLoad);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -238,6 +252,22 @@ export default function UserOrders() {
               </div>
             </div>
           ))}
+          {hasMore && (
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={() => fetchUserOrders(page + 1, true)}
+                disabled={loadingMore}
+                className={`px-6 py-2 rounded-full border text-xs font-semibold uppercase tracking-[0.2em] transition ${
+                  loadingMore
+                    ? "border-white/10 text-slate-500 cursor-wait"
+                    : "border-cosmic-gold/40 text-cosmic-gold hover:bg-cosmic-gold/10"
+                }`}
+              >
+                {loadingMore ? t("shop.loading_more") : t("shop.load_more")}
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="bg-white/5 backdrop-blur-md rounded-lg border border-slate-700/40 p-12 text-center">
