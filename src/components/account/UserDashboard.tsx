@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { User } from "@/types/user-system";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
@@ -129,7 +130,7 @@ export default function UserDashboard({
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-3">
-        <a
+        <Link
           href="/shop"
           className="group rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-sm font-medium text-slate-100 backdrop-blur transition hover:border-cosmic-gold/40 hover:text-cosmic-gold"
         >
@@ -137,8 +138,8 @@ export default function UserDashboard({
             <HiOutlineShoppingBag className="h-5 w-5 text-slate-300 group-hover:text-cosmic-gold" />
             <span>{t("dashboard.view_catalog")}</span>
           </div>
-        </a>
-        <a
+        </Link>
+        <Link
           href="/account?tab=favorites"
           className="group rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-sm font-medium text-slate-100 backdrop-blur transition hover:border-cosmic-gold/40 hover:text-cosmic-gold"
         >
@@ -146,8 +147,8 @@ export default function UserDashboard({
             <HiOutlineHeart className="h-5 w-5 text-slate-300 group-hover:text-cosmic-gold" />
             <span>{t("dashboard.view_favorites")}</span>
           </div>
-        </a>
-        <a
+        </Link>
+        <Link
           href="/account?tab=orders"
           className="group rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-sm font-medium text-slate-100 backdrop-blur transition hover:border-cosmic-gold/40 hover:text-cosmic-gold"
         >
@@ -155,7 +156,7 @@ export default function UserDashboard({
             <HiOutlineClock className="h-5 w-5 text-slate-300 group-hover:text-cosmic-gold" />
             <span>{t("dashboard.view_orders")}</span>
           </div>
-        </a>
+        </Link>
       </div>
 
       {/* Recent Orders */}
