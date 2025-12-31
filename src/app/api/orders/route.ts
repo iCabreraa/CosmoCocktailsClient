@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     let userId = user?.id ?? null;
 
-    if (!userId && authError) {
+    if (!userId) {
       const legacy = await getAuthContext();
       userId = legacy?.userId ?? null;
     }
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     const limit = limitParam ? Number(limitParam) : null;
 
     const baseSelect =
-      "id, total_amount, status, order_date, delivery_date, created_at";
+      "id, total_amount, status, order_date, delivery_date";
     const summarySelect = `${baseSelect},
          order_items ( id )`;
 
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
         id: o.id,
         total_amount: o.total_amount,
         status: o.status,
-        created_at: o.order_date || o.created_at,
+        created_at: o.order_date,
         delivery_date: o.delivery_date,
       };
 
