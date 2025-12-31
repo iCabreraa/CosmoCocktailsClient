@@ -755,6 +755,10 @@ const en = {
     "login_error": "Sign in error",
     "login_success": "Signed in",
     "login_success_message": "You have successfully signed in.",
+    "logout_success_title": "Signed out",
+    "logout_success_message": "You have successfully signed out.",
+    "logout_error_title": "Sign out error",
+    "logout_error_message": "We couldn't sign you out. Please try again.",
     "register_error": "Registration error",
     "register_success": "Account created",
     "register_success_message": "Check your email to confirm your account.",
@@ -785,7 +789,10 @@ const en = {
     "password_min_length": "Password must be at least 6 characters",
     "passwords_not_match": "Passwords do not match",
     "email_invalid": "Invalid email",
-    "name_required": "Name is required"
+    "name_required": "Name is required",
+    "legal_prefix": "By continuing, you agree to the",
+    "legal_privacy": "privacy policy",
+    "legal_suffix": "."
   }
 } as const;
 

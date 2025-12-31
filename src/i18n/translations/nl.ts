@@ -226,6 +226,10 @@ const nl = {
     "login_error": "Inlogfout",
     "login_success": "Ingelogd",
     "login_success_message": "Je bent succesvol ingelogd.",
+    "logout_success_title": "Uitgelogd",
+    "logout_success_message": "Je bent succesvol uitgelogd.",
+    "logout_error_title": "Uitlogfout",
+    "logout_error_message": "We konden je niet uitloggen. Probeer het opnieuw.",
     "register_error": "Registratiefout",
     "register_success": "Account aangemaakt",
     "register_success_message": "Controleer je e-mail om je account te bevestigen.",
@@ -256,7 +260,10 @@ const nl = {
     "password_min_length": "Wachtwoord moet minimaal 6 tekens zijn",
     "passwords_not_match": "Wachtwoorden komen niet overeen",
     "email_invalid": "Ongeldige email",
-    "name_required": "Naam is verplicht"
+    "name_required": "Naam is verplicht",
+    "legal_prefix": "Door verder te gaan ga je akkoord met het",
+    "legal_privacy": "privacybeleid",
+    "legal_suffix": "."
   },
   "dashboard": {
     "welcome": "Welkom terug, {{name}}! 🚀",

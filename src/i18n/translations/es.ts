@@ -711,6 +711,10 @@ const es = {
     "login_error": "Error de inicio de sesión",
     "login_success": "Sesión iniciada",
     "login_success_message": "Has iniciado sesión correctamente.",
+    "logout_success_title": "Sesión cerrada",
+    "logout_success_message": "Has cerrado sesión correctamente.",
+    "logout_error_title": "Error al cerrar sesión",
+    "logout_error_message": "No pudimos cerrar tu sesión. Inténtalo de nuevo.",
     "register_error": "Error de registro",
     "register_success": "Cuenta creada",
     "register_success_message": "Revisa tu email para confirmar tu cuenta.",
@@ -741,7 +745,10 @@ const es = {
     "password_min_length": "La contraseña debe tener al menos 6 caracteres",
     "passwords_not_match": "Las contraseñas no coinciden",
     "email_invalid": "Email inválido",
-    "name_required": "El nombre es requerido"
+    "name_required": "El nombre es requerido",
+    "legal_prefix": "Al continuar, aceptas la",
+    "legal_privacy": "política de privacidad",
+    "legal_suffix": "."
   }
 } as const;
 

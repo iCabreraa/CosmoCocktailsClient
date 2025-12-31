@@ -13,6 +13,7 @@ import {
 } from "@/components/ErrorNotification";
 import AccountTabs from "@/components/account/AccountTabs";
 import CosmicBackground from "@/components/ui/CosmicBackground";
+import PrivacyModal from "@/components/privacy/PrivacyModal";
 import {
   HiOutlineEye,
   HiOutlineEyeSlash,
@@ -40,6 +41,7 @@ export default function AccountPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -144,8 +146,24 @@ export default function AccountPage() {
   };
 
   const handleLogout = async () => {
-    await logout();
+    const { error } = await logout();
+    if (error) {
+      addNotification({
+        type: "error",
+        title: t("auth.logout_error_title"),
+        message: t("auth.logout_error_message"),
+        duration: 5000,
+      });
+      return;
+    }
+    addNotification({
+      type: "success",
+      title: t("auth.logout_success_title"),
+      message: t("auth.logout_success_message"),
+      duration: 3000,
+    });
     router.push("/");
+    router.refresh();
   };
 
   if (loading) {
@@ -371,6 +389,18 @@ export default function AccountPage() {
               )}
             </motion.button>
 
+            <div className="text-center text-xs text-slate-400">
+              {t("auth.legal_prefix")}{" "}
+              <button
+                type="button"
+                onClick={() => setIsPrivacyOpen(true)}
+                className="text-cosmic-gold hover:text-sky-300 transition-colors font-medium"
+              >
+                {t("auth.legal_privacy")}
+              </button>
+              {t("auth.legal_suffix")}
+            </div>
+
             {/* Toggle Login/Register */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -425,6 +455,10 @@ export default function AccountPage() {
           />
         ))}
       </motion.div>
+      <PrivacyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
     </CosmicBackground>
   );
 }
