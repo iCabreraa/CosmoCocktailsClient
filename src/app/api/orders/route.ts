@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 import { envServer } from "@/lib/env-server";
 import { getAuthContext } from "@/lib/security/auth";
 
@@ -7,12 +8,24 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await getAuthContext();
-    if (!auth) {
+    const supabaseAuth = createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAuth.auth.getUser();
+
+    let userId = user?.id ?? null;
+
+    if (!userId && authError) {
+      const legacy = await getAuthContext();
+      userId = legacy?.userId ?? null;
+    }
+
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = createClient(
+    const supabase = createAdminClient(
       envServer.NEXT_PUBLIC_SUPABASE_URL,
       envServer.SUPABASE_SERVICE_ROLE_KEY
     );
@@ -41,7 +54,7 @@ export async function GET(request: NextRequest) {
     let query = (supabase as any)
       .from("orders")
       .select(selectClause)
-      .eq("user_id", auth.userId)
+      .eq("user_id", userId)
       .order("order_date", { ascending: false });
 
     if (typeof limit === "number" && !Number.isNaN(limit)) {

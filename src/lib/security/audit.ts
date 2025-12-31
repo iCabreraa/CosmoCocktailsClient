@@ -11,8 +11,6 @@ export interface SecurityEvent {
     | "permission_denied"
     | "suspicious_activity";
   description: string;
-  ip_address?: string;
-  user_agent?: string;
   metadata?: Record<string, any>;
   created_at?: string;
 }
@@ -22,12 +20,19 @@ export class SecurityAuditor {
 
   async logEvent(event: Omit<SecurityEvent, "id" | "created_at">) {
     try {
+      const details = {
+        description: event.description,
+        ip_address: await this.getClientIP(),
+        user_agent: navigator.userAgent,
+        ...(event.metadata ? { metadata: event.metadata } : {}),
+      };
+
       const { data, error } = await (this.supabase as any)
         .from("security_events")
         .insert({
-          ...event,
-          ip_address: await this.getClientIP(),
-          user_agent: navigator.userAgent,
+          event_type: event.event_type,
+          user_id: event.user_id,
+          details,
           created_at: new Date().toISOString(),
         });
 
@@ -76,13 +81,7 @@ export class SecurityAuditor {
   }
 
   private async getClientIP(): Promise<string> {
-    try {
-      const response = await fetch("https://api.ipify.org?format=json");
-      const data = await response.json();
-      return data.ip;
-    } catch {
-      return "unknown";
-    }
+    return "unknown";
   }
 
   async getSecurityEvents(userId?: string, limit = 100) {

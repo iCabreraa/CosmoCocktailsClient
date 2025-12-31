@@ -46,6 +46,9 @@ export function useTheme() {
         }
       } catch (error) {
         if (!isMounted) return;
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
         console.error("Error loading preferences:", error);
         // Fallback al tema del sistema
         const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
