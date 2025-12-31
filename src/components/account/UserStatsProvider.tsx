@@ -13,7 +13,11 @@ interface UserStats {
 interface UserStatsProviderProps {
   user: User;
   children: (
-    stats: UserStats & { loading: boolean; error: string }
+    stats: UserStats & {
+      loading: boolean;
+      error: string;
+      refresh: () => void;
+    }
   ) => React.ReactNode;
 }
 
@@ -29,10 +33,6 @@ export default function UserStatsProvider({
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    fetchUserStats();
-  }, [user.id]);
 
   const fetchUserStats = async () => {
     try {
@@ -81,8 +81,11 @@ export default function UserStatsProvider({
     }
   };
 
-  return <>{children({ ...stats, loading, error })}</>;
-}
+  useEffect(() => {
+    fetchUserStats();
+  }, [user.id]);
 
+  return <>{children({ ...stats, loading, error, refresh: fetchUserStats })}</>;
+}
 
 

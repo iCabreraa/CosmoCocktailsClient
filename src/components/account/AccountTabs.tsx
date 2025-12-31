@@ -99,14 +99,6 @@ export default function AccountTabs({
     router.push(`/account?${params.toString()}`, { scroll: false });
   };
 
-  // Mock data - en el futuro esto vendrá de APIs
-  const mockStats = {
-    totalOrders: 0,
-    totalSpent: 0,
-    favoriteCocktails: 0,
-    recentOrders: [],
-  };
-
   const renderTabContent = () => {
     switch (activeTab) {
       case "dashboard":
@@ -119,6 +111,7 @@ export default function AccountTabs({
               recentOrders,
               loading,
               error,
+              refresh,
             }) => (
               <UserDashboard
                 user={user}
@@ -128,6 +121,9 @@ export default function AccountTabs({
                   favoriteCocktails,
                   recentOrders,
                 }}
+                loading={loading}
+                error={error}
+                onRefresh={refresh}
               />
             )}
           </UserStatsProvider>
@@ -150,6 +146,7 @@ export default function AccountTabs({
               recentOrders,
               loading,
               error,
+              refresh,
             }) => (
               <UserDashboard
                 user={user}
@@ -159,6 +156,9 @@ export default function AccountTabs({
                   favoriteCocktails,
                   recentOrders,
                 }}
+                loading={loading}
+                error={error}
+                onRefresh={refresh}
               />
             )}
           </UserStatsProvider>
