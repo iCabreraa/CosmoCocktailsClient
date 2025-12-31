@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ShoppingCart, User, Menu, X, Globe } from "lucide-react";
+import { ShoppingCart, User, Menu, X } from "lucide-react";
 import { FaInstagram } from "react-icons/fa";
 import {
   HiOutlineHome,
@@ -23,13 +23,12 @@ import clsx from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSelector from "@/components/ui/LanguageSelector";
-import UserAvatar from "@/components/ui/UserAvatar";
-import RoleBadge from "@/components/ui/RoleBadge";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useFavorites } from "@/hooks/queries/useFavorites";
 import { useCart } from "@/store/cart";
 import { createClient } from "@/lib/supabase/client";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useToast } from "@/components/feedback/ToastProvider";
 import "@fontsource/major-mono-display";
 
 export default function Navbar() {
@@ -39,11 +38,16 @@ export default function Navbar() {
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const { t } = useLanguage();
   const { canAccess: canAccessAdmin } = useAdminAccess();
   const pathname = usePathname();
+  const router = useRouter();
+  const { notify } = useToast();
   const hasFavoritesAccess = Boolean(user);
-  const { favoritesQuery } = useFavorites({ enabled: hasFavoritesAccess });
+  const { favoritesQuery } = useFavorites({
+    enabled: hasFavoritesAccess && accountDropdownOpen,
+  });
   const favoritesCount = hasFavoritesAccess
     ? favoritesQuery.data?.length ?? 0
     : 0;
@@ -73,12 +77,14 @@ export default function Navbar() {
 
   // Auto-open account dropdown if we're in account section
   useEffect(() => {
-    if (isInAccountSection) {
-      setAccountDropdownOpen(true);
-    } else {
+    if (!isInAccountSection) {
       setAccountDropdownOpen(false);
+      return;
     }
-  }, [isInAccountSection]);
+    if (menuOpen) {
+      setAccountDropdownOpen(true);
+    }
+  }, [isInAccountSection, menuOpen]);
 
   const navLinks = [
     { key: "home", href: "/", icon: HiOutlineHome },
@@ -93,6 +99,22 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!accountDropdownOpen || menuOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setAccountDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [accountDropdownOpen, menuOpen]);
 
   useEffect(() => {
     const getUser = async () => {
@@ -166,12 +188,27 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       const supabase = createClient();
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
       setUser(null);
       setMenuOpen(false);
-      window.location.href = "/";
+      setAccountDropdownOpen(false);
+      notify({
+        type: "success",
+        title: t("auth.logout_success_title"),
+        message: t("auth.logout_success_message"),
+      });
+      router.push("/");
+      router.refresh();
     } catch (error) {
       console.error("Error logging out:", error);
+      notify({
+        type: "error",
+        title: t("auth.logout_error_title"),
+        message: t("auth.logout_error_message"),
+      });
     }
   };
 
@@ -507,20 +544,6 @@ export default function Navbar() {
 
                 {/* Right Side Elements - More space from edge */}
                 <div className="absolute right-12 top-0 flex items-center space-x-4">
-                  {hasFavoritesAccess && (
-                    <Link
-                      href="/account?tab=favorites"
-                      className="relative hover:text-cosmic-gold transition-colors duration-200"
-                      aria-label={t("account.tabs.favorites")}
-                    >
-                      <HiOutlineHeart className="w-5 h-5" />
-                      {favoritesCount > 0 && (
-                        <span className="absolute -top-2 -right-2 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-cosmic-gold px-1 text-[10px] font-semibold text-black">
-                          {favoritesCount > 9 ? "9+" : favoritesCount}
-                        </span>
-                      )}
-                    </Link>
-                  )}
                   <Link
                     href="/cart"
                     className="relative hover:text-cosmic-gold transition-colors duration-200"
@@ -546,18 +569,110 @@ export default function Navbar() {
                     </Link>
                   )}
 
-                  {/* User Account Icon with Login Indicator */}
-                  <Link
-                    href={user ? "/account?tab=dashboard" : "/account"}
-                    className="hover:text-cosmic-gold transition-colors duration-200 relative"
-                    aria-label={user ? "User Dashboard" : "User Account"}
-                  >
-                    <User className="w-5 h-5" />
-                    {/* Login Indicator Circle */}
-                    {user && (
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-cosmic-gold rounded-full border border-slate-900"></div>
-                    )}
-                  </Link>
+                  {/* User Account */}
+                  {user ? (
+                    <div className="relative" ref={dropdownRef}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAccountDropdownOpen(prev => !prev)
+                        }
+                        className="hover:text-cosmic-gold transition-colors duration-200 relative"
+                        aria-label={t("nav.account")}
+                        aria-expanded={accountDropdownOpen}
+                      >
+                        <User className="w-5 h-5" />
+                        <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full border border-slate-900 bg-cosmic-gold" />
+                      </button>
+
+                      <AnimatePresence>
+                        {accountDropdownOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 8 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute right-0 mt-4 w-64 rounded-2xl border border-white/10 bg-slate-950/90 p-3 text-left shadow-2xl backdrop-blur-xl"
+                          >
+                            <div className="px-3 pb-3">
+                              <p className="text-sm font-semibold text-slate-100">
+                                {user?.full_name ||
+                                  user?.email?.split("@")[0] ||
+                                  t("common.user")}
+                              </p>
+                              <p className="text-xs text-slate-400">
+                                {user?.email}
+                              </p>
+                            </div>
+                            <div className="h-px w-full bg-white/10" />
+                            <div className="mt-3 space-y-1">
+                              {getAccountTabs().map(tab => {
+                                const Icon = tab.icon;
+                                const currentTab = getCurrentAccountTab();
+                                const isActive = currentTab === tab.id;
+                                return (
+                                  <Link
+                                    key={tab.id}
+                                    href={tab.href}
+                                    onClick={() =>
+                                      setAccountDropdownOpen(false)
+                                    }
+                                    className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                                      isActive
+                                        ? "bg-white/10 text-sky-300"
+                                        : "text-slate-300 hover:bg-white/5 hover:text-slate-100"
+                                    }`}
+                                  >
+                                    <span className="flex items-center gap-2">
+                                      <Icon className="h-4 w-4" />
+                                      {tab.name}
+                                    </span>
+                                    {tab.id === "favorites" &&
+                                      favoritesCount > 0 && (
+                                        <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-cosmic-gold px-1 text-[10px] font-semibold text-black">
+                                          {favoritesCount > 9
+                                            ? "9+"
+                                            : favoritesCount}
+                                        </span>
+                                      )}
+                                  </Link>
+                                );
+                              })}
+                              {canAccessAdmin && (
+                                <Link
+                                  href="/admin"
+                                  onClick={() =>
+                                    setAccountDropdownOpen(false)
+                                  }
+                                  className="flex items-center rounded-lg px-3 py-2 text-sm font-medium text-cosmic-gold hover:bg-cosmic-gold/10 transition-colors"
+                                >
+                                  <HiOutlineCog6Tooth className="mr-2 h-4 w-4" />
+                                  {t("admin.short")}
+                                </Link>
+                              )}
+                            </div>
+                            <div className="mt-3 h-px w-full bg-white/10" />
+                            <button
+                              type="button"
+                              onClick={handleLogout}
+                              className="mt-3 flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-500/10 transition-colors"
+                            >
+                              <HiXMark className="mr-2 h-4 w-4" />
+                              {t("account.logout")}
+                            </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ) : (
+                    <Link
+                      href="/account"
+                      className="hover:text-cosmic-gold transition-colors duration-200 relative"
+                      aria-label={t("nav.login")}
+                    >
+                      <User className="w-5 h-5" />
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

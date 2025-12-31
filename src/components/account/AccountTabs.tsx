@@ -167,7 +167,7 @@ export default function AccountTabs({
   };
 
   return (
-    <div className="min-h-screen text-slate-100 bg-[radial-gradient(ellipse_at_top,_#0b1220_0%,_#040816_40%,_#00030a_100%)]">
+    <div className="min-h-screen text-slate-100 bg-transparent">
       <div className="flex flex-col lg:flex-row">
         {/* Desktop Sidebar */}
         <div className="hidden lg:block w-64 bg-white/5 backdrop-blur-md border-r border-slate-700/40 min-h-screen sticky top-0 pt-16">
