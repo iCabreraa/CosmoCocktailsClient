@@ -30,6 +30,7 @@ export default function AccountPage() {
     signIn: login,
     signUp: signup,
     signOut: logout,
+    updateProfile,
     error: authError,
   } = useAuthUnified();
 
@@ -180,8 +181,22 @@ export default function AccountPage() {
         <AccountTabs
           user={user}
           onUpdate={async updates => {
-            // Aquí implementarías la lógica de actualización
-            console.log("Updating user:", updates);
+            const { error } = await updateProfile(updates);
+            if (error) {
+              addNotification({
+                type: "error",
+                title: t("profile.update_error"),
+                message: error.message || t("common.error"),
+                duration: 5000,
+              });
+              throw new Error(error.message || t("common.error"));
+            }
+            addNotification({
+              type: "success",
+              title: t("profile.update_success"),
+              message: t("profile.update_success_message"),
+              duration: 3000,
+            });
           }}
           onLogout={handleLogout}
         />

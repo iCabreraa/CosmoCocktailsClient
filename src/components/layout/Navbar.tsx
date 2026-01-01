@@ -11,7 +11,6 @@ import {
   HiOutlineUser,
   HiOutlineShoppingBag,
   HiOutlineHeart,
-  HiOutlineMapPin,
   HiOutlineCog,
   HiOutlineCog6Tooth,
   HiXMark,
@@ -238,12 +237,6 @@ export default function Navbar() {
         name: t("account.tabs.favorites"),
         icon: HiOutlineHeart,
         href: "/account?tab=favorites",
-      },
-      {
-        id: "addresses",
-        name: t("account.tabs.addresses"),
-        icon: HiOutlineMapPin,
-        href: "/account?tab=addresses",
       },
       {
         id: "settings",
