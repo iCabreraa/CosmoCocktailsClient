@@ -58,6 +58,12 @@ export default function UserFavorites() {
     return null;
   };
 
+  const isOutOfStock = (
+    size: NonNullable<FavoriteDetails["sizes"]>[number]
+  ) =>
+    size.available === false ||
+    (typeof size.stock_quantity === "number" && size.stock_quantity <= 0);
+
   const handleAddToCart = (
     cocktail: FavoriteDetails,
     size: NonNullable<FavoriteDetails["sizes"]>[number] | undefined
@@ -129,31 +135,33 @@ export default function UserFavorites() {
       {favorites.length > 0 ? (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {favorites.map(cocktail => {
-            const sizeMap = sizeSlots.reduce<
-              Record<
-                string,
-                NonNullable<FavoriteDetails["sizes"]>[number] | undefined
-              >
-            >((acc, slot) => {
-              acc[slot.key] = undefined;
-              return acc;
-            }, {});
+            {favorites.map(cocktail => {
+              const sizeMap = sizeSlots.reduce<
+                Record<
+                  string,
+                  NonNullable<FavoriteDetails["sizes"]>[number] | undefined
+                >
+              >((acc, slot) => {
+                acc[slot.key] = undefined;
+                return acc;
+              }, {});
 
-            (cocktail.sizes ?? []).forEach(size => {
-              const slotKey = resolveSlotKey(size);
-              if (!slotKey || sizeMap[slotKey]) return;
-              sizeMap[slotKey] = size;
-            });
+              (cocktail.sizes ?? []).forEach(size => {
+                const slotKey = resolveSlotKey(size);
+                if (!slotKey || sizeMap[slotKey]) return;
+                sizeMap[slotKey] = size;
+              });
+              const imageSrc =
+                cocktail.image_url || "/images/placeholder.webp";
 
-            return (
-              <div
-                key={cocktail.id}
-                className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md transition hover:border-cosmic-gold/40 hover:shadow-[0_0_24px_rgba(219,184,99,.12)]"
-              >
+              return (
+                <div
+                  key={cocktail.id}
+                  className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md transition hover:border-cosmic-gold/40 hover:shadow-[0_0_24px_rgba(219,184,99,.12)]"
+                >
                 <div className="relative h-52">
                   <Image
-                    src={cocktail.image_url}
+                    src={imageSrc}
                     alt={cocktail.name}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -188,11 +196,14 @@ export default function UserFavorites() {
                     {sizeSlots.map(slot => {
                       const size = sizeMap[slot.key];
                       const missing = !size;
-                      const volumeLabel = `${size?.volume_ml ?? slot.volume}ml`;
+                      const outOfStock = size ? isOutOfStock(size) : false;
+                      const disabled = missing || outOfStock;
+                      const volumeValue =
+                        size?.volume_ml ?? slot.volume ?? 0;
+                      const volumeLabel = `${volumeValue}ml`.toUpperCase();
                       const priceLabel = missing
                         ? t("shop.price_placeholder")
                         : `€${size?.price.toFixed(2)}`;
-                      const disabled = missing;
 
                       return (
                         <button
@@ -200,21 +211,51 @@ export default function UserFavorites() {
                           type="button"
                           onClick={() => handleAddToCart(cocktail, size)}
                           disabled={disabled}
-                          className={`flex items-center justify-between rounded-xl border px-4 py-2 text-left text-[11px] uppercase tracking-[0.18em] transition ${
+                          className={`group/button relative flex items-center justify-between gap-3 overflow-hidden rounded-xl border px-4 py-2 text-left text-[11px] uppercase tracking-[0.12em] transition ${
                             disabled
-                              ? "cursor-not-allowed border-white/10 bg-white/5 text-slate-500"
+                              ? "cursor-not-allowed border-cosmic-gold/20 bg-white/5 text-cosmic-silver/60"
                               : "border-cosmic-gold/30 bg-white/5 text-cosmic-silver hover:border-cosmic-gold hover:bg-cosmic-gold/10 hover:text-white"
                           }`}
                         >
                           <span className="flex flex-col gap-0.5">
-                            <span className="text-[10px] text-cosmic-gold/80">
+                            <span
+                              className={`text-[10px] ${
+                                disabled
+                                  ? "text-cosmic-gold/60"
+                                  : "text-cosmic-gold/80 group-hover/button:text-white"
+                              }`}
+                            >
                               {slot.label}
                             </span>
-                            <span className="text-[9px] text-slate-400">
+                            <span
+                              className={`text-[9px] uppercase tracking-[0.2em] ${
+                                disabled
+                                  ? "text-cosmic-silver/50"
+                                  : "text-cosmic-silver/70 group-hover/button:text-white/80"
+                              }`}
+                            >
                               {volumeLabel}
                             </span>
                           </span>
-                          <span className="text-cosmic-gold">{priceLabel}</span>
+                          <span
+                            className={`${
+                              disabled
+                                ? "text-cosmic-gold/60"
+                                : "text-cosmic-gold group-hover/button:text-white"
+                            }`}
+                            >
+                              {priceLabel}
+                            </span>
+                            {outOfStock && (
+                              <span className="pointer-events-none absolute -right-6 top-2 rotate-45 whitespace-nowrap bg-red-500/90 px-8 py-0.5 text-[9px] uppercase tracking-[0.2em] text-white">
+                                {t("shop.out_of_stock_short")}
+                              </span>
+                            )}
+                            {missing && (
+                              <span className="pointer-events-none absolute -right-6 top-2 rotate-45 whitespace-nowrap bg-gradient-to-r from-cosmic-gold/80 via-sky-200/80 to-cosmic-gold/80 px-8 py-0.5 text-[9px] uppercase tracking-[0.2em] text-black">
+                                {t("shop.coming_soon_short")}
+                              </span>
+                            )}
                         </button>
                       );
                     })}
@@ -239,7 +280,7 @@ export default function UserFavorites() {
                 </div>
               </div>
             );
-          })}
+            })}
           </div>
 
           <div className="flex items-center justify-center gap-3 pt-2">

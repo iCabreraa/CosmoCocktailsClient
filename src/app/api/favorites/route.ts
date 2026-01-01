@@ -29,26 +29,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ favorites: data ?? [] });
   }
 
-  let query = supabase
+  let favoritesQuery = supabase
     .from("user_favorites")
-    .select(
-      `
-      cocktail_id, 
-      created_at, 
-      cocktails(
-        name, 
-        description, 
-        image_url, 
-        alcohol_percentage,
-        cocktail_sizes(
-          id,
-          sizes_id,
-          price,
-          sizes(id, name, volume_ml)
-        )
-      )
-      `
-    )
+    .select("cocktail_id, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -56,43 +39,95 @@ export async function GET(request: NextRequest) {
     const size = pageSize && pageSize > 0 ? pageSize : 5;
     const from = (page - 1) * size;
     const to = from + size - 1;
-    query = query.range(from, to);
+    favoritesQuery = favoritesQuery.range(from, to);
   }
 
-  const { data, error } = await query;
+  const { data: favoritesRows, error: favoritesError } =
+    await favoritesQuery;
 
-  if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (favoritesError)
+    return NextResponse.json(
+      { error: favoritesError.message },
+      { status: 500 }
+    );
 
-  const favorites = (data || []).map((row: any) => {
-    // Obtener el precio mínimo de todos los tamaños disponibles
-    const prices =
-      row.cocktails?.cocktail_sizes?.map((cs: any) => cs.price) || [];
-    const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+  const cocktailIds =
+    favoritesRows?.map(row => row.cocktail_id).filter(Boolean) ?? [];
 
-    // Preparar tamaños disponibles
-    const sizes =
-      row.cocktails?.cocktail_sizes?.map((cs: any) => ({
-        id: cs.id,
-        sizes_id: cs.sizes_id ?? cs.sizes?.id,
-        name: cs.sizes?.name || "Tamaño",
-        volume_ml: cs.sizes?.volume_ml || 0,
-        price: cs.price,
-      })) || [];
+  if (cocktailIds.length === 0) {
+    return NextResponse.json({ favorites: [] });
+  }
 
-    return {
-      id: row.cocktail_id,
-      name: row.cocktails?.name,
-      description: row.cocktails?.description,
-      image_url: row.cocktails?.image_url,
-      alcohol_percentage: row.cocktails?.alcohol_percentage ?? 0,
-      price: minPrice,
-      category:
-        row.cocktails?.alcohol_percentage > 0 ? "Alcohólico" : "Sin alcohol",
-      added_at: row.created_at,
-      sizes: sizes,
-    };
-  });
+  const { data: cocktailsData, error: cocktailsError } = await supabase
+    .from("cocktails")
+    .select(
+      `
+      id,
+      name,
+      description,
+      image_url,
+      alcohol_percentage,
+      cocktail_sizes(
+        id,
+        sizes_id,
+        available,
+        stock_quantity,
+        price,
+        sizes(id, name, volume_ml)
+      )
+      `
+    )
+    .in("id", cocktailIds);
+
+  if (cocktailsError)
+    return NextResponse.json(
+      { error: cocktailsError.message },
+      { status: 500 }
+    );
+
+  const cocktailsById = new Map(
+    (cocktailsData ?? []).map((cocktail: any) => [
+      cocktail.id,
+      cocktail,
+    ])
+  );
+
+  const favorites = (favoritesRows || [])
+    .map((row: any) => {
+      const cocktail = cocktailsById.get(row.cocktail_id);
+      if (!cocktail) return null;
+
+      // Obtener el precio minimo de todos los tamaños disponibles
+      const prices =
+        cocktail.cocktail_sizes?.map((cs: any) => cs.price) || [];
+      const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+
+      // Preparar tamaños disponibles
+      const sizes =
+        cocktail.cocktail_sizes?.map((cs: any) => ({
+          id: cs.id,
+          sizes_id: cs.sizes_id ?? cs.sizes?.id,
+          name: cs.sizes?.name || "Tamaño",
+          volume_ml: cs.sizes?.volume_ml || 0,
+          price: cs.price,
+          available: cs.available,
+          stock_quantity: cs.stock_quantity,
+        })) || [];
+
+      return {
+        id: row.cocktail_id,
+        name: cocktail.name,
+        description: cocktail.description,
+        image_url: cocktail.image_url,
+        alcohol_percentage: cocktail.alcohol_percentage ?? 0,
+        price: minPrice,
+        category:
+          cocktail.alcohol_percentage > 0 ? "Alcohólico" : "Sin alcohol",
+        added_at: row.created_at,
+        sizes: sizes,
+      };
+    })
+    .filter(Boolean);
 
   return NextResponse.json({ favorites });
 }

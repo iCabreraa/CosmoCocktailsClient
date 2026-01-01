@@ -24,6 +24,8 @@ export type FavoriteDetails = {
     name: string;
     volume_ml: number;
     price: number;
+    available?: boolean;
+    stock_quantity?: number | null;
   }>;
 };
 
@@ -84,11 +86,11 @@ export function useFavorites(
     queryKey,
     queryFn: async () => {
       if (mode === "ids") {
-        const userId = await getSessionUserId();
-        if (!userId) return [];
+        const sessionUserId = await getSessionUserId();
+        if (!sessionUserId) return [];
         const { data, error } = await favoritesTable
           .select("cocktail_id")
-          .eq("user_id", userId);
+          .eq("user_id", sessionUserId);
 
         if (error) {
           throw error;
@@ -134,12 +136,12 @@ export function useFavorites(
 
   const addFavorite = useMutation({
     mutationFn: async (cocktailId: string) => {
-      const userId = await getSessionUserId();
-      if (!userId) {
+      const sessionUserId = await getSessionUserId();
+      if (!sessionUserId) {
         throw new Error("Unauthorized");
       }
       const { error } = await favoritesTable.insert({
-        user_id: userId,
+        user_id: sessionUserId,
         cocktail_id: cocktailId,
       });
       if (error) {
@@ -178,13 +180,13 @@ export function useFavorites(
 
   const removeFavorite = useMutation({
     mutationFn: async (cocktailId: string) => {
-      const userId = await getSessionUserId();
-      if (!userId) {
+      const sessionUserId = await getSessionUserId();
+      if (!sessionUserId) {
         throw new Error("Unauthorized");
       }
       const { error } = await favoritesTable
         .delete()
-        .eq("user_id", userId)
+        .eq("user_id", sessionUserId)
         .eq("cocktail_id", cocktailId);
       if (error) {
         throw new Error(error.message);
