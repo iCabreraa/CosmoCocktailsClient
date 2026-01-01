@@ -168,6 +168,10 @@ const nl = {
         "description": "Sta anderen toe je openbare bestellingen te bekijken"
       }
     },
+    "legal": {
+      "title": "Juridisch & Support",
+      "description": "Bekijk ons beleid of neem contact op als je hulp nodig hebt."
+    },
     "save_changes": "Wijzigingen Opslaan",
     "unsaved_changes": "Je hebt niet-opgeslagen wijzigingen",
     "saved": "Instellingen opgeslagen!",
@@ -256,6 +260,15 @@ const nl = {
     "full_name": "Volledige Naam",
     "remember_me": "Onthoud mij",
     "forgot_password": "Wachtwoord vergeten?",
+    "reset_password_title": "Wachtwoord resetten",
+    "reset_password_sent": "We hebben een resetlink naar je e-mail gestuurd.",
+    "reset_password_error": "We konden de reset-e-mail niet versturen.",
+    "reset_password_update_title": "Nieuw wachtwoord instellen",
+    "reset_password_update_button": "Wachtwoord bijwerken",
+    "reset_password_success": "Wachtwoord bijgewerkt. Je kunt nu inloggen.",
+    "reset_password_invalid": "Deze resetlink is ongeldig of verlopen.",
+    "reset_password_request_new": "Nieuwe link aanvragen",
+    "new_password": "Nieuw wachtwoord",
     "loading": "Laden...",
     "invalid_credentials": "Ongeldige inloggegevens",
     "email_required": "Email is verplicht",

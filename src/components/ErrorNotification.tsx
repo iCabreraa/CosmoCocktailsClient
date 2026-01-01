@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from "lucide-react";
 
 export interface NotificationProps {
@@ -127,22 +127,25 @@ export function ErrorNotification({
 export function useNotifications() {
   const [notifications, setNotifications] = useState<NotificationProps[]>([]);
 
-  const addNotification = (notification: Omit<NotificationProps, "id">) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    const newNotification = { ...notification, id };
+  const addNotification = useCallback(
+    (notification: Omit<NotificationProps, "id">) => {
+      const id = Math.random().toString(36).substr(2, 9);
+      const newNotification = { ...notification, id };
 
-    setNotifications(prev => [...prev, newNotification]);
+      setNotifications(prev => [...prev, newNotification]);
 
-    return id;
-  };
+      return id;
+    },
+    []
+  );
 
-  const removeNotification = (id: string) => {
+  const removeNotification = useCallback((id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
-  };
+  }, []);
 
-  const clearAll = () => {
+  const clearAll = useCallback(() => {
     setNotifications([]);
-  };
+  }, []);
 
   return {
     notifications,
@@ -151,4 +154,3 @@ export function useNotifications() {
     clearAll,
   };
 }
-

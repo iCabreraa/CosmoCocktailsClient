@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { createClient } from "@/lib/supabase/client";
+import { envClient } from "@/lib/env-client";
 import CosmicBackground from "@/components/ui/CosmicBackground";
 import {
   HiOutlineEye,
@@ -19,6 +20,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [error, setError] = useState("");
   const { t } = useLanguage();
   const router = useRouter();
@@ -27,6 +30,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setResetSent(false);
 
     try {
       const supabase = createClient();
@@ -44,6 +48,40 @@ export default function LoginPage() {
       setError(t("auth.login_error"));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    setError("");
+    setResetSent(false);
+
+    if (!email) {
+      setError(t("auth.email_required"));
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const supabase = createClient();
+      const baseUrl =
+        envClient.NEXT_PUBLIC_APP_URL ||
+        (typeof window !== "undefined" ? window.location.origin : "");
+      const redirectTo = baseUrl ? `${baseUrl}/auth/reset` : undefined;
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        email,
+        redirectTo ? { redirectTo } : undefined
+      );
+
+      if (error) {
+        setError(t("auth.reset_password_error"));
+        return;
+      }
+
+      setResetSent(true);
+    } catch (err) {
+      setError(t("auth.reset_password_error"));
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -121,6 +159,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
+                  autoComplete="current-password"
                   className="w-full pl-10 pr-12 py-3 bg-white/10 border border-slate-600/50 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50 focus:border-cosmic-gold/50 transition-all"
                   placeholder={t("auth.password")}
                 />
@@ -148,6 +187,22 @@ export default function LoginPage() {
                 {error}
               </motion.div>
             )}
+
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handlePasswordReset}
+                disabled={resetLoading}
+                className="text-sm text-cosmic-gold hover:text-sky-300 transition-colors disabled:opacity-50"
+              >
+                {resetLoading ? t("auth.loading") : t("auth.forgot_password")}
+              </button>
+              {resetSent && (
+                <span className="text-xs text-emerald-300">
+                  {t("auth.reset_password_sent")}
+                </span>
+              )}
+            </div>
 
             {/* Submit Button */}
             <motion.button

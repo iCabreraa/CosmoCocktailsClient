@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   HiOutlineCog,
   HiOutlineBell,
@@ -14,6 +15,7 @@ import {
 import { User } from "@/types/user-system";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
+import PrivacyModal from "@/components/privacy/PrivacyModal";
 
 interface UserSettingsProps {
   user: User;
@@ -45,6 +47,7 @@ export default function UserSettings({ user, onUpdate }: UserSettingsProps) {
   const [success, setSuccess] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [originalSettings, setOriginalSettings] = useState<any>(null);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   useEffect(() => {
     // Cargar preferencias del usuario al montar el componente
@@ -364,6 +367,31 @@ export default function UserSettings({ user, onUpdate }: UserSettingsProps) {
         </div>
       </div>
 
+      {/* Legal & Support */}
+      <div className="bg-white/5 backdrop-blur-md border border-[#3b82f6]/30 hover:border-[#f59e0b]/40 shadow-[0_0_40px_rgba(59,130,246,.08)] rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#8b5cf6] to-[#3b82f6] mb-3">
+          {t("settings.legal.title")}
+        </h3>
+        <p className="text-sm text-gray-300 mb-4">
+          {t("settings.legal.description")}
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => setIsPrivacyOpen(true)}
+            className="px-4 py-2 rounded-lg border border-gray-600/60 text-sm text-gray-200 hover:border-cosmic-gold/60 hover:text-cosmic-gold transition-colors"
+          >
+            {t("privacy.title")}
+          </button>
+          <Link
+            href="/contact"
+            className="px-4 py-2 rounded-lg border border-gray-600/60 text-sm text-gray-200 hover:border-cosmic-gold/60 hover:text-cosmic-gold transition-colors"
+          >
+            {t("nav.contact")}
+          </Link>
+        </div>
+      </div>
+
       {/* Save Button */}
       <div className="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-700">
         {hasUnsavedChanges && (
@@ -397,6 +425,11 @@ export default function UserSettings({ user, onUpdate }: UserSettingsProps) {
           Guardar Cambios
         </button>
       </div>
+
+      <PrivacyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
     </div>
   );
 }

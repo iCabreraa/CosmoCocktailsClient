@@ -6,6 +6,13 @@ import { getAuthContext } from "@/lib/security/auth";
 
 export const dynamic = "force-dynamic";
 
+const parsePositiveInt = (value: string | null) => {
+  if (!value) return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return Math.floor(parsed);
+};
+
 export async function GET(request: NextRequest) {
   try {
     const supabaseAuth = createServerClient();
@@ -33,12 +40,9 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const summary = searchParams.get("summary") === "1";
     const includeItems = searchParams.get("includeItems") !== "0";
-    const limitParam = searchParams.get("limit");
-    const limit = limitParam ? Number(limitParam) : null;
-    const pageParam = searchParams.get("page");
-    const pageSizeParam = searchParams.get("pageSize");
-    const page = pageParam ? Number(pageParam) : null;
-    const pageSize = pageSizeParam ? Number(pageSizeParam) : null;
+    const limit = parsePositiveInt(searchParams.get("limit"));
+    const page = parsePositiveInt(searchParams.get("page"));
+    const pageSize = parsePositiveInt(searchParams.get("pageSize"));
 
     const baseSelect =
       "id, total_amount, status, order_date, delivery_date";
@@ -74,7 +78,24 @@ export async function GET(request: NextRequest) {
       query = query.limit(limit);
     }
 
-    const { data: orders, error } = await query;
+    const totalsQuery = summary
+      ? (supabase as any)
+          .from("orders")
+          .select("total_amount", { count: "exact" })
+          .eq("user_id", userId)
+      : null;
+
+    const [ordersResult, totalsResult] = await Promise.all([
+      query,
+      totalsQuery ??
+        Promise.resolve({
+          data: null,
+          error: null,
+          count: null,
+        }),
+    ]);
+
+    const { data: orders, error } = ordersResult;
 
     if (error) {
       console.error("Error fetching orders:", error.message);
@@ -109,7 +130,42 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({ orders: mapped });
+    let meta = undefined;
+    if (summary) {
+      if (totalsResult?.error) {
+        console.warn("Error fetching order summary:", totalsResult.error);
+      }
+
+      const totalOrders =
+        typeof totalsResult?.count === "number"
+          ? totalsResult.count
+          : orders?.length ?? 0;
+      const totalSpent = Array.isArray(totalsResult?.data)
+        ? totalsResult.data.reduce(
+            (sum: number, row: any) => sum + Number(row?.total_amount ?? 0),
+            0
+          )
+        : 0;
+
+      let hasNext: boolean | null = null;
+      if (typeof totalOrders === "number") {
+        if (page && pageSize) {
+          hasNext = page * pageSize < totalOrders;
+        } else if (limit) {
+          hasNext = limit < totalOrders;
+        }
+      }
+
+      meta = {
+        total_orders: totalOrders,
+        total_spent: totalSpent,
+        page: page ?? null,
+        page_size: pageSize ?? null,
+        has_next: hasNext,
+      };
+    }
+
+    return NextResponse.json(meta ? { orders: mapped, meta } : { orders: mapped });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("/api/orders error:", message);

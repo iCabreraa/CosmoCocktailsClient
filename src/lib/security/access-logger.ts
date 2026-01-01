@@ -68,7 +68,12 @@ class AdminAccessLogger {
         .insert(securityEvent);
 
       // También log en consola para desarrollo
-      if (process.env.NODE_ENV === "development") {
+      const shouldLog =
+        process.env.NODE_ENV === "development" &&
+        typeof window !== "undefined" &&
+        window.location.pathname.startsWith("/admin");
+
+      if (shouldLog) {
         console.log(`[AdminAccess] ${logData.event_type}:`, {
           success: logData.success,
           reason: logData.reason,

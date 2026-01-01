@@ -9,6 +9,11 @@ import {
 import { adminAccessLogger } from "@/lib/security/access-logger";
 import { createClient } from "@/lib/supabase/client";
 
+const shouldLogAdminAccess = () =>
+  process.env.NODE_ENV === "development" &&
+  typeof window !== "undefined" &&
+  window.location.pathname.startsWith("/admin");
+
 export interface AdminAccessState {
   canAccess: boolean;
   isLoading: boolean;
@@ -31,6 +36,8 @@ export function useAdminAccessRobust(): AdminAccessState {
     refreshAccess: () => {}, // Placeholder inicial
   });
 
+  const hasVerificationRef = useRef(false);
+  const lastUserIdRef = useRef<string | null>(null);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const visibilityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -39,7 +46,7 @@ export function useAdminAccessRobust(): AdminAccessState {
     async (forceRefresh = false) => {
       try {
         // Solo mostrar loading si no hay datos previos o es un refresh forzado
-        if (!state.verification || forceRefresh) {
+        if (!hasVerificationRef.current || forceRefresh) {
           setState(prev => ({ ...prev, isLoading: true, error: null }));
         }
 
@@ -76,9 +83,10 @@ export function useAdminAccessRobust(): AdminAccessState {
           verification,
           lastChecked: new Date(),
         }));
+        hasVerificationRef.current = true;
 
         // Debug logging
-        if (process.env.NODE_ENV === "development") {
+        if (shouldLogAdminAccess()) {
           console.log("[AdminAccess] Verification completed:", {
             canAccess: verification.canAccess,
             userRole: verification.userRole,
@@ -117,9 +125,10 @@ export function useAdminAccessRobust(): AdminAccessState {
           verification: null,
           lastChecked: new Date(),
         }));
+        hasVerificationRef.current = true;
       }
     },
-    [user, state.verification]
+    [user]
   );
 
   // Función para manejar cambios de visibilidad de la página
@@ -167,6 +176,14 @@ export function useAdminAccessRobust(): AdminAccessState {
     verifyAccess();
   }, [user, loading, verifyAccess]);
 
+  useEffect(() => {
+    const currentUserId = user?.id || null;
+    if (lastUserIdRef.current !== currentUserId) {
+      lastUserIdRef.current = currentUserId;
+      hasVerificationRef.current = false;
+    }
+  }, [user?.id]);
+
   // Efecto para escuchar cambios de autenticación de Supabase
   useEffect(() => {
     if (!user) return;
@@ -177,11 +194,13 @@ export function useAdminAccessRobust(): AdminAccessState {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(
-        "[AdminAccess] Auth state changed:",
-        event,
-        session?.user?.id
-      );
+      if (shouldLogAdminAccess()) {
+        console.log(
+          "[AdminAccess] Auth state changed:",
+          event,
+          session?.user?.id
+        );
+      }
 
       // Limpiar cache cuando hay cambios de auth
       adminAccessVerifier.clearCache(user.id);
