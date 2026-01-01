@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const limit = limitParam ? Number(limitParam) : null;
 
     const baseSelect =
-      "id, total_amount, status, order_date, delivery_date, created_at";
+      "id, total_amount, status, order_date, delivery_date";
     const summarySelect = `${baseSelect},
          order_items ( id )`;
 
