@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { User } from "@/types/user-system";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useIsMobile, useResponsiveClasses } from "@/lib/responsive";
 import dynamic from "next/dynamic";
 const UserDashboard = dynamic(() => import("./UserDashboard"), {
   ssr: true,
@@ -48,8 +47,6 @@ import {
   HiOutlineUser,
   HiOutlineShoppingBag,
   HiOutlineHeart,
-  HiOutlineCog,
-  HiOutlineMapPin,
   HiXMark,
 } from "react-icons/hi2";
 
@@ -73,12 +70,6 @@ const getTabs = (t: (key: string) => string) => {
       name: t("account.tabs.favorites"),
       icon: HiOutlineHeart,
     },
-    {
-      id: "addresses",
-      name: t("account.tabs.addresses"),
-      icon: HiOutlineMapPin,
-    },
-    { id: "settings", name: t("account.tabs.settings"), icon: HiOutlineCog },
   ];
 };
 
@@ -90,7 +81,6 @@ export default function AccountTabs({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLanguage();
-  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("dashboard");
 
   const tabs = getTabs(t);
@@ -98,10 +88,20 @@ export default function AccountTabs({
   // Initialize active tab from URL query parameter
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab && tabs.some(t => t.id === tab)) {
+    if (!tab) {
+      return;
+    }
+    if (tab === "addresses" || tab === "settings") {
+      const params = new URLSearchParams(searchParams);
+      params.set("tab", "profile");
+      setActiveTab("profile");
+      router.replace(`/account?${params.toString()}`, { scroll: false });
+      return;
+    }
+    if (tabs.some(t => t.id === tab)) {
       setActiveTab(tab);
     }
-  }, [searchParams]);
+  }, [searchParams, router, tabs]);
 
   // Function to change tab and update URL
   const handleTabChange = (tabId: string) => {
@@ -110,6 +110,14 @@ export default function AccountTabs({
     params.set("tab", tabId);
     router.push(`/account?${params.toString()}`, { scroll: false });
   };
+
+  const profileContent = (
+    <div className="space-y-8">
+      <UserProfile user={user} onUpdate={onUpdate} />
+      <UserAddresses />
+      <UserSettings user={user} onUpdate={onUpdate} />
+    </div>
+  );
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -141,15 +149,14 @@ export default function AccountTabs({
           </UserStatsProvider>
         );
       case "profile":
-        return <UserProfile user={user} onUpdate={onUpdate} />;
+        return profileContent;
+      case "addresses":
+      case "settings":
+        return profileContent;
       case "orders":
         return <UserOrders />;
       case "favorites":
         return <UserFavorites />;
-      case "addresses":
-        return <UserAddresses />;
-      case "settings":
-        return <UserSettings user={user} onUpdate={onUpdate} />;
       default:
         return (
           <UserStatsProvider user={user}>
