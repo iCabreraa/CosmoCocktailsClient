@@ -705,9 +705,12 @@ const en = {
       "profile": "Profile",
       "orders": "Orders",
       "favorites": "Favorites",
+      "addresses": "Addresses",
       "settings": "Settings",
       "admin": "Admin Panel"
-    }
+    },
+    "addresses_title": "Saved Addresses",
+    "addresses_subtitle": "Manage your shipping addresses for faster checkout."
   },
   "orders": {
     "title": "My Orders",

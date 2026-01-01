@@ -487,9 +487,12 @@ const nl = {
       "profile": "Profiel",
       "orders": "Bestellingen",
       "favorites": "Favorieten",
+      "addresses": "Adressen",
       "settings": "Instellingen",
       "admin": "Beheerpaneel"
-    }
+    },
+    "addresses_title": "Opgeslagen adressen",
+    "addresses_subtitle": "Beheer je verzendadressen voor sneller afrekenen."
   },
   "common": {
     "loading": "Laden...",
