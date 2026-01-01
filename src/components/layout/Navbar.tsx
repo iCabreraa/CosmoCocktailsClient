@@ -11,6 +11,7 @@ import {
   HiOutlineUser,
   HiOutlineShoppingBag,
   HiOutlineHeart,
+  HiOutlineCog,
   HiOutlineCog6Tooth,
   HiXMark,
   HiOutlineShoppingCart,
