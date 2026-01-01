@@ -748,7 +748,10 @@ const en = {
     "unspecified": "Unspecified",
     "cancel": "Cancel",
     "save_changes": "Save Changes",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "update_error": "Update failed",
+    "update_success": "Profile updated",
+    "update_success_message": "Your profile information has been updated."
   },
   "auth": {
     "login_title": "Sign In",

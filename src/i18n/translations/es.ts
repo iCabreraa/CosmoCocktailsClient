@@ -704,7 +704,10 @@ const es = {
     "unspecified": "No especificado",
     "cancel": "Cancelar",
     "save_changes": "Guardar Cambios",
-    "saving": "Guardando..."
+    "saving": "Guardando...",
+    "update_error": "No se pudo actualizar",
+    "update_success": "Perfil actualizado",
+    "update_success_message": "Tus datos de perfil se han actualizado."
   },
   "auth": {
     "login_title": "Iniciar Sesión",

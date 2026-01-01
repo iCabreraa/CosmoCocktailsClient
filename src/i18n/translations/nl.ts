@@ -216,7 +216,10 @@ const nl = {
     "unspecified": "Niet gespecificeerd",
     "cancel": "Annuleren",
     "save_changes": "Wijzigingen Opslaan",
-    "saving": "Opslaan..."
+    "saving": "Opslaan...",
+    "update_error": "Bijwerken mislukt",
+    "update_success": "Profiel bijgewerkt",
+    "update_success_message": "Je profielgegevens zijn bijgewerkt."
   },
   "auth": {
     "login_title": "Inloggen",
