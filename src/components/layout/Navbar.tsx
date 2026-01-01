@@ -237,6 +237,12 @@ export default function Navbar() {
         icon: HiOutlineHeart,
         href: "/account?tab=favorites",
       },
+      {
+        id: "settings",
+        name: t("account.tabs.settings"),
+        icon: HiOutlineCog,
+        href: "/account?tab=settings",
+      },
     ];
   };
 

@@ -47,6 +47,7 @@ import {
   HiOutlineUser,
   HiOutlineShoppingBag,
   HiOutlineHeart,
+  HiOutlineCog,
   HiXMark,
 } from "react-icons/hi2";
 
@@ -70,6 +71,7 @@ const getTabs = (t: (key: string) => string) => {
       name: t("account.tabs.favorites"),
       icon: HiOutlineHeart,
     },
+    { id: "settings", name: t("account.tabs.settings"), icon: HiOutlineCog },
   ];
 };
 
@@ -91,7 +93,7 @@ export default function AccountTabs({
     if (!tab) {
       return;
     }
-    if (tab === "addresses" || tab === "settings") {
+    if (tab === "addresses") {
       const params = new URLSearchParams(searchParams);
       params.set("tab", "profile");
       setActiveTab("profile");
@@ -115,7 +117,6 @@ export default function AccountTabs({
     <div className="space-y-8">
       <UserProfile user={user} onUpdate={onUpdate} />
       <UserAddresses />
-      <UserSettings user={user} onUpdate={onUpdate} />
     </div>
   );
 
@@ -150,13 +151,12 @@ export default function AccountTabs({
         );
       case "profile":
         return profileContent;
-      case "addresses":
-      case "settings":
-        return profileContent;
       case "orders":
         return <UserOrders />;
       case "favorites":
         return <UserFavorites />;
+      case "settings":
+        return <UserSettings user={user} onUpdate={onUpdate} />;
       default:
         return (
           <UserStatsProvider user={user}>
