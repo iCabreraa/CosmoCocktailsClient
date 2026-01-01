@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
-import Image from "next/image";
 import {
   HiOutlineShoppingBag,
   HiOutlineClock,
@@ -13,6 +12,8 @@ import {
   HiOutlineTruck,
   HiOutlineCog,
   HiOutlineCreditCard,
+  HiOutlineChevronLeft,
+  HiOutlineChevronRight,
 } from "react-icons/hi2";
 
 interface Order {
@@ -22,33 +23,68 @@ interface Order {
   created_at: string;
   delivery_date?: string;
   items: Array<{
-    cocktail_name: string;
-    size_name: string;
-    quantity: number;
-    unit_price: number;
-    image_url: string;
+    id: string;
   }>;
 }
 
 export default function UserOrders() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
+  const pageSize = 5;
+
+  const locale = useMemo(() => {
+    if (language === "en") return "en-GB";
+    if (language === "nl") return "nl-NL";
+    return "es-ES";
+  }, [language]);
+
+  const formatDate = (value: string) => {
+    if (!value) return t("profile.unspecified");
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return new Intl.DateTimeFormat(locale, {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(date);
+  };
+
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: "EUR",
+      maximumFractionDigits: 2,
+    }).format(value ?? 0);
 
   useEffect(() => {
-    fetchUserOrders();
+    fetchUserOrders(1);
   }, [t]);
 
-  const fetchUserOrders = async () => {
+  const fetchUserOrders = async (pageToLoad = 1) => {
     try {
       setLoading(true);
-      const response = await fetch("/api/orders");
+      setError("");
+      const response = await fetch(
+        `/api/orders?summary=1&includeItems=0&page=${pageToLoad}&pageSize=${pageSize}`
+      );
+      if (response.status === 401) {
+        throw new Error(t("auth.session_expired_message"));
+      }
       if (!response.ok) throw new Error(t("common.error"));
 
       const data = await response.json();
-      setOrders(data.orders || []);
+      const nextOrders = data.orders || [];
+      if (pageToLoad > 1 && nextOrders.length === 0) {
+        setHasNext(false);
+        return;
+      }
+      setOrders(nextOrders);
+      setHasNext(nextOrders.length === pageSize);
+      setPage(pageToLoad);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
@@ -101,41 +137,41 @@ export default function UserOrders() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "paid":
-        return "bg-green-100 text-green-800";
+        return "bg-emerald-500/15 text-emerald-200 border border-emerald-400/30";
       case "ordered":
-        return "bg-blue-100 text-blue-800";
+        return "bg-sky-500/15 text-sky-200 border border-sky-400/30";
       case "preparing":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-amber-500/15 text-amber-200 border border-amber-400/30";
       case "on_the_way":
-        return "bg-purple-100 text-purple-800";
+        return "bg-violet-500/15 text-violet-200 border border-violet-400/30";
       case "completed":
-        return "bg-green-100 text-green-800";
+        return "bg-emerald-500/15 text-emerald-200 border border-emerald-400/30";
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-amber-500/15 text-amber-200 border border-amber-400/30";
       case "cancelled":
-        return "bg-red-100 text-red-800";
+        return "bg-rose-500/15 text-rose-200 border border-rose-400/30";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-white/10 text-slate-200 border border-white/10";
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cosmic-gold"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <HiOutlineXCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-        <p className="text-red-800 font-medium">{t("orders.error_loading")}</p>
-        <p className="text-red-600 text-sm mt-2">{error}</p>
+      <div className="bg-white/5 border border-rose-500/30 rounded-lg p-6 text-center">
+        <HiOutlineXCircle className="h-12 w-12 text-rose-300 mx-auto mb-4" />
+        <p className="text-rose-200 font-medium">{t("orders.error_loading")}</p>
+        <p className="text-rose-200/80 text-sm mt-2">{error}</p>
         <button
           onClick={fetchUserOrders}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          className="mt-4 px-4 py-2 bg-rose-500/20 text-rose-200 border border-rose-400/40 rounded-lg hover:bg-rose-500/30 transition-colors"
         >
           {t("orders.retry")}
         </button>
@@ -148,7 +184,7 @@ export default function UserOrders() {
       {/* Header */}
       <div className="bg-white/5 backdrop-blur-md rounded-lg border border-sky-500/30 shadow-[0_0_24px_rgba(59,130,246,.12)] p-6">
         <h2 className="text-2xl font-bold text-slate-100 flex items-center">
-          <HiOutlineShoppingBag className="h-6 w-6 mr-3 text-blue-600" />
+          <HiOutlineShoppingBag className="h-6 w-6 mr-3 text-cosmic-gold" />
           {t("orders.title")}
         </h2>
         <p className="text-slate-300 mt-2">
@@ -166,29 +202,23 @@ export default function UserOrders() {
             >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-bold text-lg">
+                  <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center border border-white/10">
+                    <span className="text-cosmic-gold font-semibold text-sm">
                       #{order.id.slice(-4)}
                     </span>
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">
+                    <p className="font-semibold text-slate-100">
                       {t("orders.order_number")} #{order.id.slice(-8)}
                     </p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(order.created_at).toLocaleDateString("es-ES", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                    <p className="text-sm text-slate-400">
+                      {formatDate(order.created_at)}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold text-slate-100">
-                    €{order.total_amount}
+                    {formatCurrency(order.total_amount)}
                   </p>
                   <span
                     className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}
@@ -200,30 +230,13 @@ export default function UserOrders() {
               </div>
 
               {/* Order Items Preview */}
-              <div className="border-t border-gray-200 pt-4">
+              <div className="border-t border-slate-700/40 pt-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex -space-x-2">
-                    {order.items.slice(0, 3).map((item, index) => (
-                      <div
-                        key={index}
-                        className="relative w-10 h-10 rounded-full border-2 border-white overflow-hidden"
-                      >
-                        <Image
-                          src={item.image_url}
-                          alt={item.cocktail_name}
-                          fill
-                          sizes="40px"
-                          className="object-cover"
-                        />
-                      </div>
-                    ))}
-                    {order.items.length > 3 && (
-                      <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center">
-                        <span className="text-xs font-medium text-gray-600">
-                          +{order.items.length - 3}
-                        </span>
-                      </div>
-                    )}
+                  <div className="flex items-center gap-2 text-sm text-slate-300">
+                    <HiOutlineShoppingBag className="h-4 w-4 text-cosmic-gold/70" />
+                    <span>
+                      {order.items?.length ?? 0} {t("orders.items_total")}
+                    </span>
                   </div>
                   <button
                     onClick={() => router.push(`/order/${order.id}`)}
@@ -233,12 +246,41 @@ export default function UserOrders() {
                     {t("orders.view_details")}
                   </button>
                 </div>
-                <p className="text-sm text-slate-300 mt-2">
-                  {order.items.length} {t("orders.items_total")}
+                <p className="text-xs text-slate-400 mt-2">
+                  {t("orders.order_total")} {formatCurrency(order.total_amount)}
                 </p>
               </div>
             </div>
           ))}
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => fetchUserOrders(Math.max(1, page - 1))}
+              disabled={page === 1 || loading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold uppercase tracking-[0.2em] transition ${
+                page > 1 && !loading
+                  ? "border-cosmic-gold/40 text-cosmic-gold hover:bg-cosmic-gold/10"
+                  : "border-white/10 text-slate-500 cursor-not-allowed"
+              }`}
+            >
+              <HiOutlineChevronLeft className="h-4 w-4" />
+              {t("common.prev")}
+            </button>
+            <span className="text-xs text-slate-400">{page}</span>
+            <button
+              type="button"
+              onClick={() => fetchUserOrders(page + 1)}
+              disabled={!hasNext || loading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold uppercase tracking-[0.2em] transition ${
+                hasNext && !loading
+                  ? "border-cosmic-gold/40 text-cosmic-gold hover:bg-cosmic-gold/10"
+                  : "border-white/10 text-slate-500 cursor-not-allowed"
+              }`}
+            >
+              {t("common.next")}
+              <HiOutlineChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       ) : (
         <div className="bg-white/5 backdrop-blur-md rounded-lg border border-slate-700/40 p-12 text-center">

@@ -225,7 +225,7 @@ export default function UserDashboard({
                       </p>
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                          order.status === "completed"
+                          ["completed", "paid"].includes(order.status)
                             ? "bg-emerald-400/15 text-emerald-200"
                             : "bg-amber-400/15 text-amber-200"
                         }`}

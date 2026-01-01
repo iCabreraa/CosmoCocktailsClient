@@ -1,28 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
+import { envServer } from "@/lib/env-server";
+import { getAuthContext } from "@/lib/security/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabaseAuth = createServerClient();
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser();
+    } = await supabaseAuth.auth.getUser();
 
-    if (authError || !user) {
+    let userId = user?.id ?? null;
+
+    if (!userId) {
+      const legacy = await getAuthContext();
+      userId = legacy?.userId ?? null;
+    }
+
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const supabase = createAdminClient(
+      envServer.NEXT_PUBLIC_SUPABASE_URL,
+      envServer.SUPABASE_SERVICE_ROLE_KEY
+    );
 
     const searchParams = request.nextUrl.searchParams;
     const summary = searchParams.get("summary") === "1";
     const includeItems = searchParams.get("includeItems") !== "0";
     const limitParam = searchParams.get("limit");
     const limit = limitParam ? Number(limitParam) : null;
+    const pageParam = searchParams.get("page");
+    const pageSizeParam = searchParams.get("pageSize");
+    const page = pageParam ? Number(pageParam) : null;
+    const pageSize = pageSizeParam ? Number(pageSizeParam) : null;
 
     const baseSelect =
-      "id, total_amount, status, order_date, delivery_date, created_at";
+      "id, total_amount, status, order_date, delivery_date";
     const summarySelect = `${baseSelect},
          order_items ( id )`;
 
@@ -36,13 +55,22 @@ export async function GET(request: NextRequest) {
     const selectClause =
       summary || !includeItems ? summarySelect : detailSelect;
 
-    let query = supabase
+    let query = (supabase as any)
       .from("orders")
       .select(selectClause)
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .order("order_date", { ascending: false });
 
-    if (typeof limit === "number" && !Number.isNaN(limit)) {
+    if (
+      typeof page === "number" &&
+      page >= 1 &&
+      typeof pageSize === "number" &&
+      pageSize > 0
+    ) {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
+    } else if (typeof limit === "number" && !Number.isNaN(limit)) {
       query = query.limit(limit);
     }
 
@@ -58,7 +86,7 @@ export async function GET(request: NextRequest) {
         id: o.id,
         total_amount: o.total_amount,
         status: o.status,
-        created_at: o.order_date || o.created_at,
+        created_at: o.order_date,
         delivery_date: o.delivery_date,
       };
 

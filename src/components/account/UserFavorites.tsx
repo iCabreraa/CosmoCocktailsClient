@@ -3,11 +3,11 @@
 import Link from "next/link";
 import {
   HiOutlineHeart,
-  HiOutlineShoppingBag,
   HiOutlineTrash,
-  HiOutlineStar,
   HiOutlineEye,
+  HiOutlineSparkles,
 } from "react-icons/hi2";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
 import { useAuthUnified } from "@/hooks/useAuthUnified";
@@ -15,13 +15,22 @@ import {
   useFavorites,
   FavoriteDetails,
 } from "@/hooks/queries/useFavorites";
+import { useCart } from "@/store/cart";
+import { useToast } from "@/components/feedback/ToastProvider";
 
 export default function UserFavorites() {
   const { t } = useLanguage();
-  const { user } = useAuthUnified();
+  const { user, loading: authLoading } = useAuthUnified();
+  const addToCart = useCart(state => state.addToCart);
+  const { notify } = useToast();
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
   const { favoritesQuery, removeFavorite } = useFavorites({
     enabled: Boolean(user),
     mode: "details",
+    page,
+    pageSize,
+    userId: user?.id ?? null,
   });
   const favorites = (favoritesQuery.data ?? []) as FavoriteDetails[];
   const loading = favoritesQuery.isLoading;
@@ -30,16 +39,56 @@ export default function UserFavorites() {
       ? favoritesQuery.error.message
       : "";
 
-  const addToCart = async (cocktail: FavoriteDetails) => {
-    try {
-      // Aquí implementarías la lógica para añadir al carrito
-      console.log("Añadiendo al carrito:", cocktail);
-    } catch (err) {
-      console.error("Error al añadir al carrito:", err);
+  const sizeSlots = [
+    { key: "shot", label: t("sizes.shot"), volume: 20 },
+    { key: "small_bottle", label: t("sizes.small_bottle"), volume: 200 },
+  ];
+
+  const resolveSlotKey = (
+    size: NonNullable<FavoriteDetails["sizes"]>[number]
+  ) => {
+    const rawName = (size.name ?? "").toLowerCase();
+    if (rawName.includes("shot") || rawName.includes("chupito")) return "shot";
+    if (rawName.includes("small") || rawName.includes("bottle")) {
+      return "small_bottle";
     }
+    if (typeof size.volume_ml === "number") {
+      return size.volume_ml <= 60 ? "shot" : "small_bottle";
+    }
+    return null;
   };
 
-  if (loading) {
+  const handleAddToCart = (
+    cocktail: FavoriteDetails,
+    size: NonNullable<FavoriteDetails["sizes"]>[number] | undefined
+  ) => {
+    if (!size || !size.sizes_id) return;
+    addToCart({
+      cocktail_id: cocktail.id,
+      sizes_id: size.sizes_id,
+      quantity: 1,
+      unit_price: size.price,
+      cocktail_name: cocktail.name,
+      size_name: size.name ?? `${size.volume_ml ?? 0}ml`,
+      volume_ml: size.volume_ml ?? 0,
+      image_url: cocktail.image_url,
+      is_alcoholic: cocktail.alcohol_percentage > 0,
+    });
+    notify({
+      type: "success",
+      title: t("feedback.cart_added_title"),
+      message: t("feedback.cart_added_message", { name: cocktail.name }),
+    });
+  };
+
+  useEffect(() => {
+    setPage(1);
+  }, [user?.id]);
+
+  const canPrev = page > 1;
+  const canNext = favorites.length === pageSize;
+
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -49,15 +98,15 @@ export default function UserFavorites() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <HiOutlineHeart className="h-12 w-12 text-red-400 mx-auto mb-4" />
-        <p className="text-red-800 font-medium">
+      <div className="bg-white/5 border border-rose-500/30 rounded-lg p-6 text-center">
+        <HiOutlineHeart className="h-12 w-12 text-rose-300 mx-auto mb-4" />
+        <p className="text-rose-200 font-medium">
           {t("favorites.error_loading")}
         </p>
-        <p className="text-red-600 text-sm mt-2">{error}</p>
+        <p className="text-rose-200/80 text-sm mt-2">{error}</p>
         <button
           onClick={() => favoritesQuery.refetch()}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          className="mt-4 px-4 py-2 bg-rose-500/20 text-rose-200 border border-rose-400/40 rounded-lg hover:bg-rose-500/30 transition-colors"
         >
           {t("common.retry")}
         </button>
@@ -78,98 +127,149 @@ export default function UserFavorites() {
 
       {/* Favorites Grid */}
       {favorites.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {favorites.map(cocktail => (
-            <div
-              key={cocktail.id}
-              className="bg-white/5 backdrop-blur-md rounded-lg border border-slate-700/40 overflow-hidden hover:shadow-[0_0_24px_rgba(59,130,246,.12)] transition-shadow"
-            >
-              {/* Image */}
-              <div className="relative h-48 bg-gray-200">
-                <Image
-                  src={cocktail.image_url}
-                  alt={cocktail.name}
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-cover"
-                />
-                <div className="absolute top-4 right-4">
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {favorites.map(cocktail => {
+            const sizeMap = sizeSlots.reduce<
+              Record<
+                string,
+                NonNullable<FavoriteDetails["sizes"]>[number] | undefined
+              >
+            >((acc, slot) => {
+              acc[slot.key] = undefined;
+              return acc;
+            }, {});
+
+            (cocktail.sizes ?? []).forEach(size => {
+              const slotKey = resolveSlotKey(size);
+              if (!slotKey || sizeMap[slotKey]) return;
+              sizeMap[slotKey] = size;
+            });
+
+            return (
+              <div
+                key={cocktail.id}
+                className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md transition hover:border-cosmic-gold/40 hover:shadow-[0_0_24px_rgba(219,184,99,.12)]"
+              >
+                <div className="relative h-52">
+                  <Image
+                    src={cocktail.image_url}
+                    alt={cocktail.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
                   <button
                     onClick={() => removeFavorite.mutate(cocktail.id)}
-                    className="p-2 bg-white rounded-full shadow-md hover:bg-red-50 transition-colors"
+                    className="absolute top-4 right-4 rounded-full border border-white/15 bg-slate-900/70 p-2 text-rose-200 transition hover:border-rose-400/50 hover:text-rose-100"
                   >
-                    <HiOutlineTrash className="h-4 w-4 text-red-600" />
+                    <HiOutlineTrash className="h-4 w-4" />
                   </button>
-                </div>
-                <div className="absolute top-4 left-4">
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                    {cocktail.category}
+                  <span className="absolute left-4 top-4 inline-flex items-center gap-1 rounded-full border border-cosmic-gold/30 bg-cosmic-gold/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-cosmic-gold/80">
+                    <HiOutlineSparkles className="h-3 w-3" />
+                    {cocktail.alcohol_percentage > 0
+                      ? `${cocktail.alcohol_percentage}% ABV`
+                      : t("shop.non_alcoholic")}
                   </span>
                 </div>
-              </div>
 
-              {/* Content */}
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-slate-100 mb-2">
-                  {cocktail.name}
-                </h3>
-                <p className="text-slate-300 text-sm mb-4 line-clamp-2">
-                  {cocktail.description}
-                </p>
+                <div className="flex flex-col gap-4 p-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-100">
+                      {cocktail.name}
+                    </h3>
+                    <p className="text-sm text-slate-300 line-clamp-2">
+                      {cocktail.description}
+                    </p>
+                  </div>
 
-                {/* Botones por tamaño y precio */}
-                <div className="mb-4">
-                  {cocktail.sizes && cocktail.sizes.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-2">
-                      {cocktail.sizes.map(size => (
+                  <div className="grid gap-2">
+                    {sizeSlots.map(slot => {
+                      const size = sizeMap[slot.key];
+                      const missing = !size;
+                      const volumeLabel = `${size?.volume_ml ?? slot.volume}ml`;
+                      const priceLabel = missing
+                        ? t("shop.price_placeholder")
+                        : `€${size?.price.toFixed(2)}`;
+                      const disabled = missing;
+
+                      return (
                         <button
-                          key={size.id}
-                          onClick={() => addToCart(cocktail)}
-                          className="flex flex-col items-center justify-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                          key={slot.key}
+                          type="button"
+                          onClick={() => handleAddToCart(cocktail, size)}
+                          disabled={disabled}
+                          className={`flex items-center justify-between rounded-xl border px-4 py-2 text-left text-[11px] uppercase tracking-[0.18em] transition ${
+                            disabled
+                              ? "cursor-not-allowed border-white/10 bg-white/5 text-slate-500"
+                              : "border-cosmic-gold/30 bg-white/5 text-cosmic-silver hover:border-cosmic-gold hover:bg-cosmic-gold/10 hover:text-white"
+                          }`}
                         >
-                          <span className="font-semibold">{size.name}</span>
-                          <span className="text-xs opacity-90">
-                            €{size.price}
+                          <span className="flex flex-col gap-0.5">
+                            <span className="text-[10px] text-cosmic-gold/80">
+                              {slot.label}
+                            </span>
+                            <span className="text-[9px] text-slate-400">
+                              {volumeLabel}
+                            </span>
                           </span>
+                          <span className="text-cosmic-gold">{priceLabel}</span>
                         </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-2xl font-bold text-sky-300">
-                        €{cocktail.price}
-                      </span>
-                      <div className="flex items-center text-sm text-gray-500">
-                        <HiOutlineStar className="h-4 w-4 text-yellow-500 mr-1" />
-                        <span>{t("favorites.badge")}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                      );
+                    })}
+                  </div>
 
-                <div className="flex space-x-2">
-                  <Link
-                    href={`/shop/${cocktail.id}`}
-                    prefetch={false}
-                    className="flex-1 flex items-center justify-center px-4 py-2 border border-slate-600 text-slate-200 rounded-lg hover:bg-white/10 transition-colors"
-                  >
-                    <HiOutlineEye className="h-4 w-4 mr-2" />
-                    {t("shop.view_details")}
-                  </Link>
-                </div>
-
-                <div className="mt-4 text-xs text-gray-500">
-                  <span className="text-slate-300">
-                    {t("favorites.added_on").replace(
-                      "{date}",
-                      new Date(cocktail.added_at).toLocaleDateString("es-ES")
-                    )}
-                  </span>
+                  <div className="flex items-center justify-between text-xs text-slate-400">
+                    <span>
+                      {t("favorites.added_on").replace(
+                        "{date}",
+                        new Date(cocktail.added_at).toLocaleDateString("es-ES")
+                      )}
+                    </span>
+                    <Link
+                      href={`/shop/${cocktail.id}`}
+                      prefetch={false}
+                      className="inline-flex items-center gap-1 text-cosmic-gold/80 hover:text-cosmic-gold"
+                    >
+                      <HiOutlineEye className="h-4 w-4" />
+                      {t("shop.view_details")}
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            );
+          })}
+          </div>
+
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setPage(prev => Math.max(1, prev - 1))}
+              disabled={!canPrev}
+              className={`px-4 py-2 rounded-full border text-xs font-semibold uppercase tracking-[0.2em] transition ${
+                canPrev
+                  ? "border-cosmic-gold/40 text-cosmic-gold hover:bg-cosmic-gold/10"
+                  : "border-white/10 text-slate-500 cursor-not-allowed"
+              }`}
+            >
+              {t("common.prev")}
+            </button>
+            <span className="text-xs text-slate-400">{page}</span>
+            <button
+              type="button"
+              onClick={() => setPage(prev => prev + 1)}
+              disabled={!canNext}
+              className={`px-4 py-2 rounded-full border text-xs font-semibold uppercase tracking-[0.2em] transition ${
+                canNext
+                  ? "border-cosmic-gold/40 text-cosmic-gold hover:bg-cosmic-gold/10"
+                  : "border-white/10 text-slate-500 cursor-not-allowed"
+              }`}
+            >
+              {t("common.next")}
+            </button>
+          </div>
+        </>
       ) : (
         <div className="bg-white/5 backdrop-blur-md rounded-lg border border-slate-700/40 p-12 text-center">
           <HiOutlineHeart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
