@@ -661,9 +661,12 @@ const es = {
       "profile": "Perfil",
       "orders": "Pedidos",
       "favorites": "Favoritos",
+      "addresses": "Direcciones",
       "settings": "Configuración",
       "admin": "Panel de Administración"
-    }
+    },
+    "addresses_title": "Direcciones guardadas",
+    "addresses_subtitle": "Gestiona tus direcciones de envío para pagar más rápido."
   },
   "orders": {
     "title": "Mis Pedidos",

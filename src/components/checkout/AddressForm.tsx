@@ -10,6 +10,7 @@ interface AddressFormProps {
   onAddressSelect: (address: Address | null) => void;
   selectedAddress?: Address | null;
   isAuthenticated?: boolean;
+  savePrompt?: boolean;
 }
 
 interface AddressFormData {
@@ -60,6 +61,7 @@ export default function AddressForm({
   onAddressSelect,
   selectedAddress,
   isAuthenticated = false,
+  savePrompt = true,
 }: AddressFormProps) {
   const { t } = useLanguage();
   const { notify } = useToast();
@@ -359,6 +361,17 @@ export default function AddressForm({
       };
       upsertLocalAddress(tempAddress, true, "updated");
       resetFormState();
+      return;
+    }
+
+    if (!savePrompt) {
+      void saveAddressToAccount(
+        {
+          ...baseAddress,
+          is_default: shouldBeDefault,
+        },
+        false
+      );
       return;
     }
 

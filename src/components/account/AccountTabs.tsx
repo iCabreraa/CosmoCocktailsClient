@@ -31,6 +31,12 @@ const UserFavorites = dynamic(() => import("./UserFavorites"), {
     <div className="h-64 w-full animate-pulse bg-white/10 rounded-xl" />
   ),
 });
+const UserAddresses = dynamic(() => import("./UserAddresses"), {
+  ssr: true,
+  loading: () => (
+    <div className="h-64 w-full animate-pulse bg-white/10 rounded-xl" />
+  ),
+});
 const UserSettings = dynamic(() => import("./UserSettings"), {
   ssr: true,
   loading: () => (
@@ -43,6 +49,7 @@ import {
   HiOutlineShoppingBag,
   HiOutlineHeart,
   HiOutlineCog,
+  HiOutlineMapPin,
   HiXMark,
 } from "react-icons/hi2";
 
@@ -65,6 +72,11 @@ const getTabs = (t: (key: string) => string) => {
       id: "favorites",
       name: t("account.tabs.favorites"),
       icon: HiOutlineHeart,
+    },
+    {
+      id: "addresses",
+      name: t("account.tabs.addresses"),
+      icon: HiOutlineMapPin,
     },
     { id: "settings", name: t("account.tabs.settings"), icon: HiOutlineCog },
   ];
@@ -134,6 +146,8 @@ export default function AccountTabs({
         return <UserOrders />;
       case "favorites":
         return <UserFavorites />;
+      case "addresses":
+        return <UserAddresses />;
       case "settings":
         return <UserSettings user={user} onUpdate={onUpdate} />;
       default:
