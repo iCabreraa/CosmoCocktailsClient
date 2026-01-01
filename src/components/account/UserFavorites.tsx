@@ -7,7 +7,7 @@ import {
   HiOutlineEye,
   HiOutlineSparkles,
 } from "react-icons/hi2";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
 import { useAuthUnified } from "@/hooks/useAuthUnified";
@@ -20,7 +20,7 @@ import { useToast } from "@/components/feedback/ToastProvider";
 
 export default function UserFavorites() {
   const { t } = useLanguage();
-  const { user } = useAuthUnified();
+  const { user, loading: authLoading } = useAuthUnified();
   const addToCart = useCart(state => state.addToCart);
   const { notify } = useToast();
   const [page, setPage] = useState(1);
@@ -30,6 +30,7 @@ export default function UserFavorites() {
     mode: "details",
     page,
     pageSize,
+    userId: user?.id ?? null,
   });
   const favorites = (favoritesQuery.data ?? []) as FavoriteDetails[];
   const loading = favoritesQuery.isLoading;
@@ -80,10 +81,14 @@ export default function UserFavorites() {
     });
   };
 
+  useEffect(() => {
+    setPage(1);
+  }, [user?.id]);
+
   const canPrev = page > 1;
   const canNext = favorites.length === pageSize;
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>

@@ -12,6 +12,8 @@ import {
   HiOutlineTruck,
   HiOutlineCog,
   HiOutlineCreditCard,
+  HiOutlineChevronLeft,
+  HiOutlineChevronRight,
 } from "react-icons/hi2";
 
 interface Order {
@@ -30,10 +32,9 @@ export default function UserOrders() {
   const { t, language } = useLanguage();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasNext, setHasNext] = useState(false);
   const pageSize = 5;
 
   const locale = useMemo(() => {
@@ -60,17 +61,13 @@ export default function UserOrders() {
     }).format(value ?? 0);
 
   useEffect(() => {
-    fetchUserOrders(1, false);
+    fetchUserOrders(1);
   }, [t]);
 
-  const fetchUserOrders = async (pageToLoad = 1, append = false) => {
+  const fetchUserOrders = async (pageToLoad = 1) => {
     try {
-      if (append) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
-        setError("");
-      }
+      setLoading(true);
+      setError("");
       const response = await fetch(
         `/api/orders?summary=1&includeItems=0&page=${pageToLoad}&pageSize=${pageSize}`
       );
@@ -81,14 +78,17 @@ export default function UserOrders() {
 
       const data = await response.json();
       const nextOrders = data.orders || [];
-      setOrders(prev => (append ? [...prev, ...nextOrders] : nextOrders));
-      setHasMore(nextOrders.length === pageSize);
+      if (pageToLoad > 1 && nextOrders.length === 0) {
+        setHasNext(false);
+        return;
+      }
+      setOrders(nextOrders);
+      setHasNext(nextOrders.length === pageSize);
       setPage(pageToLoad);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setLoading(false);
-      setLoadingMore(false);
     }
   };
 
@@ -252,22 +252,35 @@ export default function UserOrders() {
               </div>
             </div>
           ))}
-          {hasMore && (
-            <div className="flex justify-center pt-2">
-              <button
-                type="button"
-                onClick={() => fetchUserOrders(page + 1, true)}
-                disabled={loadingMore}
-                className={`px-6 py-2 rounded-full border text-xs font-semibold uppercase tracking-[0.2em] transition ${
-                  loadingMore
-                    ? "border-white/10 text-slate-500 cursor-wait"
-                    : "border-cosmic-gold/40 text-cosmic-gold hover:bg-cosmic-gold/10"
-                }`}
-              >
-                {loadingMore ? t("shop.loading_more") : t("shop.load_more")}
-              </button>
-            </div>
-          )}
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => fetchUserOrders(Math.max(1, page - 1))}
+              disabled={page === 1 || loading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold uppercase tracking-[0.2em] transition ${
+                page > 1 && !loading
+                  ? "border-cosmic-gold/40 text-cosmic-gold hover:bg-cosmic-gold/10"
+                  : "border-white/10 text-slate-500 cursor-not-allowed"
+              }`}
+            >
+              <HiOutlineChevronLeft className="h-4 w-4" />
+              {t("common.prev")}
+            </button>
+            <span className="text-xs text-slate-400">{page}</span>
+            <button
+              type="button"
+              onClick={() => fetchUserOrders(page + 1)}
+              disabled={!hasNext || loading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold uppercase tracking-[0.2em] transition ${
+                hasNext && !loading
+                  ? "border-cosmic-gold/40 text-cosmic-gold hover:bg-cosmic-gold/10"
+                  : "border-white/10 text-slate-500 cursor-not-allowed"
+              }`}
+            >
+              {t("common.next")}
+              <HiOutlineChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       ) : (
         <div className="bg-white/5 backdrop-blur-md rounded-lg border border-slate-700/40 p-12 text-center">

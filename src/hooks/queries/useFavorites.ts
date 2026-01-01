@@ -1,6 +1,11 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 
 export type Favorite = { id: string; cocktail_id: string };
@@ -59,11 +64,12 @@ export function useFavorites(
     mode?: FavoritesMode;
     page?: number;
     pageSize?: number;
+    userId?: string | null;
   } = {}
 ) {
-  const { enabled = true, mode = "ids", page, pageSize } = options;
+  const { enabled = true, mode = "ids", page, pageSize, userId } = options;
   const queryClient = useQueryClient();
-  const queryKey = ["favorites", mode, page ?? 1, pageSize ?? null];
+  const queryKey = ["favorites", mode, userId ?? "anon", page ?? 1, pageSize ?? null];
   const supabase = createClient();
   const favoritesTable = supabase.from("user_favorites") as any;
   const getSessionUserId = async () => {
@@ -104,7 +110,15 @@ export function useFavorites(
         params.set("pageSize", String(pageSize));
       }
       const res = await fetch(`/api/favorites?${params.toString()}`);
-      if (!res.ok) return [];
+      if (res.status === 401) {
+        throw new Error("Unauthorized");
+      }
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        const message =
+          payload?.error ?? "Failed to load favorites";
+        throw new Error(message);
+      }
       const data = await res.json();
       const favorites = data.favorites ?? [];
       return favorites as FavoriteDetails[];
@@ -112,6 +126,7 @@ export function useFavorites(
     enabled,
     staleTime: mode === "ids" ? 10 * 60 * 1000 : 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
+    placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
     refetchOnMount: "always",
     initialData: mode === "ids" ? readCachedIds() ?? [] : undefined,
