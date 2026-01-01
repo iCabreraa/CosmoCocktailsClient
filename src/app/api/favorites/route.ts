@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+const parsePositiveInt = (value: string | null) => {
+  if (!value) return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return Math.floor(parsed);
+};
+
 export async function GET(request: NextRequest) {
   const supabase = createClient();
   const {
@@ -10,10 +17,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const mode = request.nextUrl.searchParams.get("mode");
-  const pageParam = request.nextUrl.searchParams.get("page");
-  const pageSizeParam = request.nextUrl.searchParams.get("pageSize");
-  const page = pageParam ? Number(pageParam) : null;
-  const pageSize = pageSizeParam ? Number(pageSizeParam) : null;
+  const page = parsePositiveInt(request.nextUrl.searchParams.get("page"));
+  const pageSize = parsePositiveInt(
+    request.nextUrl.searchParams.get("pageSize")
+  );
 
   if (mode === "ids") {
     const { data, error } = await supabase
@@ -42,8 +49,17 @@ export async function GET(request: NextRequest) {
     favoritesQuery = favoritesQuery.range(from, to);
   }
 
-  const { data: favoritesRows, error: favoritesError } =
-    await favoritesQuery;
+  const totalsQuery = (supabase as any)
+    .from("user_favorites")
+    .select("cocktail_id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  const [favoritesResult, totalsResult] = await Promise.all([
+    favoritesQuery,
+    totalsQuery,
+  ]);
+
+  const { data: favoritesRows, error: favoritesError } = favoritesResult;
 
   if (favoritesError)
     return NextResponse.json(
@@ -129,7 +145,23 @@ export async function GET(request: NextRequest) {
     })
     .filter(Boolean);
 
-  return NextResponse.json({ favorites });
+  const totalFavorites =
+    typeof totalsResult?.count === "number"
+      ? totalsResult.count
+      : favoritesRows?.length ?? 0;
+  const pageSizeValue = page ? (pageSize && pageSize > 0 ? pageSize : 5) : null;
+  const hasNext =
+    page && pageSizeValue ? page * pageSizeValue < totalFavorites : null;
+
+  return NextResponse.json({
+    favorites,
+    meta: {
+      total_favorites: totalFavorites,
+      page: page ?? null,
+      page_size: pageSizeValue,
+      has_next: hasNext,
+    },
+  });
 }
 
 export async function POST(request: NextRequest) {

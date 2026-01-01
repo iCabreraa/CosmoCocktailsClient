@@ -14,6 +14,8 @@ import {
 import AccountTabs from "@/components/account/AccountTabs";
 import CosmicBackground from "@/components/ui/CosmicBackground";
 import PrivacyModal from "@/components/privacy/PrivacyModal";
+import { createClient } from "@/lib/supabase/client";
+import { envClient } from "@/lib/env-client";
 import {
   HiOutlineEye,
   HiOutlineEyeSlash,
@@ -43,6 +45,8 @@ export default function AccountPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -52,6 +56,7 @@ export default function AccountPage() {
   const [error, setError] = useState("");
   const [loadingAction, setLoadingAction] = useState(false);
   const router = useRouter();
+  const supabase = createClient();
 
   // Mostrar notificaciones de errores de autenticación
   useEffect(() => {
@@ -81,6 +86,7 @@ export default function AccountPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setResetSent(false);
     setLoadingAction(true);
 
     try {
@@ -165,6 +171,59 @@ export default function AccountPage() {
     });
     router.push("/");
     router.refresh();
+  };
+
+  const handlePasswordReset = async () => {
+    setError("");
+    setResetSent(false);
+
+    if (!formData.email) {
+      setError(t("auth.email_required"));
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const baseUrl =
+        envClient.NEXT_PUBLIC_APP_URL ||
+        (typeof window !== "undefined" ? window.location.origin : "");
+      const redirectTo = baseUrl ? `${baseUrl}/auth/reset` : undefined;
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        formData.email,
+        redirectTo ? { redirectTo } : undefined
+      );
+
+      if (error) {
+        setError(error.message);
+        addNotification({
+          type: "error",
+          title: t("common.error"),
+          message: t("auth.reset_password_error"),
+          duration: 5000,
+        });
+        return;
+      }
+
+      setResetSent(true);
+      addNotification({
+        type: "success",
+        title: t("auth.reset_password_title"),
+        message: t("auth.reset_password_sent"),
+        duration: 5000,
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : t("common.error");
+      setError(errorMessage);
+      addNotification({
+        type: "error",
+        title: t("common.error"),
+        message: t("auth.reset_password_error"),
+        duration: 5000,
+      });
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   if (loading) {
@@ -368,6 +427,25 @@ export default function AccountPage() {
                   )}
                 </button>
               </div>
+              {isLogin && (
+                <div className="mt-3 flex items-center justify-between text-xs">
+                  <button
+                    type="button"
+                    onClick={handlePasswordReset}
+                    disabled={resetLoading}
+                    className="text-cosmic-gold hover:text-sky-300 transition-colors font-medium disabled:opacity-60"
+                  >
+                    {resetLoading
+                      ? t("auth.loading")
+                      : t("auth.forgot_password")}
+                  </button>
+                  {resetSent && (
+                    <span className="text-emerald-300">
+                      {t("auth.reset_password_sent")}
+                    </span>
+                  )}
+                </div>
+              )}
             </motion.div>
 
             {/* Error Message */}

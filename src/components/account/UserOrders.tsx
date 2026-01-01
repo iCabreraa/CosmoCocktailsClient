@@ -78,12 +78,16 @@ export default function UserOrders() {
 
       const data = await response.json();
       const nextOrders = data.orders || [];
+      const hasNextFromApi =
+        typeof data.meta?.has_next === "boolean" ? data.meta.has_next : null;
       if (pageToLoad > 1 && nextOrders.length === 0) {
         setHasNext(false);
         return;
       }
       setOrders(nextOrders);
-      setHasNext(nextOrders.length === pageSize);
+      setHasNext(
+        hasNextFromApi !== null ? hasNextFromApi : nextOrders.length === pageSize
+      );
       setPage(pageToLoad);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));

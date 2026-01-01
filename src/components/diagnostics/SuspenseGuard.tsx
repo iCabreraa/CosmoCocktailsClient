@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, Suspense, useEffect } from "react";
+import { ReactNode, Suspense, useCallback, useEffect, useState } from "react";
 
 type Props = {
   children: ReactNode;
@@ -13,7 +13,16 @@ export default function SuspenseGuard({
   fallback = null,
   timeoutMs = 8000,
 }: Props) {
+  const [isFallbackVisible, setIsFallbackVisible] = useState(false);
+  const handleFallbackVisibility = useCallback((visible: boolean) => {
+    setIsFallbackVisible(visible);
+  }, []);
+
   useEffect(() => {
+    if (!isFallbackVisible || process.env.NODE_ENV !== "development") {
+      return;
+    }
+
     const timer = setTimeout(() => {
       // eslint-disable-next-line no-console
       console.error(
@@ -21,9 +30,11 @@ export default function SuspenseGuard({
       );
     }, timeoutMs);
     return () => clearTimeout(timer);
-  }, [timeoutMs]);
+  }, [isFallbackVisible, timeoutMs]);
 
   useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+
     const handlePop = () => {
       // eslint-disable-next-line no-console
       console.log(`[Nav] route change/popstate: ${window.location.pathname}`);
@@ -32,6 +43,30 @@ export default function SuspenseGuard({
     return () => window.removeEventListener("popstate", handlePop);
   }, []);
 
-  return <Suspense fallback={fallback}>{children}</Suspense>;
+  return (
+    <Suspense
+      fallback={
+        <FallbackTracker onVisibilityChange={handleFallbackVisibility}>
+          {fallback}
+        </FallbackTracker>
+      }
+    >
+      {children}
+    </Suspense>
+  );
 }
 
+function FallbackTracker({
+  children,
+  onVisibilityChange,
+}: {
+  children: ReactNode;
+  onVisibilityChange: (visible: boolean) => void;
+}) {
+  useEffect(() => {
+    onVisibilityChange(true);
+    return () => onVisibilityChange(false);
+  }, [onVisibilityChange]);
+
+  return <>{children}</>;
+}

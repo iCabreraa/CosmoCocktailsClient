@@ -168,6 +168,10 @@ const es = {
         "description": "Permite que otros vean tus pedidos públicos"
       }
     },
+    "legal": {
+      "title": "Legal y soporte",
+      "description": "Revisa nuestras políticas o contacta si necesitas ayuda."
+    },
     "save_changes": "Guardar Cambios",
     "unsaved_changes": "Tienes cambios sin guardar",
     "saved": "Configuración guardada!",
@@ -642,7 +646,8 @@ const es = {
     "explore_catalog": "¡Explora nuestro catálogo y haz tu primer pedido!",
     "quick_actions": "Acciones Rápidas",
     "view_catalog": "Ver Catálogo",
-    "view_favorites": "Mis Favoritos"
+    "view_favorites": "Mis Favoritos",
+    "view_orders": "Historial de Pedidos"
   },
   "admin": {
     "panel_title": "Admin Panel",
@@ -744,6 +749,15 @@ const es = {
     "full_name": "Nombre Completo",
     "remember_me": "Recordarme",
     "forgot_password": "¿Olvidaste tu contraseña?",
+    "reset_password_title": "Restablecer contraseña",
+    "reset_password_sent": "Te enviamos un enlace para restablecer tu contraseña.",
+    "reset_password_error": "No se pudo enviar el correo de restablecimiento.",
+    "reset_password_update_title": "Crear nueva contraseña",
+    "reset_password_update_button": "Actualizar contraseña",
+    "reset_password_success": "Contraseña actualizada. Ya puedes iniciar sesión.",
+    "reset_password_invalid": "El enlace de restablecimiento es inválido o ha expirado.",
+    "reset_password_request_new": "Solicitar nuevo enlace",
+    "new_password": "Nueva contraseña",
     "loading": "Cargando...",
     "invalid_credentials": "Credenciales inválidas",
     "email_required": "El email es requerido",

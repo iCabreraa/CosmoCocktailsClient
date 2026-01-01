@@ -47,6 +47,7 @@ export default function UserStatsProvider({
       if (!ordersResponse.ok) throw new Error("Error al cargar pedidos");
       const ordersData = await ordersResponse.json();
       const orders = ordersData.orders || [];
+      const ordersMeta = ordersData.meta || {};
 
       const favoritesData = favoritesResponse.ok
         ? await favoritesResponse.json()
@@ -54,18 +55,20 @@ export default function UserStatsProvider({
       const favorites = favoritesData.favorites || [];
 
       // Calculate stats
-      const totalOrders = orders.length;
-      const totalSpent = orders.reduce(
-        (sum: number, order: any) => sum + Number(order.total_amount),
-        0
-      );
+      const totalOrders =
+        typeof ordersMeta.total_orders === "number"
+          ? ordersMeta.total_orders
+          : orders.length;
+      const totalSpent =
+        typeof ordersMeta.total_spent === "number"
+          ? ordersMeta.total_spent
+          : orders.reduce(
+              (sum: number, order: any) =>
+                sum + Number(order.total_amount ?? 0),
+              0
+            );
       const favoriteCocktails = favorites.length;
-      const recentOrders = orders
-        .sort(
-          (a: any, b: any) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        )
-        .slice(0, 5);
+      const recentOrders = orders.slice(0, 5);
 
       setStats({
         totalOrders,
@@ -87,4 +90,3 @@ export default function UserStatsProvider({
 
   return <>{children({ ...stats, loading, error, refresh: fetchUserStats })}</>;
 }
-

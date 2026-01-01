@@ -14,6 +14,7 @@ import { useAuthUnified } from "@/hooks/useAuthUnified";
 import {
   useFavorites,
   FavoriteDetails,
+  FavoriteDetailsResponse,
 } from "@/hooks/queries/useFavorites";
 import { useCart } from "@/store/cart";
 import { useToast } from "@/components/feedback/ToastProvider";
@@ -32,7 +33,11 @@ export default function UserFavorites() {
     pageSize,
     userId: user?.id ?? null,
   });
-  const favorites = (favoritesQuery.data ?? []) as FavoriteDetails[];
+  const favoritesResponse = favoritesQuery.data as
+    | FavoriteDetailsResponse
+    | undefined;
+  const favorites = favoritesResponse?.favorites ?? [];
+  const favoritesMeta = favoritesResponse?.meta;
   const loading = favoritesQuery.isLoading;
   const error =
     favoritesQuery.error instanceof Error
@@ -92,7 +97,10 @@ export default function UserFavorites() {
   }, [user?.id]);
 
   const canPrev = page > 1;
-  const canNext = favorites.length === pageSize;
+  const canNext =
+    typeof favoritesMeta?.has_next === "boolean"
+      ? favoritesMeta.has_next
+      : favorites.length === pageSize;
 
   if (authLoading || loading) {
     return (

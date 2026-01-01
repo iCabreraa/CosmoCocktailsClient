@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { UserService } from "@/lib/services/user.service";
-
-const userService = new UserService();
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,44 +38,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Crear perfil en users
-    try {
-      const userProfile = await userService.createUser({
+    // Perfil sincronizado via triggers en DB.
+    return NextResponse.json({
+      user: {
         id: authData.user.id,
-        email: authData.user.email!,
+        email: authData.user.email,
         full_name,
         phone,
         role: "customer",
         status: "active",
-        preferences: {},
-        metadata: {},
-      });
-
-      console.log("✅ User profile created:", userProfile.id);
-
-      return NextResponse.json({
-        user: {
-          id: authData.user.id,
-          email: authData.user.email,
-          full_name,
-          phone,
-          role: "customer",
-          status: "active",
-        },
-        message:
-          "User created successfully. Please check your email to confirm your account.",
-      });
-    } catch (profileError) {
-      console.error("Profile creation error:", profileError);
-
-      // Si falla la creación del perfil, eliminar el usuario de auth
-      await supabase.auth.admin.deleteUser(authData.user.id);
-
-      return NextResponse.json(
-        { error: "Failed to create user profile" },
-        { status: 500 }
-      );
-    }
+      },
+      message:
+        "User created successfully. Please check your email to confirm your account.",
+    });
   } catch (error) {
     console.error("Signup error:", error);
     return NextResponse.json(

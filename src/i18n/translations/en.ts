@@ -168,6 +168,10 @@ const en = {
         "description": "Allow others to see your public orders"
       }
     },
+    "legal": {
+      "title": "Legal & Support",
+      "description": "Review our policies or reach out if you need help."
+    },
     "save_changes": "Save Changes",
     "unsaved_changes": "You have unsaved changes",
     "saved": "Settings saved!",
@@ -788,6 +792,15 @@ const en = {
     "full_name": "Full Name",
     "remember_me": "Remember me",
     "forgot_password": "Forgot your password?",
+    "reset_password_title": "Reset your password",
+    "reset_password_sent": "We sent a password reset link to your email.",
+    "reset_password_error": "We couldn't send the reset email.",
+    "reset_password_update_title": "Set a new password",
+    "reset_password_update_button": "Update password",
+    "reset_password_success": "Password updated. You can sign in now.",
+    "reset_password_invalid": "This reset link is invalid or has expired.",
+    "reset_password_request_new": "Request a new link",
+    "new_password": "New Password",
     "loading": "Loading...",
     "invalid_credentials": "Invalid credentials",
     "email_required": "Email is required",

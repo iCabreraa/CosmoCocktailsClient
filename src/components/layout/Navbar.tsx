@@ -26,7 +26,7 @@ import LanguageSelector from "@/components/ui/LanguageSelector";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useFavorites } from "@/hooks/queries/useFavorites";
 import { useCart } from "@/store/cart";
-import { createClient } from "@/lib/supabase/client";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { usePathname, useRouter } from "next/navigation";
 import { useToast } from "@/components/feedback/ToastProvider";
 import "@fontsource/major-mono-display";
@@ -36,11 +36,10 @@ export default function Navbar() {
   const [hovered, setHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const { t } = useLanguage();
   const { canAccess: canAccessAdmin } = useAdminAccess();
+  const { user, logout } = useAuthUnified();
   const pathname = usePathname();
   const router = useRouter();
   const { notify } = useToast();
@@ -116,62 +115,6 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [accountDropdownOpen, menuOpen]);
 
-  useEffect(() => {
-    const getUser = async () => {
-      try {
-        const supabase = createClient();
-        const {
-          data: { user: authUser },
-        } = await supabase.auth.getUser();
-        if (authUser) {
-          const { data: userData } = await supabase
-            .from("users")
-            .select("*")
-            .eq("id", authUser.id)
-            .single();
-          setUser(userData || authUser);
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getUser();
-
-    // Listen for auth changes
-    const supabase = createClient();
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" && session?.user) {
-        // User signed in, fetch user data
-        try {
-          const { data: userData } = await supabase
-            .from("users")
-            .select("*")
-            .eq("id", session.user.id)
-            .single();
-          setUser(userData || session.user);
-        } catch (error) {
-          console.error("Error fetching user data after sign in:", error);
-          setUser(session.user);
-        }
-      } else if (event === "SIGNED_OUT") {
-        // User signed out
-        setUser(null);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
   // Block body scroll when menu is open
   useEffect(() => {
     if (menuOpen) {
@@ -187,12 +130,8 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        throw error;
-      }
-      setUser(null);
+      const { error } = await logout();
+      if (error) throw error;
       setMenuOpen(false);
       setAccountDropdownOpen(false);
       notify({
