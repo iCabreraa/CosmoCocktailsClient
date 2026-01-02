@@ -130,10 +130,6 @@ export default function CheckoutClient() {
         name: authUser.full_name || "",
         phone: authUser.phone || "",
       }));
-      console.log(
-        "✅ Auto-filled form with authenticated user data:",
-        authUser
-      );
     }
   }, [authUser, form.email]);
 
@@ -155,7 +151,6 @@ export default function CheckoutClient() {
           name: authUser.full_name || prev.name,
           phone: authUser.phone || prev.phone,
         }));
-        console.log("✅ Auto-filled from authenticated user:", authUser);
         return;
       }
 
@@ -176,17 +171,11 @@ export default function CheckoutClient() {
 
   const createPaymentIntent = async () => {
     try {
-      console.log("🔍 Creating payment intent with data:", {
-        items,
-        address: addressWithPhone,
-        form: { name: form.name, email: form.email },
-      });
-
-      const response = await fetch("/api/create-payment-intent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+    const response = await fetch("/api/create-payment-intent", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
         body: JSON.stringify({
           items: items,
           address: addressWithPhone,
@@ -194,11 +183,8 @@ export default function CheckoutClient() {
         }),
       });
 
-      console.log("📡 Payment intent response status:", response.status);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("❌ Payment intent error:", errorData);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
 
         if (errorData.error === "Privacy consent required") {
           setPaymentError(t("checkout.privacy_consent_required"));
@@ -225,28 +211,18 @@ export default function CheckoutClient() {
       }
 
       const responseData = await response.json();
-      console.log("✅ Payment intent response data:", responseData);
-
-      const { clientSecret } = responseData;
-      console.log(
-        "🔑 Client secret received:",
-        clientSecret ? "✅ Yes" : "❌ No"
-      );
-
-      setClientSecret(clientSecret);
-    } catch (error) {
-      console.error("❌ Error creating payment intent:", error);
-      setPaymentError("Error al crear el pago. Inténtalo de nuevo.");
-    }
-  };
+    const { clientSecret } = responseData;
+    setClientSecret(clientSecret);
+  } catch (error) {
+    setPaymentError("Error al crear el pago. Inténtalo de nuevo.");
+  }
+};
 
   const handlePaymentSuccess = async (payload: {
     orderId: string;
     orderRef?: string;
     paymentIntentId: string;
   }) => {
-    console.log("Payment successful:", payload);
-
     // Guardar datos del cliente solo si NO está autenticado
     if (shouldSaveClientData) {
       try {
@@ -258,12 +234,8 @@ export default function CheckoutClient() {
           is_guest: true,
           user_id: undefined,
         });
-        console.log("✅ Guest client data saved successfully");
       } catch (error) {
-        console.error("❌ Error saving guest client data:", error);
       }
-    } else {
-      console.log("✅ Authenticated user - skipping client data save");
     }
 
     if (typeof window !== "undefined") {
@@ -298,15 +270,6 @@ export default function CheckoutClient() {
 
   // Crear payment intent cuando el formulario esté listo
   useEffect(() => {
-    console.log("🔍 useEffect triggered with:", {
-      inventoryValid,
-      selectedAddress: !!selectedAddress,
-      formName: !!form.name,
-      formEmail: !!form.email,
-      privacyAccepted,
-      clientSecret: !!clientSecret,
-    });
-
     if (
       inventoryValid &&
       selectedAddress &&
@@ -316,24 +279,7 @@ export default function CheckoutClient() {
       currentStep >= 3 &&
       !clientSecret
     ) {
-      console.log("🚀 Creating payment intent...");
       createPaymentIntent();
-    } else {
-      console.log("⏸️ Payment intent creation skipped:", {
-        reason: !inventoryValid
-          ? "inventory not valid"
-          : !selectedAddress
-            ? "no address selected"
-            : !form.name
-              ? "no name provided"
-              : !form.email
-                ? "no email provided"
-                  : !privacyAccepted
-                    ? "privacy consent not accepted"
-                    : clientSecret
-                      ? "already has client secret"
-                      : "unknown",
-      });
     }
   }, [
     inventoryValid,

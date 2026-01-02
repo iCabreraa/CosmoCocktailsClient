@@ -233,10 +233,8 @@ function PaymentForm({
       }
 
       const orderResult = await response.json();
-      console.log("Order created successfully:", orderResult);
       return orderResult;
     } catch (error) {
-      console.error("Error creating order:", error);
       throw error;
     } finally {
       setIsCreatingOrder(false);
