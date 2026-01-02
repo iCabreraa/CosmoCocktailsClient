@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { User } from "@/types/user-system";
+import { useFavorites } from "@/hooks/queries/useFavorites";
+import { getQueryConfig } from "@/lib/query-client";
 
 interface UserStats {
   totalOrders: number;
@@ -25,68 +28,81 @@ export default function UserStatsProvider({
   user,
   children,
 }: UserStatsProviderProps) {
-  const [stats, setStats] = useState<UserStats>({
-    totalOrders: 0,
-    totalSpent: 0,
-    favoriteCocktails: 0,
-    recentOrders: [],
+  const ordersQuery = useQuery<{
+    orders?: any[];
+    meta?: Record<string, any>;
+  }>({
+    queryKey: ["account-stats", user.id, "orders-summary"],
+    queryFn: async () => {
+      const response = await fetch("/api/orders?summary=1&limit=3");
+      if (response.status === 401) {
+        const error = new Error("Unauthorized");
+        (error as { status?: number }).status = 401;
+        throw error;
+      }
+      if (!response.ok) {
+        let message = "Error al cargar pedidos";
+        try {
+          const payload = await response.json();
+          if (payload?.error) message = payload.error;
+        } catch {
+          // ignore parsing errors
+        }
+        throw new Error(message);
+      }
+      return response.json();
+    },
+    enabled: Boolean(user?.id),
+    refetchOnWindowFocus: false,
+    ...getQueryConfig("orders"),
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  const fetchUserStats = async () => {
-    try {
-      setLoading(true);
-      setError("");
+  const { favoritesQuery } = useFavorites({
+    enabled: Boolean(user?.id),
+    mode: "ids",
+    userId: user.id,
+  });
 
-      const [ordersResponse, favoritesResponse] = await Promise.all([
-        fetch("/api/orders?summary=1&limit=3"),
-        fetch("/api/favorites?mode=ids"),
-      ]);
+  const orders = ordersQuery.data?.orders ?? [];
+  const ordersMeta = ordersQuery.data?.meta ?? {};
+  const favorites = Array.isArray(favoritesQuery.data)
+    ? favoritesQuery.data
+    : [];
 
-      if (!ordersResponse.ok) throw new Error("Error al cargar pedidos");
-      const ordersData = await ordersResponse.json();
-      const orders = ordersData.orders || [];
-      const ordersMeta = ordersData.meta || {};
+  const stats = useMemo(() => {
+    const totalOrders =
+      typeof ordersMeta.total_orders === "number"
+        ? ordersMeta.total_orders
+        : orders.length;
+    const totalSpent =
+      typeof ordersMeta.total_spent === "number"
+        ? ordersMeta.total_spent
+        : orders.reduce(
+            (sum: number, order: any) =>
+              sum + Number(order.total_amount ?? 0),
+            0
+          );
+    const favoriteCocktails = favorites.length;
+    const recentOrders = orders.slice(0, 3);
+    return {
+      totalOrders,
+      totalSpent,
+      favoriteCocktails,
+      recentOrders,
+    };
+  }, [ordersMeta, orders, favorites.length]);
 
-      const favoritesData = favoritesResponse.ok
-        ? await favoritesResponse.json()
-        : { favorites: [] };
-      const favorites = favoritesData.favorites || [];
-
-      // Calculate stats
-      const totalOrders =
-        typeof ordersMeta.total_orders === "number"
-          ? ordersMeta.total_orders
-          : orders.length;
-      const totalSpent =
-        typeof ordersMeta.total_spent === "number"
-          ? ordersMeta.total_spent
-          : orders.reduce(
-              (sum: number, order: any) =>
-                sum + Number(order.total_amount ?? 0),
-              0
-            );
-      const favoriteCocktails = favorites.length;
-      const recentOrders = orders.slice(0, 5);
-
-      setStats({
-        totalOrders,
-        totalSpent,
-        favoriteCocktails,
-        recentOrders,
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error desconocido");
-      console.error("Error fetching user stats:", err);
-    } finally {
-      setLoading(false);
-    }
+  const error =
+    ordersQuery.error instanceof Error
+      ? ordersQuery.error.message
+      : favoritesQuery.error instanceof Error
+        ? favoritesQuery.error.message
+        : "";
+  const loading = ordersQuery.isLoading || favoritesQuery.isLoading;
+  const refresh = () => {
+    void ordersQuery.refetch();
+    void favoritesQuery.refetch();
   };
 
-  useEffect(() => {
-    fetchUserStats();
-  }, [user.id]);
-
-  return <>{children({ ...stats, loading, error, refresh: fetchUserStats })}</>;
+  return <>{children({ ...stats, loading, error, refresh })}</>;
 }

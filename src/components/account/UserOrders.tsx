@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
+import { useOrders } from "@/hooks/queries/useOrders";
 import {
   HiOutlineShoppingBag,
   HiOutlineClock,
@@ -16,25 +18,11 @@ import {
   HiOutlineChevronRight,
 } from "react-icons/hi2";
 
-interface Order {
-  id: string;
-  total_amount: number;
-  status: string;
-  created_at: string;
-  delivery_date?: string;
-  items: Array<{
-    id: string;
-  }>;
-}
-
 export default function UserOrders() {
   const router = useRouter();
   const { t, language } = useLanguage();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { user } = useAuthUnified();
   const [page, setPage] = useState(1);
-  const [hasNext, setHasNext] = useState(false);
   const pageSize = 5;
 
   const locale = useMemo(() => {
@@ -60,41 +48,30 @@ export default function UserOrders() {
       maximumFractionDigits: 2,
     }).format(value ?? 0);
 
-  useEffect(() => {
-    fetchUserOrders(1);
-  }, [t]);
+  const ordersQuery = useOrders({
+    enabled: Boolean(user?.id),
+    userId: user?.id ?? null,
+    summary: true,
+    includeItems: false,
+    page,
+    pageSize,
+  });
+  const orders = ordersQuery.data?.orders ?? [];
+  const meta = ordersQuery.data?.meta;
+  const error =
+    ordersQuery.error instanceof Error ? ordersQuery.error.message : "";
+  const errorMessage = useMemo(() => {
+    if (!error) return "";
+    if (error === "Unauthorized") return t("auth.session_expired_message");
+    return error;
+  }, [error, t]);
 
-  const fetchUserOrders = async (pageToLoad = 1) => {
-    try {
-      setLoading(true);
-      setError("");
-      const response = await fetch(
-        `/api/orders?summary=1&includeItems=0&page=${pageToLoad}&pageSize=${pageSize}`
-      );
-      if (response.status === 401) {
-        throw new Error(t("auth.session_expired_message"));
-      }
-      if (!response.ok) throw new Error(t("common.error"));
-
-      const data = await response.json();
-      const nextOrders = data.orders || [];
-      const hasNextFromApi =
-        typeof data.meta?.has_next === "boolean" ? data.meta.has_next : null;
-      if (pageToLoad > 1 && nextOrders.length === 0) {
-        setHasNext(false);
-        return;
-      }
-      setOrders(nextOrders);
-      setHasNext(
-        hasNextFromApi !== null ? hasNextFromApi : nextOrders.length === pageSize
-      );
-      setPage(pageToLoad);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("common.error"));
-    } finally {
-      setLoading(false);
-    }
-  };
+  const isLoading = ordersQuery.isLoading;
+  const isFetching = ordersQuery.isFetching;
+  const hasNext =
+    typeof meta?.has_next === "boolean"
+      ? meta.has_next
+      : orders.length === pageSize;
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -159,7 +136,7 @@ export default function UserOrders() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cosmic-gold"></div>
@@ -167,14 +144,14 @@ export default function UserOrders() {
     );
   }
 
-  if (error) {
+  if (errorMessage) {
     return (
       <div className="bg-white/5 border border-rose-500/30 rounded-lg p-6 text-center">
         <HiOutlineXCircle className="h-12 w-12 text-rose-300 mx-auto mb-4" />
         <p className="text-rose-200 font-medium">{t("orders.error_loading")}</p>
-        <p className="text-rose-200/80 text-sm mt-2">{error}</p>
+        <p className="text-rose-200/80 text-sm mt-2">{errorMessage}</p>
         <button
-          onClick={fetchUserOrders}
+          onClick={() => ordersQuery.refetch()}
           className="mt-4 px-4 py-2 bg-rose-500/20 text-rose-200 border border-rose-400/40 rounded-lg hover:bg-rose-500/30 transition-colors"
         >
           {t("orders.retry")}
@@ -259,10 +236,10 @@ export default function UserOrders() {
           <div className="flex items-center justify-center gap-3 pt-2">
             <button
               type="button"
-              onClick={() => fetchUserOrders(Math.max(1, page - 1))}
-              disabled={page === 1 || loading}
+              onClick={() => setPage(prev => Math.max(1, prev - 1))}
+              disabled={page === 1 || isFetching}
               className={`flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold uppercase tracking-[0.2em] transition ${
-                page > 1 && !loading
+                page > 1 && !isFetching
                   ? "border-cosmic-gold/40 text-cosmic-gold hover:bg-cosmic-gold/10"
                   : "border-white/10 text-slate-500 cursor-not-allowed"
               }`}
@@ -273,10 +250,10 @@ export default function UserOrders() {
             <span className="text-xs text-slate-400">{page}</span>
             <button
               type="button"
-              onClick={() => fetchUserOrders(page + 1)}
-              disabled={!hasNext || loading}
+              onClick={() => setPage(prev => prev + 1)}
+              disabled={!hasNext || isFetching}
               className={`flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold uppercase tracking-[0.2em] transition ${
-                hasNext && !loading
+                hasNext && !isFetching
                   ? "border-cosmic-gold/40 text-cosmic-gold hover:bg-cosmic-gold/10"
                   : "border-white/10 text-slate-500 cursor-not-allowed"
               }`}
