@@ -1,10 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import {
   normalizeOrderItems,
   toOrderItemMetadata,
 } from "@/types/order-item-utils";
+import { envServer } from "@/lib/env-server";
+
+type InventoryCheckItem = {
+  cocktail_id: string;
+  sizes_id: string;
+  quantity: number;
+};
+
+const supabaseAdmin = createSupabaseClient(
+  envServer.NEXT_PUBLIC_SUPABASE_URL,
+  envServer.SUPABASE_SERVICE_ROLE_KEY
+);
+
+const aggregateInventoryItems = (
+  items: ReturnType<typeof normalizeOrderItems>
+): InventoryCheckItem[] => {
+  const grouped = new Map<string, InventoryCheckItem>();
+  items.forEach(item => {
+    const key = `${item.cocktail_id}:${item.sizes_id}`;
+    const existing = grouped.get(key);
+    if (existing) {
+      existing.quantity += item.quantity;
+      return;
+    }
+    grouped.set(key, {
+      cocktail_id: item.cocktail_id,
+      sizes_id: item.sizes_id,
+      quantity: item.quantity,
+    });
+  });
+  return Array.from(grouped.values());
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,6 +76,75 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "No valid order items provided" },
         { status: 400 }
+      );
+    }
+
+    const inventoryItems = aggregateInventoryItems(sanitizedItems);
+    const inventoryFilters = inventoryItems
+      .map(
+        item =>
+          `and(cocktail_id.eq.${item.cocktail_id},sizes_id.eq.${item.sizes_id})`
+      )
+      .join(",");
+
+    const { data: inventoryRows, error: inventoryError } =
+      await supabaseAdmin
+        .from("cocktail_sizes")
+        .select("available, stock_quantity, cocktail_id, sizes_id")
+        .or(inventoryFilters);
+
+    if (inventoryError) {
+      console.error("❌ Inventory validation error:", inventoryError);
+      return NextResponse.json(
+        { error: "Failed to verify inventory" },
+        { status: 500 }
+      );
+    }
+
+    const unavailableItems = inventoryItems
+      .map(item => {
+        const row = (inventoryRows ?? []).find(
+          inventory =>
+            inventory.cocktail_id === item.cocktail_id &&
+            inventory.sizes_id === item.sizes_id
+        );
+        const available = Boolean(row?.available);
+        const stockQty =
+          typeof row?.stock_quantity === "number"
+            ? row.stock_quantity
+            : null;
+        const hasStock = stockQty === null || stockQty >= item.quantity;
+
+        if (!row || !available || !hasStock) {
+          return {
+            cocktail_id: item.cocktail_id,
+            sizes_id: item.sizes_id,
+            requested_quantity: item.quantity,
+            available,
+            stock_quantity: stockQty ?? 0,
+          };
+        }
+        return null;
+      })
+      .filter(
+        (
+          item
+        ): item is {
+          cocktail_id: string;
+          sizes_id: string;
+          requested_quantity: number;
+          available: boolean;
+          stock_quantity: number;
+        } => Boolean(item)
+      );
+
+    if (unavailableItems.length > 0) {
+      return NextResponse.json(
+        {
+          error: "Some items are no longer available",
+          unavailable: unavailableItems,
+        },
+        { status: 409 }
       );
     }
 

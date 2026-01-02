@@ -196,8 +196,25 @@ export default function CheckoutClient() {
       console.log("📡 Payment intent response status:", response.status);
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         console.error("❌ Payment intent error:", errorData);
+
+        if (response.status === 409) {
+          setInventoryValid(false);
+          setUnavailableItems(
+            Array.isArray(errorData?.unavailable)
+              ? errorData.unavailable.map(
+                  (item: { cocktail_id?: string; sizes_id?: string }) =>
+                    `${item.cocktail_id ?? ""}:${item.sizes_id ?? ""}`
+                )
+              : []
+          );
+          setShowStepErrors(true);
+          setCurrentStep(2);
+          setPaymentError(t("checkout.products_unavailable"));
+          return;
+        }
+
         throw new Error(errorData.error || "Failed to create payment intent");
       }
 
