@@ -108,12 +108,7 @@ const ensureAuthInitialized = async () => {
     if (!authSubscription) {
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange(async (event, session) => {
-        if (process.env.NODE_ENV === "development") {
-          // eslint-disable-next-line no-console
-          console.log("Auth state changed:", event, session?.user?.id);
-        }
-
+      } = supabase.auth.onAuthStateChange(async (_event, session) => {
         await syncUserFromSession(session?.user ?? null);
       });
 
