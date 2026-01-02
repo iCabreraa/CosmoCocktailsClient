@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { envServer } from "@/lib/env-server";
+import { stripe } from "@/lib/stripe/server";
 import {
   normalizeOrderItems,
   toOrderItemInserts,
@@ -46,23 +47,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (payment_intent_id) {
-      const { data: existingOrder, error: existingError } = await supabase
-        .from("orders")
-        .select("id, order_ref")
-        .eq("payment_intent_id", payment_intent_id)
-        .maybeSingle();
+    if (!payment_intent_id) {
+      return NextResponse.json(
+        { error: "Payment intent is required" },
+        { status: 400 }
+      );
+    }
 
-      if (existingError) {
-        console.error("❌ Error checking existing order:", existingError);
-      }
+    const { data: existingOrder, error: existingError } = await supabase
+      .from("orders")
+      .select("id, order_ref")
+      .eq("payment_intent_id", payment_intent_id)
+      .maybeSingle();
 
-      if (existingOrder) {
-        return NextResponse.json({
-          id: existingOrder.id,
-          order_ref: existingOrder.order_ref,
-        });
-      }
+    if (existingError) {
+      console.error("❌ Error checking existing order:", existingError);
+    }
+
+    if (existingOrder) {
+      return NextResponse.json({
+        id: existingOrder.id,
+        order_ref: existingOrder.order_ref,
+      });
     }
 
     let normalizedItems;
@@ -74,6 +80,45 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    let paymentIntent;
+    try {
+      paymentIntent = await stripe.paymentIntents.retrieve(payment_intent_id);
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Failed to verify payment intent" },
+        { status: 502 }
+      );
+    }
+
+    if (!paymentIntent) {
+      return NextResponse.json(
+        { error: "Payment intent not found" },
+        { status: 404 }
+      );
+    }
+
+    if (paymentIntent.status !== "succeeded") {
+      return NextResponse.json(
+        { error: "Payment not completed", status: paymentIntent.status },
+        { status: 409 }
+      );
+    }
+
+    const expectedAmount = Math.round(total * 100);
+    const receivedAmount =
+      paymentIntent.amount_received || paymentIntent.amount || 0;
+
+    if (receivedAmount !== expectedAmount) {
+      return NextResponse.json(
+        {
+          error: "Payment amount mismatch",
+          expected: expectedAmount,
+          received: receivedAmount,
+        },
+        { status: 409 }
+      );
+    }
+
     // Crear el pedido
     const { data: order, error: orderError } = await supabase
       .from("orders")
