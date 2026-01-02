@@ -87,7 +87,7 @@ export function ErrorNotification({
   return (
     <div
       className={`
-        fixed top-4 right-4 z-50 max-w-sm w-full
+        fixed top-4 right-4 z-[120] max-w-sm w-full
         transform transition-all duration-300 ease-in-out
         ${isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"}
       `}
@@ -132,7 +132,7 @@ export function useNotifications() {
       const id = Math.random().toString(36).substr(2, 9);
       const newNotification = { ...notification, id };
 
-      setNotifications(prev => [...prev, newNotification]);
+      setNotifications([newNotification]);
 
       return id;
     },

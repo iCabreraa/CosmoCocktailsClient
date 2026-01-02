@@ -6,6 +6,7 @@ import type { KeyboardEvent } from "react";
 import { CocktailWithPrice } from "@/types";
 import dynamic from "next/dynamic";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
 import ShopLoadingState from "./components/ShopLoadingState";
 import CocktailGrid from "./components/CocktailGrid";
 import { mapCocktailsWithPrices } from "./utils";
@@ -61,35 +62,12 @@ export default function ShopClient({
     "pagination"
   );
   const [hasMore, setHasMore] = useState(initialHasMore);
-  const [showFavorites, setShowFavorites] = useState(false);
   const supabase = useMemo(() => createClient(), []);
   const hasMountedRef = useRef(false);
+  const { user } = useAuthUnified();
+  const showFavorites = Boolean(user);
 
   const PAGE_SIZE = 12;
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!isMounted) return;
-      setShowFavorites(Boolean(data.session?.user));
-    };
-
-    loadSession();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!isMounted) return;
-      setShowFavorites(Boolean(session?.user));
-    });
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, [supabase]);
 
   async function fetchCocktailsPage(
     page: number,

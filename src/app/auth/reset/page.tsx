@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -25,6 +25,53 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  const resolveResetSession = useCallback(async () => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    const currentUrl = new URL(window.location.href);
+    const code = currentUrl.searchParams.get("code");
+    const type = currentUrl.searchParams.get("type");
+
+    if (code && (type === "recovery" || !type)) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error) {
+        return { error };
+      }
+      window.history.replaceState(
+        {},
+        document.title,
+        `${currentUrl.origin}${currentUrl.pathname}`
+      );
+      return { session: data.session };
+    }
+
+    if (currentUrl.hash) {
+      const hashParams = new URLSearchParams(currentUrl.hash.slice(1));
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+
+      if (accessToken && refreshToken) {
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (error) {
+          return { error };
+        }
+        window.history.replaceState(
+          {},
+          document.title,
+          `${currentUrl.origin}${currentUrl.pathname}`
+        );
+        return { session: data.session };
+      }
+    }
+
+    return null;
+  }, [supabase]);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -32,56 +79,7 @@ export default function ResetPasswordPage() {
       setSessionReady(false);
       setError("");
 
-      const resolveSession = async () => {
-        if (typeof window === "undefined") {
-          return null;
-        }
-
-        const currentUrl = new URL(window.location.href);
-        const code = currentUrl.searchParams.get("code");
-        const type = currentUrl.searchParams.get("type");
-
-        if (code && type === "recovery") {
-          const { data, error } = await supabase.auth.exchangeCodeForSession(
-            code
-          );
-          if (error) {
-            return { error };
-          }
-          window.history.replaceState(
-            {},
-            document.title,
-            `${currentUrl.origin}${currentUrl.pathname}`
-          );
-          return { session: data.session };
-        }
-
-        if (currentUrl.hash) {
-          const hashParams = new URLSearchParams(currentUrl.hash.slice(1));
-          const accessToken = hashParams.get("access_token");
-          const refreshToken = hashParams.get("refresh_token");
-
-          if (accessToken && refreshToken) {
-            const { data, error } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            });
-            if (error) {
-              return { error };
-            }
-            window.history.replaceState(
-              {},
-              document.title,
-              `${currentUrl.origin}${currentUrl.pathname}`
-            );
-            return { session: data.session };
-          }
-        }
-
-        return null;
-      };
-
-      const resolved = await resolveSession();
+      const resolved = await resolveResetSession();
       if (!isMounted) return;
 
       if (resolved?.error) {
@@ -117,7 +115,7 @@ export default function ResetPasswordPage() {
       isMounted = false;
       listener?.subscription?.unsubscribe();
     };
-  }, [supabase, t]);
+  }, [resolveResetSession, supabase, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,8 +123,12 @@ export default function ResetPasswordPage() {
     setSuccess(false);
 
     if (!hasSession) {
-      setError(t("auth.reset_password_invalid"));
-      return;
+      const resolved = await resolveResetSession();
+      if (!resolved?.session) {
+        setError(t("auth.reset_password_invalid"));
+        return;
+      }
+      setHasSession(true);
     }
 
     if (password.length < 6) {
@@ -141,9 +143,16 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const updateWithTimeout = Promise.race([
+        supabase.auth.updateUser({ password }),
+        new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error("timeout")), 15000);
+        }),
+      ]) as Promise<{ error?: { message?: string } | null }>;
+
+      const { error } = await updateWithTimeout;
       if (error) {
-        setError(t("auth.reset_password_error"));
+        setError(error.message || t("auth.reset_password_error"));
         return;
       }
       setSuccess(true);

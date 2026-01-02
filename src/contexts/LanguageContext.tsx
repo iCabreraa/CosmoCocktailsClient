@@ -21,7 +21,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
 );
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>("es");
+  const [language, setLanguageState] = useState<Language>("en");
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -109,7 +109,7 @@ export function useLanguage() {
     console.error("useLanguage must be used within a LanguageProvider");
     // Fallback para evitar crashes
     return {
-      language: "es" as const,
+      language: "en" as const,
       setLanguage: () => {},
       t: (key: string, params?: Record<string, string | number>) => key,
       isInitialized: false,

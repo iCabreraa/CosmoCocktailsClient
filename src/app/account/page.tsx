@@ -47,6 +47,7 @@ export default function AccountPage() {
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -87,6 +88,7 @@ export default function AccountPage() {
     e.preventDefault();
     setError("");
     setResetSent(false);
+    setSuccessMessage("");
     setLoadingAction(true);
 
     try {
@@ -135,6 +137,7 @@ export default function AccountPage() {
           });
           setIsLogin(true);
           setFormData({ email: "", password: "", full_name: "", phone: "" });
+          setSuccessMessage(t("auth.register_success_message"));
         }
       }
     } catch (error) {
@@ -459,6 +462,16 @@ export default function AccountPage() {
               </motion.div>
             )}
 
+            {successMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-emerald-300 text-sm bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3"
+              >
+                {successMessage}
+              </motion.div>
+            )}
+
             {/* Submit Button */}
             <motion.button
               initial={{ opacity: 0, y: 20 }}
@@ -508,6 +521,7 @@ export default function AccountPage() {
                   onClick={() => {
                     setIsLogin(!isLogin);
                     setError("");
+                    setSuccessMessage("");
                     setFormData({
                       email: "",
                       password: "",

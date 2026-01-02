@@ -136,7 +136,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const notify = useCallback((toast: ToastOptions) => {
     const id = Math.random().toString(36).slice(2, 10);
-    setToasts(prev => [...prev, { ...toast, id }]);
+    setToasts([{ ...toast, id }]);
     return id;
   }, []);
 

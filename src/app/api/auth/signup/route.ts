@@ -15,6 +15,8 @@ export async function POST(request: NextRequest) {
     const supabase = createClient();
 
     // 1. Crear usuario en Supabase Auth
+    const emailRedirectTo = new URL("/account", request.nextUrl.origin).toString();
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -23,6 +25,7 @@ export async function POST(request: NextRequest) {
           full_name,
           phone,
         },
+        emailRedirectTo,
       },
     });
 

@@ -7,6 +7,8 @@ import { envClient } from "@/lib/env-client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCart } from "@/store/cart";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { useAuthUnified } from "@/hooks/useAuthUnified";
+import FavoriteButton from "@/components/ui/FavoriteButton";
 import {
   AlertTriangle,
   ChevronDown,
@@ -190,6 +192,8 @@ export default function CocktailDetailPage({
   const supabase = createPublicClient();
   const addToCart = useCart(state => state.addToCart);
   const { notify } = useToast();
+  const { user } = useAuthUnified();
+  const showFavorites = Boolean(user);
 
   const [cocktail, setCocktail] = useState<CocktailRow | null>(null);
   const [sizeOptions, setSizeOptions] = useState<SizeOption[]>([]);
@@ -1589,6 +1593,13 @@ export default function CocktailDetailPage({
                     <span className="inline-flex items-center rounded-full border border-cosmic-gold/35 bg-cosmic-gold/10 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-cosmic-gold">
                       {cocktail.alcohol_percentage}% ABV
                     </span>
+                    <div className="ml-auto">
+                      <FavoriteButton
+                        cocktailId={cocktail.id}
+                        show={showFavorites}
+                        className="bg-white/10 hover:bg-white/20"
+                      />
+                    </div>
                   </div>
                   {cocktail.has_non_alcoholic_version && (
                     <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-sky-200">

@@ -39,7 +39,7 @@ const playfair = Playfair_Display({
 
 export const metadata = {
   title: "CosmoCocktails",
-  description: "Cócteles premium en Holanda",
+  description: "Premium bottled cocktails in the Netherlands",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -52,7 +52,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     { ssr: false }
   );
   return (
-    <html lang="es">
+    <html lang="en">
       <body className={`${unica.variable} ${josefin.variable} font-sans`}>
         <ErrorBoundary>
           <LanguageProvider>

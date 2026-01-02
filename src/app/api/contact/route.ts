@@ -196,32 +196,69 @@ async function sendContactMessage(data: {
   userAgent: string;
 }): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    // Aquí implementarías el envío real del email
-    // Por ahora simulamos el envío
-
     const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const receiverEmail =
+      process.env.CONTACT_RECEIVER_EMAIL || "support@cosmococktails.nl";
+    const fromEmail =
+      process.env.CONTACT_FROM_EMAIL || "no-reply@cosmococktails.nl";
 
-    // Log del mensaje para desarrollo
-    console.log("📧 Contact message received:", {
-      messageId,
-      email: maskEmail(data.email),
-      phone: data.phone ? maskPhone(data.phone) : null,
-      subjectLength: data.subject.length,
-      messageLength: data.message.length,
-      ip: maskIp(data.ip),
-      timestamp: new Date().toISOString(),
+    if (!resendApiKey) {
+      console.warn(
+        "Contact form email not sent: RESEND_API_KEY not configured."
+      );
+      console.log("📧 Contact message received:", {
+        messageId,
+        email: maskEmail(data.email),
+        phone: data.phone ? maskPhone(data.phone) : null,
+        subjectLength: data.subject.length,
+        messageLength: data.message.length,
+        ip: maskIp(data.ip),
+        timestamp: new Date().toISOString(),
+      });
+      return { success: true, messageId };
+    }
+
+    const html = `
+      <div style="font-family:Arial,Helvetica,sans-serif;color:#0f172a;">
+        <h2>New contact message</h2>
+        <p><strong>Name:</strong> ${data.name}</p>
+        <p><strong>Email:</strong> ${data.email}</p>
+        ${data.phone ? `<p><strong>Phone:</strong> ${data.phone}</p>` : ""}
+        <p><strong>Subject:</strong> ${data.subject}</p>
+        <p><strong>Message:</strong></p>
+        <p>${data.message.replace(/\n/g, "<br />")}</p>
+        <hr />
+        <p style="font-size:12px;color:#64748b;">
+          IP: ${maskIp(data.ip)} · UA: ${data.userAgent}
+        </p>
+      </div>
+    `;
+
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: `CosmoCocktails <${fromEmail}>`,
+        to: [receiverEmail],
+        subject: `Contact form: ${data.subject}`,
+        html,
+        reply_to: data.email,
+      }),
     });
 
-    // TODO: Implementar envío real con Resend o similar
-    // const resend = new Resend(process.env.RESEND_API_KEY);
-    // await resend.emails.send({
-    //   from: 'contacto@cosmococktails.com',
-    //   to: ['soporte@cosmococktails.com'],
-    //   subject: `Nuevo mensaje de contacto: ${data.subject}`,
-    //   html: generateContactEmailHTML(data),
-    // });
+    if (!response.ok) {
+      const errorBody = await response.text();
+      return { success: false, error: errorBody };
+    }
 
-    return { success: true, messageId };
+    const payload = await response.json().catch(() => null);
+    const resendId = payload?.id ?? messageId;
+
+    return { success: true, messageId: resendId };
   } catch (error) {
     return {
       success: false,
