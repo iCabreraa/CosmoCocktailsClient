@@ -43,7 +43,7 @@ type FavoritesMode = "ids" | "details";
 type FavoritesResult<M extends FavoritesMode> = M extends "details"
   ? FavoriteDetailsResponse
   : Favorite[];
-type FavoritesOptions<M extends FavoritesMode> = {
+export type FavoritesOptions<M extends FavoritesMode> = {
   enabled?: boolean;
   mode?: M;
   page?: number;
@@ -84,6 +84,73 @@ const writeCachedIds = (favorites: Favorite[], userId: string | null) => {
   }
 };
 
+const buildFavoritesUrl = <M extends FavoritesMode>({
+  mode,
+  page,
+  pageSize,
+}: FavoritesOptions<M>) => {
+  const params = new URLSearchParams({ mode: mode ?? "ids" });
+  if (typeof page === "number") {
+    params.set("page", String(page));
+  }
+  if (typeof pageSize === "number") {
+    params.set("pageSize", String(pageSize));
+  }
+  return `/api/favorites?${params.toString()}`;
+};
+
+export const buildFavoritesQueryKey = <M extends FavoritesMode>({
+  mode = "ids" as M,
+  page,
+  pageSize,
+  userId,
+}: FavoritesOptions<M>) =>
+  [
+    "favorites",
+    userId ?? "anon",
+    mode,
+    page ?? 1,
+    pageSize ?? null,
+  ] as const;
+
+export const fetchFavorites = async <M extends FavoritesMode>(
+  options: FavoritesOptions<M>
+): Promise<FavoritesResult<M>> => {
+  const { mode = "ids" as M, userId } = options;
+  const res = await fetch(buildFavoritesUrl(options));
+  if (res.status === 401) {
+    const error = new Error("Unauthorized");
+    (error as { status?: number }).status = 401;
+    throw error;
+  }
+  if (!res.ok) {
+    let message = "Failed to load favorites";
+    try {
+      const payload = await res.json();
+      if (payload?.error) message = payload.error;
+    } catch {
+      // ignore parsing errors
+    }
+    throw new Error(message);
+  }
+  const data = await res.json();
+  if (mode === "ids") {
+    const favoritesData = (data.favorites ?? []) as Array<{
+      cocktail_id: string;
+    }>;
+    const normalized = favoritesData.map(favorite => ({
+      id: favorite.cocktail_id,
+      cocktail_id: favorite.cocktail_id,
+    }));
+    writeCachedIds(normalized, userId ?? null);
+    return normalized as FavoritesResult<M>;
+  }
+  return {
+    favorites: (data.favorites ?? []) as FavoriteDetails[],
+    meta: data.meta,
+  } as FavoritesResult<M>;
+};
+
 export function useFavorites<M extends FavoritesMode = "ids">(
   options: FavoritesOptions<M> = {}
 ) {
@@ -92,89 +159,43 @@ export function useFavorites<M extends FavoritesMode = "ids">(
   const queryClient = useQueryClient();
   const effectiveUserId = userId ?? user?.id ?? null;
   const baseQueryKey = ["favorites", effectiveUserId ?? "anon"] as const;
-  const queryKey = [
-    ...baseQueryKey,
+  const queryKey = buildFavoritesQueryKey({
+    ...options,
     mode,
-    page ?? 1,
-    pageSize ?? null,
-  ] as const;
+    page,
+    pageSize,
+    userId: effectiveUserId,
+  });
   const supabase = createClient();
   const favoritesTable = supabase.from("user_favorites") as any;
-  const getSessionUserId = async () => {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) {
-      throw error;
-    }
-    return data.session?.user?.id ?? null;
-  };
-  const resolveUserId = async () => {
-    if (effectiveUserId) return effectiveUserId;
-    return getSessionUserId();
-  };
 
   const favoritesQuery = useQuery<FavoritesResult<M>>({
     queryKey,
-    queryFn: async () => {
-      if (mode === "ids") {
-        const sessionUserId = await resolveUserId();
-        if (!sessionUserId) return [];
-        const { data, error } = await favoritesTable
-          .select("cocktail_id")
-          .eq("user_id", sessionUserId);
-
-        if (error) {
-          throw error;
-        }
-
-        const favoritesData = (data ?? []) as Array<{ cocktail_id: string }>;
-        const normalized = favoritesData.map(favorite => ({
-          id: favorite.cocktail_id,
-          cocktail_id: favorite.cocktail_id,
-        }));
-        writeCachedIds(normalized, sessionUserId);
-        return normalized as FavoritesResult<M>;
-      }
-      const params = new URLSearchParams({ mode });
-      if (typeof page === "number") {
-        params.set("page", String(page));
-      }
-      if (typeof pageSize === "number") {
-        params.set("pageSize", String(pageSize));
-      }
-      const res = await fetch(`/api/favorites?${params.toString()}`);
-      if (res.status === 401) {
-        throw new Error("Unauthorized");
-      }
-      if (!res.ok) {
-        const payload = await res.json().catch(() => null);
-        const message =
-          payload?.error ?? "Failed to load favorites";
-        throw new Error(message);
-      }
-      const data = await res.json();
-      return {
-        favorites: (data.favorites ?? []) as FavoriteDetails[],
-        meta: data.meta,
-      } as FavoritesResult<M>;
-    },
+    queryFn: () =>
+      fetchFavorites({
+        ...options,
+        mode,
+        page,
+        pageSize,
+        userId: effectiveUserId,
+      }),
     enabled: enabled && Boolean(effectiveUserId),
     staleTime: mode === "ids" ? 10 * 60 * 1000 : 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
-    refetchOnMount: "always",
+    refetchOnMount: false,
     initialData:
       mode === "ids" ? (readCachedIds(effectiveUserId) ?? []) : undefined,
   });
 
   const addFavorite = useMutation({
     mutationFn: async (cocktailId: string) => {
-      const sessionUserId = await resolveUserId();
-      if (!sessionUserId) {
+      if (!effectiveUserId) {
         throw new Error("Unauthorized");
       }
       const { error } = await favoritesTable.insert({
-        user_id: sessionUserId,
+        user_id: effectiveUserId,
         cocktail_id: cocktailId,
       });
       if (error) {
@@ -213,13 +234,12 @@ export function useFavorites<M extends FavoritesMode = "ids">(
 
   const removeFavorite = useMutation({
     mutationFn: async (cocktailId: string) => {
-      const sessionUserId = await resolveUserId();
-      if (!sessionUserId) {
+      if (!effectiveUserId) {
         throw new Error("Unauthorized");
       }
       const { error } = await favoritesTable
         .delete()
-        .eq("user_id", sessionUserId)
+        .eq("user_id", effectiveUserId)
         .eq("cocktail_id", cocktailId);
       if (error) {
         throw new Error(error.message);

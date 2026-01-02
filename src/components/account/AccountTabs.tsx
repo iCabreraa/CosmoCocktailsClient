@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { User } from "@/types/user-system";
 import { useLanguage } from "@/contexts/LanguageContext";
 import dynamic from "next/dynamic";
+import { useAccountPrefetch } from "@/hooks/useAccountPrefetch";
 const UserDashboard = dynamic(() => import("./UserDashboard"), {
   ssr: true,
   loading: () => (
@@ -86,6 +87,7 @@ export default function AccountTabs({
   const [activeTab, setActiveTab] = useState("dashboard");
 
   const tabs = getTabs(t);
+  useAccountPrefetch(user.id);
 
   // Initialize active tab from URL query parameter
   useEffect(() => {

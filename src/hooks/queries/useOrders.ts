@@ -23,7 +23,7 @@ export type OrdersResponse = {
   };
 };
 
-type OrdersQueryOptions = {
+export type OrdersQueryOptions = {
   enabled?: boolean;
   page?: number;
   pageSize?: number;
@@ -50,7 +50,7 @@ const buildOrdersUrl = ({
   return query ? `/api/orders?${query}` : "/api/orders";
 };
 
-const buildQueryKey = ({
+export const buildOrdersQueryKey = ({
   page,
   pageSize,
   limit,
@@ -67,6 +67,30 @@ const buildQueryKey = ({
   limit ?? null,
 ] as const;
 
+export const fetchOrders = async (
+  options: OrdersQueryOptions
+): Promise<OrdersResponse> => {
+  const res = await fetch(buildOrdersUrl(options));
+  if (res.status === 401) {
+    const error = new Error("Unauthorized");
+    (error as { status?: number }).status = 401;
+    throw error;
+  }
+  if (!res.ok) {
+    let message = "Failed to load orders";
+    try {
+      const payload = await res.json();
+      if (payload?.error) message = payload.error;
+    } catch {
+      // ignore parsing errors
+    }
+    const error = new Error(message);
+    (error as { status?: number }).status = res.status;
+    throw error;
+  }
+  return (await res.json()) as OrdersResponse;
+};
+
 export function useOrders(options: OrdersQueryOptions = {}) {
   const {
     enabled = true,
@@ -74,34 +98,20 @@ export function useOrders(options: OrdersQueryOptions = {}) {
     includeItems = true,
     userId,
   } = options;
-  const queryKey = buildQueryKey({ ...options, summary, includeItems, userId });
+  const queryKey = buildOrdersQueryKey({
+    ...options,
+    summary,
+    includeItems,
+    userId,
+  });
 
   return useQuery<OrdersResponse>({
     queryKey,
-    queryFn: async () => {
-      const res = await fetch(buildOrdersUrl(options));
-      if (res.status === 401) {
-        const error = new Error("Unauthorized");
-        (error as { status?: number }).status = 401;
-        throw error;
-      }
-      if (!res.ok) {
-        let message = "Failed to load orders";
-        try {
-          const payload = await res.json();
-          if (payload?.error) message = payload.error;
-        } catch {
-          // ignore parsing errors
-        }
-        const error = new Error(message);
-        (error as { status?: number }).status = res.status;
-        throw error;
-      }
-      return (await res.json()) as OrdersResponse;
-    },
+    queryFn: () => fetchOrders(options),
     enabled,
     placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
     ...getQueryConfig("orders"),
   });
 }

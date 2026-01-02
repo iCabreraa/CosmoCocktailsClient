@@ -1,10 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { User } from "@/types/user-system";
 import { useFavorites } from "@/hooks/queries/useFavorites";
-import { getQueryConfig } from "@/lib/query-client";
+import { useOrders } from "@/hooks/queries/useOrders";
 
 interface UserStats {
   totalOrders: number;
@@ -28,33 +27,12 @@ export default function UserStatsProvider({
   user,
   children,
 }: UserStatsProviderProps) {
-  const ordersQuery = useQuery<{
-    orders?: any[];
-    meta?: Record<string, any>;
-  }>({
-    queryKey: ["account-stats", user.id, "orders-summary"],
-    queryFn: async () => {
-      const response = await fetch("/api/orders?summary=1&limit=3");
-      if (response.status === 401) {
-        const error = new Error("Unauthorized");
-        (error as { status?: number }).status = 401;
-        throw error;
-      }
-      if (!response.ok) {
-        let message = "Error al cargar pedidos";
-        try {
-          const payload = await response.json();
-          if (payload?.error) message = payload.error;
-        } catch {
-          // ignore parsing errors
-        }
-        throw new Error(message);
-      }
-      return response.json();
-    },
+  const ordersQuery = useOrders({
     enabled: Boolean(user?.id),
-    refetchOnWindowFocus: false,
-    ...getQueryConfig("orders"),
+    userId: user.id,
+    summary: true,
+    includeItems: false,
+    limit: 3,
   });
 
   const { favoritesQuery } = useFavorites({
