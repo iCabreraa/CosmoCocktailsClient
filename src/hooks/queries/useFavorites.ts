@@ -172,13 +172,13 @@ export function useFavorites<M extends FavoritesMode = "ids">(
   const favoritesQuery = useQuery<FavoritesResult<M>>({
     queryKey,
     queryFn: () =>
-      fetchFavorites({
+      fetchFavorites<M>({
         ...options,
         mode,
         page,
         pageSize,
         userId: effectiveUserId,
-      }),
+      } as FavoritesOptions<M>),
     enabled: enabled && Boolean(effectiveUserId),
     staleTime: mode === "ids" ? 10 * 60 * 1000 : 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -186,7 +186,9 @@ export function useFavorites<M extends FavoritesMode = "ids">(
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     initialData:
-      mode === "ids" ? (readCachedIds(effectiveUserId) ?? []) : undefined,
+      mode === "ids"
+        ? ((readCachedIds(effectiveUserId) ?? []) as FavoritesResult<M>)
+        : undefined,
   });
 
   const addFavorite = useMutation({
