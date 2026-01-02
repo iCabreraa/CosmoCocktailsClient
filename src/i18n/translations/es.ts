@@ -170,7 +170,11 @@ const es = {
     },
     "legal": {
       "title": "Legal y soporte",
-      "description": "Revisa nuestras políticas o contacta si necesitas ayuda."
+      "description": "Revisa nuestras políticas o contacta si necesitas ayuda.",
+      "privacy": "Política de privacidad",
+      "terms": "Términos del servicio",
+      "cookies": "Política de cookies",
+      "contact": "Contacto"
     },
     "save_changes": "Guardar Cambios",
     "unsaved_changes": "Tienes cambios sin guardar",
@@ -183,6 +187,25 @@ const es = {
     "description": "Bebidas curadas y experiencias premium de cócteles, servidas con sabor estelar.",
     "contact": "Contacto:",
     "copyright": "© 2025 CosmoCocktails. Todos los derechos reservados."
+  },
+  "legal": {
+    "terms": {
+      "title": "Términos del servicio",
+      "updated": "Última actualización: enero de 2026",
+      "intro": "Al usar CosmoCocktails aceptas estos términos y nuestras políticas.",
+      "account": "Mantén tu cuenta actualizada y segura. Eres responsable de la actividad de tu cuenta.",
+      "orders": "Los pedidos están sujetos a disponibilidad y confirmación. Podemos ajustar disponibilidad o plazos si es necesario.",
+      "payments": "Los pagos se procesan de forma segura con nuestros proveedores. Los precios e impuestos se muestran en el checkout.",
+      "contact": "Si tienes dudas sobre estos términos, ponte en contacto con nuestro equipo."
+    },
+    "cookies": {
+      "title": "Política de cookies",
+      "updated": "Última actualización: enero de 2026",
+      "intro": "Usamos cookies para ofrecer una experiencia fluida y entender el rendimiento del sitio.",
+      "essential": "Las cookies esenciales mantienen la web operativa, incluyendo inicio de sesión y pago.",
+      "analytics": "Las cookies de analítica nos ayudan a mejorar midiendo tendencias de uso.",
+      "manage": "Puedes gestionar las cookies desde la configuración de tu navegador en cualquier momento."
+    }
   },
   "common": {
     "loading": "Cargando...",

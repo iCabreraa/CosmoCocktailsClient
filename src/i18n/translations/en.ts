@@ -170,7 +170,11 @@ const en = {
     },
     "legal": {
       "title": "Legal & Support",
-      "description": "Review our policies or reach out if you need help."
+      "description": "Review our policies or reach out if you need help.",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "cookies": "Cookies Policy",
+      "contact": "Contact"
     },
     "save_changes": "Save Changes",
     "unsaved_changes": "You have unsaved changes",
@@ -183,6 +187,25 @@ const en = {
     "description": "Curated drinks & premium cocktail experiences, served with stellar taste.",
     "contact": "Contact:",
     "copyright": "© 2025 CosmoCocktails. All rights reserved."
+  },
+  "legal": {
+    "terms": {
+      "title": "Terms of Service",
+      "updated": "Last updated: January 2026",
+      "intro": "By using CosmoCocktails, you agree to these terms and our policies.",
+      "account": "Keep your account information accurate and secure. You are responsible for activity under your account.",
+      "orders": "Orders are subject to availability and confirmation. We may update availability or timing when required.",
+      "payments": "Payments are processed securely through our providers. Prices and taxes are shown at checkout.",
+      "contact": "If you have questions about these terms, reach out to our team."
+    },
+    "cookies": {
+      "title": "Cookies Policy",
+      "updated": "Last updated: January 2026",
+      "intro": "We use cookies to deliver a smooth shopping experience and to understand site performance.",
+      "essential": "Essential cookies keep the site running, including login and checkout.",
+      "analytics": "Analytics cookies help us improve the experience by measuring usage trends.",
+      "manage": "You can manage cookies through your browser settings at any time."
+    }
   },
   "common": {
     "loading": "Loading...",

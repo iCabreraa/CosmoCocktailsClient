@@ -170,7 +170,11 @@ const nl = {
     },
     "legal": {
       "title": "Juridisch & Support",
-      "description": "Bekijk ons beleid of neem contact op als je hulp nodig hebt."
+      "description": "Bekijk ons beleid of neem contact op als je hulp nodig hebt.",
+      "privacy": "Privacybeleid",
+      "terms": "Servicevoorwaarden",
+      "cookies": "Cookiebeleid",
+      "contact": "Contact"
     },
     "save_changes": "Wijzigingen Opslaan",
     "unsaved_changes": "Je hebt niet-opgeslagen wijzigingen",
@@ -183,6 +187,25 @@ const nl = {
     "description": "Gecureerde drankjes & premium cocktail ervaringen, geserveerd met sterren smaak.",
     "contact": "Contact:",
     "copyright": "© 2025 CosmoCocktails. Alle rechten voorbehouden."
+  },
+  "legal": {
+    "terms": {
+      "title": "Servicevoorwaarden",
+      "updated": "Laatst bijgewerkt: januari 2026",
+      "intro": "Door CosmoCocktails te gebruiken ga je akkoord met deze voorwaarden en ons beleid.",
+      "account": "Houd je accountgegevens nauwkeurig en veilig. Je bent verantwoordelijk voor activiteiten onder jouw account.",
+      "orders": "Bestellingen zijn afhankelijk van beschikbaarheid en bevestiging. We kunnen beschikbaarheid of timing aanpassen indien nodig.",
+      "payments": "Betalingen worden veilig verwerkt via onze aanbieders. Prijzen en belastingen worden bij checkout getoond.",
+      "contact": "Heb je vragen over deze voorwaarden, neem dan contact op met ons team."
+    },
+    "cookies": {
+      "title": "Cookiebeleid",
+      "updated": "Laatst bijgewerkt: januari 2026",
+      "intro": "We gebruiken cookies om een soepele winkelervaring te bieden en prestaties te begrijpen.",
+      "essential": "Essentiële cookies houden de site draaiende, inclusief login en checkout.",
+      "analytics": "Analytics cookies helpen ons verbeteren door gebruikstrends te meten.",
+      "manage": "Je kunt cookies op elk moment beheren via je browserinstellingen."
+    }
   },
   "orders": {
     "title": "Mijn Bestellingen",

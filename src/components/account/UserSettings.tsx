@@ -381,13 +381,25 @@ export default function UserSettings({ user, onUpdate }: UserSettingsProps) {
             onClick={() => setIsPrivacyOpen(true)}
             className="px-4 py-2 rounded-lg border border-gray-600/60 text-sm text-gray-200 hover:border-cosmic-gold/60 hover:text-cosmic-gold transition-colors"
           >
-            {t("privacy.title")}
+            {t("settings.legal.privacy")}
           </button>
+          <Link
+            href="/terms"
+            className="px-4 py-2 rounded-lg border border-gray-600/60 text-sm text-gray-200 hover:border-cosmic-gold/60 hover:text-cosmic-gold transition-colors"
+          >
+            {t("settings.legal.terms")}
+          </Link>
+          <Link
+            href="/cookies"
+            className="px-4 py-2 rounded-lg border border-gray-600/60 text-sm text-gray-200 hover:border-cosmic-gold/60 hover:text-cosmic-gold transition-colors"
+          >
+            {t("settings.legal.cookies")}
+          </Link>
           <Link
             href="/contact"
             className="px-4 py-2 rounded-lg border border-gray-600/60 text-sm text-gray-200 hover:border-cosmic-gold/60 hover:text-cosmic-gold transition-colors"
           >
-            {t("nav.contact")}
+            {t("settings.legal.contact")}
           </Link>
         </div>
       </div>

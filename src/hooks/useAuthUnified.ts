@@ -228,6 +228,13 @@ export function useAuthUnified() {
       const { error } = await supabase.auth.signOut();
 
       if (error) {
+        const message = error.message?.toLowerCase?.() ?? "";
+        const sessionMissing =
+          message.includes("session") && message.includes("missing");
+        if (sessionMissing) {
+          updateAuthState({ user: null, error: null });
+          return { error: null };
+        }
         updateAuthState({ error: error.message });
         return { error };
       }
