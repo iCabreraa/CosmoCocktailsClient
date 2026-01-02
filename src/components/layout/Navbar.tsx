@@ -44,15 +44,12 @@ export default function Navbar() {
   const router = useRouter();
   const { notify } = useToast();
   const hasFavoritesAccess = Boolean(user);
-  const { favoritesQuery } = useFavorites({
+  const { favoritesQuery } = useFavorites<"ids">({
     enabled: hasFavoritesAccess && accountDropdownOpen,
     mode: "ids",
   });
-  const favoritesData = favoritesQuery.data;
   const favoritesCount = hasFavoritesAccess
-    ? Array.isArray(favoritesData)
-      ? favoritesData.length
-      : favoritesData?.favorites?.length ?? 0
+    ? favoritesQuery.data?.length ?? 0
     : 0;
   const { item_count, hasHydrated } = useCart();
   const cartCount = hasHydrated ? item_count : 0;
