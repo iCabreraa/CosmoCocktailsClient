@@ -7,6 +7,12 @@ export function useTheme() {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [loading, setLoading] = useState(true);
 
+  const enforceDarkTheme = () => {
+    setTheme("dark");
+    applyTheme();
+    localStorage.setItem("theme", "dark");
+  };
+
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
@@ -16,11 +22,13 @@ export function useTheme() {
     const loadPreferences = async () => {
       try {
         // Primero intentar cargar desde localStorage
-        const savedTheme = localStorage.getItem("theme") as "light" | "dark";
+        const savedTheme = localStorage.getItem("theme") as
+          | "light"
+          | "dark"
+          | null;
 
         if (savedTheme) {
-          setTheme(savedTheme);
-          applyTheme(savedTheme);
+          enforceDarkTheme();
           setLoading(false);
           return;
         }
@@ -31,12 +39,7 @@ export function useTheme() {
         if (!isMounted) return;
         if (sessionError || !sessionData.session?.user) {
           // Sin sesión, usar tema del sistema y evitar /api/preferences
-          const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-            .matches
-            ? "dark"
-            : "light";
-          setTheme(systemTheme);
-          applyTheme(systemTheme);
+          enforceDarkTheme();
           setLoading(false);
           return;
         }
@@ -48,18 +51,9 @@ export function useTheme() {
         if (!isMounted) return;
         if (response.ok) {
           const data = await response.json();
-          const userTheme = data.preferences?.theme || "dark";
-          setTheme(userTheme);
-          applyTheme(userTheme);
-          localStorage.setItem("theme", userTheme);
+          enforceDarkTheme();
         } else {
-          // Fallback al tema del sistema
-          const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-            .matches
-            ? "dark"
-            : "light";
-          setTheme(systemTheme);
-          applyTheme(systemTheme);
+          enforceDarkTheme();
         }
       } catch (error) {
         if (!isMounted) return;
@@ -67,13 +61,7 @@ export function useTheme() {
           return;
         }
         console.error("Error loading preferences:", error);
-        // Fallback al tema del sistema
-        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-          .matches
-          ? "dark"
-          : "light";
-        setTheme(systemTheme);
-        applyTheme(systemTheme);
+        enforceDarkTheme();
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -90,22 +78,20 @@ export function useTheme() {
     };
   }, []);
 
-  const applyTheme = (newTheme: "light" | "dark") => {
+  const applyTheme = () => {
     const root = document.documentElement;
 
-    if (newTheme === "dark") {
-      root.classList.add("dark");
-      root.classList.remove("light");
-    } else {
-      root.classList.add("light");
-      root.classList.remove("dark");
-    }
+    root.classList.add("dark");
+    root.classList.remove("light");
   };
 
   const changeTheme = async (newTheme: "light" | "dark") => {
-    setTheme(newTheme);
-    applyTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
+    if (newTheme !== "dark") {
+      enforceDarkTheme();
+      return;
+    }
+
+    enforceDarkTheme();
 
     // Guardar en la base de datos
     try {
