@@ -728,9 +728,13 @@ export default function CocktailDetailPage({
   }
 
   const heroImage = activeMedia ?? cocktail.image_url ?? "/images/placeholder.webp";
+  const heroIsPlaceholder = heroImage === "/images/placeholder.webp";
   const gallery = media.filter(item => item.url !== heroImage).slice(0, 4);
+  const hasGallery = gallery.length > 0;
   const baseIngredients = ingredients.filter(item => !item.is_garnish);
   const garnishIngredients = ingredients.filter(item => item.is_garnish);
+  const hasCoreIngredients = baseIngredients.length > 0;
+  const hasGarnishIngredients = garnishIngredients.length > 0;
   const featuredTags =
     tags.map(item => item.tags).filter(Boolean) as NonNullable<
       CocktailTagRow["tags"]
@@ -755,6 +759,7 @@ export default function CocktailDetailPage({
     tag => !primaryTags.find(item => item.id === tag.id)
   );
   const extraTagsCount = extraTags.length;
+  const hasTags = primaryTags.length > 0 || extraTagsCount > 0;
   const allergenPresenceById = new Map<
     string,
     CocktailAllergenRow["presence"]
@@ -774,6 +779,7 @@ export default function CocktailDetailPage({
           icon: item.allergens!.icon,
           description: item.allergens!.description,
         }));
+  const hasAllergenCatalog = allergenCatalog.length > 0;
   const resolveAllergenIcon = (
     icon: string | null | undefined,
     name: string
@@ -817,6 +823,7 @@ export default function CocktailDetailPage({
   };
 
   const selectedSize = sizeOptions.find(option => option.id === selectedSizeId) ?? null;
+  const hasSizes = sizeOptions.length > 0;
   const canAddToCart = selectedSize?.status === "available";
   const selectedPrice = selectedSize?.price ?? null;
   const selectedVolume = selectedSize?.volume_ml ?? null;
@@ -853,6 +860,8 @@ export default function CocktailDetailPage({
 
   const storyCopy =
     profile?.story || profile?.summary || cocktail.description || "";
+  const summaryText =
+    profile?.summary || cocktail.description || t("cocktail.summary_fallback");
 
   const quickServeSteps = servingSteps.length
     ? servingSteps
@@ -978,19 +987,25 @@ export default function CocktailDetailPage({
                       {t("cocktail.core_ingredients")}
                     </p>
                     <ul className="space-y-2">
-                      {baseIngredients.map(item => (
-                        <li key={`${item.ingredients?.name}-${item.amount}`}>
-                          <span className="font-medium text-cosmic-text">
-                            {item.ingredients?.name}
-                          </span>
-                          {item.amount && (
-                            <span className="text-cosmic-fog">
-                              {" "}
-                              · {item.amount}
+                      {hasCoreIngredients ? (
+                        baseIngredients.map(item => (
+                          <li key={`${item.ingredients?.name}-${item.amount}`}>
+                            <span className="font-medium text-cosmic-text">
+                              {item.ingredients?.name}
                             </span>
-                          )}
+                            {item.amount && (
+                              <span className="text-cosmic-fog">
+                                {" "}
+                                · {item.amount}
+                              </span>
+                            )}
+                          </li>
+                        ))
+                      ) : (
+                        <li className="text-xs text-cosmic-fog">
+                          {t("cocktail.no_ingredients")}
                         </li>
-                      ))}
+                      )}
                     </ul>
                   </div>
                   <div>
@@ -998,19 +1013,25 @@ export default function CocktailDetailPage({
                       {t("cocktail.garnish")}
                     </p>
                     <ul className="space-y-2">
-                      {garnishIngredients.map(item => (
-                        <li key={`${item.ingredients?.name}-garnish`}>
-                          <span className="font-medium text-cosmic-text">
-                            {item.ingredients?.name}
-                          </span>
+                      {hasGarnishIngredients ? (
+                        garnishIngredients.map(item => (
+                          <li key={`${item.ingredients?.name}-garnish`}>
+                            <span className="font-medium text-cosmic-text">
+                              {item.ingredients?.name}
+                            </span>
+                          </li>
+                        ))
+                      ) : (
+                        <li className="text-xs text-cosmic-fog">
+                          {t("cocktail.no_garnish")}
                         </li>
-                      ))}
+                      )}
                     </ul>
                   </div>
                 </div>
-                {warnings.length > 0 && (
-                  <div className="space-y-2 text-xs text-cosmic-fog">
-                    {warnings.map(item => (
+                <div className="space-y-2 text-xs text-cosmic-fog">
+                  {warnings.length > 0 ? (
+                    warnings.map(item => (
                       <p key={item.warnings?.title}>
                         <span className="text-cosmic-gold/80">
                           {item.warnings?.title}
@@ -1019,9 +1040,11 @@ export default function CocktailDetailPage({
                           ? ` — ${item.warnings.description}`
                           : ""}
                       </p>
-                    ))}
-                  </div>
-                )}
+                    ))
+                  ) : (
+                    <p>{t("cocktail.no_warnings")}</p>
+                  )}
+                </div>
               </div>
 
               <div className="rounded-[18px] border border-white/10 bg-black/30 p-4 space-y-4">
@@ -1029,101 +1052,107 @@ export default function CocktailDetailPage({
                   {t("cocktail.allergens")}
                 </p>
                 <div className="grid gap-3 sm:grid-cols-3">
-                  {allergenCatalog.map(allergen => {
-                    const presence = allergenPresenceById.get(allergen.id);
-                    const isPresent = Boolean(presence);
-                    const isActive = activeAllergenId === allergen.id;
-                    const isPinned = pinnedAllergenId === allergen.id;
-                    const iconSrc = resolveAllergenIcon(
-                      allergen.icon,
-                      allergen.name
-                    );
-                    return (
-                      <div
-                        key={allergen.id}
-                        className="relative"
-                        onMouseEnter={() => setHoverAllergenId(allergen.id)}
-                        onMouseLeave={() => setHoverAllergenId(null)}
-                      >
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setPinnedAllergenId(prev =>
-                              prev === allergen.id ? null : allergen.id
-                            )
-                          }
-                          className={`flex w-full flex-col items-center gap-2 rounded-[16px] border px-3 py-3 text-center text-[10px] uppercase tracking-[0.18em] ${
-                            isPresent
-                              ? "border-red-500/40 bg-red-500/10 text-red-100"
-                              : "border-white/10 bg-white/5 text-cosmic-fog/70"
-                          }`}
-                          aria-expanded={isActive}
-                          aria-describedby={`allergen-${allergen.id}`}
+                  {!hasAllergenCatalog ? (
+                    <div className="col-span-full rounded-[14px] border border-white/10 bg-white/5 px-3 py-3 text-xs text-cosmic-fog">
+                      {t("cocktail.no_allergens")}
+                    </div>
+                  ) : (
+                    allergenCatalog.map(allergen => {
+                      const presence = allergenPresenceById.get(allergen.id);
+                      const isPresent = Boolean(presence);
+                      const isActive = activeAllergenId === allergen.id;
+                      const isPinned = pinnedAllergenId === allergen.id;
+                      const iconSrc = resolveAllergenIcon(
+                        allergen.icon,
+                        allergen.name
+                      );
+                      return (
+                        <div
+                          key={allergen.id}
+                          className="relative"
+                          onMouseEnter={() => setHoverAllergenId(allergen.id)}
+                          onMouseLeave={() => setHoverAllergenId(null)}
                         >
-                          <span
-                            className={`flex h-10 w-10 items-center justify-center rounded-full border ${
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPinnedAllergenId(prev =>
+                                prev === allergen.id ? null : allergen.id
+                              )
+                            }
+                            className={`flex w-full flex-col items-center gap-2 rounded-[16px] border px-3 py-3 text-center text-[10px] uppercase tracking-[0.18em] ${
                               isPresent
-                                ? "border-red-500/50 bg-red-500/10 text-red-200"
-                                : "border-white/10 bg-white/5 text-cosmic-fog/60"
+                                ? "border-red-500/40 bg-red-500/10 text-red-100"
+                                : "border-white/10 bg-white/5 text-cosmic-fog/70"
                             }`}
+                            aria-expanded={isActive}
+                            aria-describedby={`allergen-${allergen.id}`}
                           >
-                            {iconSrc ? (
-                              <span
-                                className="h-6 w-6 bg-current"
-                                style={{
-                                  maskImage: `url(${iconSrc})`,
-                                  WebkitMaskImage: `url(${iconSrc})`,
-                                  maskRepeat: "no-repeat",
-                                  WebkitMaskRepeat: "no-repeat",
-                                  maskPosition: "center",
-                                  WebkitMaskPosition: "center",
-                                  maskSize: "contain",
-                                  WebkitMaskSize: "contain",
-                                }}
-                              />
-                            ) : (
-                              <span className="text-xs">
-                                {allergen.name.slice(0, 1)}
+                            <span
+                              className={`flex h-10 w-10 items-center justify-center rounded-full border ${
+                                isPresent
+                                  ? "border-red-500/50 bg-red-500/10 text-red-200"
+                                  : "border-white/10 bg-white/5 text-cosmic-fog/60"
+                              }`}
+                            >
+                              {iconSrc ? (
+                                <span
+                                  className="h-6 w-6 bg-current"
+                                  style={{
+                                    maskImage: `url(${iconSrc})`,
+                                    WebkitMaskImage: `url(${iconSrc})`,
+                                    maskRepeat: "no-repeat",
+                                    WebkitMaskRepeat: "no-repeat",
+                                    maskPosition: "center",
+                                    WebkitMaskPosition: "center",
+                                    maskSize: "contain",
+                                    WebkitMaskSize: "contain",
+                                  }}
+                                />
+                              ) : (
+                                <span className="text-xs">
+                                  {allergen.name.slice(0, 1)}
+                                </span>
+                              )}
+                            </span>
+                            <span className="text-[11px] text-cosmic-text">
+                              {allergen.name}
+                            </span>
+                            {isPresent && (
+                              <span className="text-[9px] uppercase tracking-[0.2em] text-red-200">
+                                {presence === "contains"
+                                  ? t("cocktail.contains")
+                                  : t("cocktail.may_contain")}
                               </span>
                             )}
-                          </span>
-                          <span className="text-[11px] text-cosmic-text">
-                            {allergen.name}
-                          </span>
-                          {isPresent && (
-                            <span className="text-[9px] uppercase tracking-[0.2em] text-red-200">
-                              {presence === "contains"
-                                ? t("cocktail.contains")
-                                : t("cocktail.may_contain")}
-                            </span>
-                          )}
-                        </button>
-                        {isActive && (
-                          <div
-                            id={`allergen-${allergen.id}`}
-                            role="tooltip"
-                            className="absolute left-1/2 top-full z-10 mt-2 w-52 -translate-x-1/2 rounded-[14px] border border-white/10 bg-black/80 p-3 text-[11px] text-cosmic-silver"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <p>
-                                {allergen.description ??
-                                  t("cocktail.allergen_details_fallback")}
-                              </p>
-                              {isPinned && (
-                                <button
-                                  type="button"
-                                  onClick={() => setPinnedAllergenId(null)}
-                                  className="text-cosmic-gold/70 hover:text-cosmic-gold"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              )}
+                          </button>
+                          {isActive && (
+                            <div
+                              id={`allergen-${allergen.id}`}
+                              role="tooltip"
+                              className="absolute left-1/2 top-full z-10 mt-2 w-52 -translate-x-1/2 rounded-[14px] border border-white/10 bg-black/80 p-3 text-[11px] text-cosmic-silver"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <p>
+                                  {allergen.description ??
+                                    t("cocktail.allergen_details_fallback")}
+                                </p>
+                                {isPinned && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setPinnedAllergenId(null)}
+                                    className="text-cosmic-gold/70 hover:text-cosmic-gold"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
@@ -1190,7 +1219,7 @@ export default function CocktailDetailPage({
                 {t("cocktail.summary_title")}
               </p>
               <p className="text-sm text-cosmic-silver leading-relaxed">
-                {profile?.summary || cocktail.description}
+                {summaryText}
               </p>
             </div>
             <div className="rounded-[18px] border border-white/10 bg-black/30 p-4 space-y-3">
@@ -1517,7 +1546,7 @@ export default function CocktailDetailPage({
                 {t("cocktail.view_larger")}
               </button>
             </div>
-            {gallery.length > 0 && (
+            {hasGallery ? (
               <div className="flex flex-wrap gap-2">
                 {gallery.map(item => (
                   <button
@@ -1539,7 +1568,11 @@ export default function CocktailDetailPage({
                   </button>
                 ))}
               </div>
-            )}
+            ) : heroIsPlaceholder ? (
+              <div className="rounded-[14px] border border-white/10 bg-white/5 px-3 py-2 text-xs text-cosmic-fog">
+                {t("cocktail.media_fallback")}
+              </div>
+            ) : null}
           </div>
 
           <div className="lg:col-span-5 relative">
@@ -1564,7 +1597,7 @@ export default function CocktailDetailPage({
                     </div>
                   )}
 
-                  {(primaryTags.length > 0 || extraTagsCount > 0) && (
+                  {hasTags ? (
                     <div className="flex flex-wrap items-center gap-2">
                       {primaryTags.map(tag => (
                         <span
@@ -1607,11 +1640,15 @@ export default function CocktailDetailPage({
                         </div>
                       )}
                     </div>
+                  ) : (
+                    <span className="rounded-full border border-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-cosmic-silver">
+                      {t("cocktail.no_tags")}
+                    </span>
                   )}
                 </div>
 
                 <p className="text-cosmic-silver text-sm leading-relaxed">
-                  {profile?.summary || cocktail.description}
+                  {summaryText}
                 </p>
 
                 <div className="space-y-3">
@@ -1619,60 +1656,68 @@ export default function CocktailDetailPage({
                     {t("cocktail.choose_size")}
                   </p>
                   <div role="radiogroup" className="space-y-2">
-                    {sizeOptions.map(option => {
-                      const isSelected = selectedSizeId === option.id;
-                      const isDisabled = option.status !== "available";
-                      const priceLabel =
-                        option.status === "coming"
-                          ? t("cocktail.price_placeholder")
-                          : option.price != null
-                          ? `€${option.price.toFixed(2)}`
-                          : t("cocktail.price_placeholder");
-                      return (
-                        <button
-                          key={option.id}
-                          type="button"
-                          role="radio"
-                          aria-checked={isSelected}
-                          disabled={isDisabled}
-                          onClick={() => !isDisabled && setSelectedSizeId(option.id)}
-                          className={`relative flex w-full items-center justify-between overflow-hidden rounded-[14px] border px-4 py-3 text-left text-sm transition ${
-                            isSelected
-                              ? "border-cosmic-gold/55 shadow-[0_0_0_1px_rgba(242,178,76,0.25),0_0_18px_rgba(242,178,76,0.12)]"
-                              : "border-white/10 hover:border-white/20"
-                          } ${isDisabled ? "opacity-60 cursor-not-allowed" : ""}`}
-                        >
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.2em] text-cosmic-silver">
-                              {option.name ?? t("cocktail.size_selection")}
-                            </p>
-                            <p className="text-[11px] text-cosmic-fog">
-                              {option.volume_ml
-                                ? `${option.volume_ml}ml`
-                                : t("cocktail.size_volume_unknown")}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-cosmic-gold">{priceLabel}</p>
-                            {option.status === "out" && (
-                              <p className="text-[10px] uppercase tracking-[0.2em] text-red-300">
-                                {t("cocktail.size_unavailable")}
+                    {hasSizes ? (
+                      sizeOptions.map(option => {
+                        const isSelected = selectedSizeId === option.id;
+                        const isDisabled = option.status !== "available";
+                        const priceLabel =
+                          option.status === "coming"
+                            ? t("cocktail.price_placeholder")
+                            : option.price != null
+                            ? `€${option.price.toFixed(2)}`
+                            : t("cocktail.price_placeholder");
+                        return (
+                          <button
+                            key={option.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={isSelected}
+                            disabled={isDisabled}
+                            onClick={() =>
+                              !isDisabled && setSelectedSizeId(option.id)
+                            }
+                            className={`relative flex w-full items-center justify-between overflow-hidden rounded-[14px] border px-4 py-3 text-left text-sm transition ${
+                              isSelected
+                                ? "border-cosmic-gold/55 shadow-[0_0_0_1px_rgba(242,178,76,0.25),0_0_18px_rgba(242,178,76,0.12)]"
+                                : "border-white/10 hover:border-white/20"
+                            } ${isDisabled ? "opacity-60 cursor-not-allowed" : ""}`}
+                          >
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.2em] text-cosmic-silver">
+                                {option.name ?? t("cocktail.size_selection")}
                               </p>
+                              <p className="text-[11px] text-cosmic-fog">
+                                {option.volume_ml
+                                  ? `${option.volume_ml}ml`
+                                  : t("cocktail.size_volume_unknown")}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-cosmic-gold">{priceLabel}</p>
+                              {option.status === "out" && (
+                                <p className="text-[10px] uppercase tracking-[0.2em] text-red-300">
+                                  {t("cocktail.size_unavailable")}
+                                </p>
+                              )}
+                            </div>
+                            {option.status === "out" && (
+                              <span className="pointer-events-none absolute -right-6 top-2 rotate-45 whitespace-nowrap bg-red-500/90 px-8 py-0.5 text-[9px] uppercase tracking-[0.2em] text-white">
+                                {t("shop.out_of_stock_short")}
+                              </span>
                             )}
-                          </div>
-                          {option.status === "out" && (
-                            <span className="pointer-events-none absolute -right-6 top-2 rotate-45 whitespace-nowrap bg-red-500/90 px-8 py-0.5 text-[9px] uppercase tracking-[0.2em] text-white">
-                              {t("shop.out_of_stock_short")}
-                            </span>
-                          )}
-                          {option.status === "coming" && (
-                            <span className="pointer-events-none absolute -right-6 top-2 rotate-45 whitespace-nowrap bg-gradient-to-r from-cosmic-gold/80 via-sky-200/80 to-cosmic-gold/80 px-8 py-0.5 text-[9px] uppercase tracking-[0.2em] text-black">
-                              {t("shop.coming_soon_short")}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
+                            {option.status === "coming" && (
+                              <span className="pointer-events-none absolute -right-6 top-2 rotate-45 whitespace-nowrap bg-gradient-to-r from-cosmic-gold/80 via-sky-200/80 to-cosmic-gold/80 px-8 py-0.5 text-[9px] uppercase tracking-[0.2em] text-black">
+                                {t("shop.coming_soon_short")}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <div className="rounded-[14px] border border-white/10 bg-white/5 px-4 py-3 text-xs text-cosmic-fog">
+                        {t("cocktail.no_sizes")}
+                      </div>
+                    )}
                   </div>
                 </div>
 
