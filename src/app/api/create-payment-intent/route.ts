@@ -41,11 +41,18 @@ const aggregateInventoryItems = (
 export async function POST(request: NextRequest) {
   try {
     console.log("🔍 Creating payment intent...");
-    const { items } = await request.json();
+    const { items, privacyAccepted } = await request.json();
 
     if (!items || items.length === 0) {
       console.log("❌ No items provided");
       return NextResponse.json({ error: "No items provided" }, { status: 400 });
+    }
+
+    if (!privacyAccepted) {
+      return NextResponse.json(
+        { error: "Privacy consent required" },
+        { status: 400 }
+      );
     }
 
     let normalizedItems;

@@ -190,6 +190,7 @@ export default function CheckoutClient() {
         body: JSON.stringify({
           items: items,
           address: addressWithPhone,
+          privacyAccepted,
         }),
       });
 
@@ -198,6 +199,11 @@ export default function CheckoutClient() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error("❌ Payment intent error:", errorData);
+
+        if (errorData.error === "Privacy consent required") {
+          setPaymentError(t("checkout.privacy_consent_required"));
+          return;
+        }
 
         if (response.status === 409) {
           setInventoryValid(false);
