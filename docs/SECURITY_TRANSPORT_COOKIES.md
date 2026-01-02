@@ -5,9 +5,9 @@
 - CSP and basic security headers configured in `src/middleware.ts`.
 
 ## Cookie Flags
-- Auth token cookie (`/api/login`) now uses `HttpOnly`, `SameSite=Lax`, and `Secure` in production.
 - Supabase SSR cookies inherit defaults with `Secure` in production and `SameSite=Lax`.
-- Logout deletes cookie with explicit path.
+- Logout clears Supabase session cookies.
+- Legacy `/api/login` auth cookie fue retirado con la consolidación de Supabase Auth.
 
 ## Notes
 - `Secure` is only enforced in production to avoid local HTTP breakage.

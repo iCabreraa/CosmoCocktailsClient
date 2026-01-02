@@ -61,11 +61,11 @@ Busca mensajes como:
 Puedes probar el rate limiting haciendo múltiples requests a cualquier endpoint de API:
 
 ```bash
-# Ejemplo: Probar límite de login
+# Ejemplo: Probar límite de registro (Supabase Auth)
 for i in {1..10}; do
-  curl -X POST http://localhost:3000/api/login \
+  curl -X POST http://localhost:3000/api/auth/signup \
     -H "Content-Type: application/json" \
-    -d '{"email":"test@example.com","password":"test"}'
+    -d '{"email":"test@example.com","password":"test1234","full_name":"Test User"}'
   echo "Request $i completed"
 done
 ```
@@ -76,8 +76,7 @@ Los límites están configurados en `src/lib/rate-limiting/types.ts`:
 
 #### Endpoints Protegidos
 
-- `/api/login`: 5 intentos / 15 minutos
-- `/api/signup`: 3 intentos / hora
+- `/api/auth/signup`: 3 intentos / hora
 - `/api/create-payment-intent`: 10 intentos / hora
 - `/api/create-order`: 10 intentos / hora
 - `/api/favorites`: 100 requests / hora
@@ -138,7 +137,9 @@ npm run dev
 # Revisar logs en la consola
 
 # Probar límites específicos
-curl -v http://localhost:3000/api/login
+curl -v -X POST http://localhost:3000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"test1234","full_name":"Test User"}'
 # Revisar headers de respuesta
 ```
 
@@ -180,4 +181,3 @@ Si tienes problemas con la configuración:
 2. Verifica la configuración de variables de entorno
 3. Consulta la documentación de Vercel KV
 4. Contacta al equipo de desarrollo
-

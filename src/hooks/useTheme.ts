@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 export function useTheme() {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
@@ -20,6 +21,22 @@ export function useTheme() {
         if (savedTheme) {
           setTheme(savedTheme);
           applyTheme(savedTheme);
+          setLoading(false);
+          return;
+        }
+
+        const supabase = createClient();
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.getSession();
+        if (!isMounted) return;
+        if (sessionError || !sessionData.session?.user) {
+          // Sin sesión, usar tema del sistema y evitar /api/preferences
+          const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+            .matches
+            ? "dark"
+            : "light";
+          setTheme(systemTheme);
+          applyTheme(systemTheme);
           setLoading(false);
           return;
         }
@@ -92,6 +109,12 @@ export function useTheme() {
 
     // Guardar en la base de datos
     try {
+      const supabase = createClient();
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
+      if (sessionError || !sessionData.session?.user) {
+        return;
+      }
       await fetch("/api/preferences", {
         method: "PUT",
         headers: {

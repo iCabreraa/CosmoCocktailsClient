@@ -139,10 +139,9 @@
 
 **Archivos modificados:**
 
-- `src/app/api/login/route.ts` - Añadida validación Zod
-- `src/app/api/signup/route.ts` - Añadida validación Zod
 - `src/app/api/create-order/route.ts` - Añadida validación Zod
 - `package.json` - Añadida dependencia Zod
+ - `src/app/api/auth/signup/route.ts` - Registro vía Supabase Auth (legacy `/api/signup` retirado)
 
 **Resultados de pruebas:**
 
@@ -284,4 +283,3 @@
 - El formulario de contacto está listo para integración con Resend
 - Los problemas de pantallas negras han sido resueltos
 - El stock atómico está funcionando correctamente
-

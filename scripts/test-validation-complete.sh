@@ -44,96 +44,6 @@ echo -e "${BLUE}📋 Ejecutando pruebas de validación...${NC}"
 echo ""
 
 # ============================================================================
-# PRUEBAS DE LOGIN
-# ============================================================================
-
-echo -e "${BLUE}🔐 Probando validación de login...${NC}"
-
-# Test 1: Login válido
-echo "Test 1: Login con datos válidos"
-response=$(curl -s -X POST http://localhost:3000/api/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"password123"}')
-
-if echo "$response" | grep -q "Invalid credentials"; then
-    show_result "Login válido" "PASS" "Validación funcionando (credenciales inválidas esperadas)"
-else
-    show_result "Login válido" "FAIL" "Respuesta inesperada: $response"
-fi
-
-# Test 2: Login con email inválido
-echo "Test 2: Login con email inválido"
-response=$(curl -s -X POST http://localhost:3000/api/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"invalid-email","password":"password123"}')
-
-if echo "$response" | grep -q "Validation Failed"; then
-    show_result "Email inválido" "PASS" "Validación Zod funcionando"
-else
-    show_result "Email inválido" "FAIL" "Debería fallar validación: $response"
-fi
-
-# Test 3: Login con contraseña vacía
-echo "Test 3: Login con contraseña vacía"
-response=$(curl -s -X POST http://localhost:3000/api/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":""}')
-
-if echo "$response" | grep -q "Validation Failed"; then
-    show_result "Contraseña vacía" "PASS" "Validación Zod funcionando"
-else
-    show_result "Contraseña vacía" "FAIL" "Debería fallar validación: $response"
-fi
-
-echo ""
-
-# ============================================================================
-# PRUEBAS DE REGISTRO
-# ============================================================================
-
-echo -e "${BLUE}📝 Probando validación de registro...${NC}"
-
-# Test 4: Registro con datos válidos
-echo "Test 4: Registro con datos válidos"
-response=$(curl -s -X POST http://localhost:3000/api/signup \
-  -H "Content-Type: application/json" \
-  -d '{"email":"newuser@example.com","password":"Password123","full_name":"Test User","phone":"+34123456789"}')
-
-if echo "$response" | grep -q "User created"; then
-    show_result "Registro válido" "PASS" "Usuario creado exitosamente"
-elif echo "$response" | grep -q "already exists"; then
-    show_result "Registro válido" "PASS" "Usuario ya existe (esperado)"
-else
-    show_result "Registro válido" "FAIL" "Respuesta inesperada: $response"
-fi
-
-# Test 5: Registro con contraseña débil
-echo "Test 5: Registro con contraseña débil"
-response=$(curl -s -X POST http://localhost:3000/api/signup \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test2@example.com","password":"123","full_name":"Test User","phone":"+34123456789"}')
-
-if echo "$response" | grep -q "Validation Failed"; then
-    show_result "Contraseña débil" "PASS" "Validación Zod funcionando"
-else
-    show_result "Contraseña débil" "FAIL" "Debería fallar validación: $response"
-fi
-
-# Test 6: Registro con nombre inválido
-echo "Test 6: Registro con nombre inválido"
-response=$(curl -s -X POST http://localhost:3000/api/signup \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test3@example.com","password":"Password123","full_name":"123","phone":"+34123456789"}')
-
-if echo "$response" | grep -q "Validation Failed"; then
-    show_result "Nombre inválido" "PASS" "Validación Zod funcionando"
-else
-    show_result "Nombre inválido" "FAIL" "Debería fallar validación: $response"
-fi
-
-echo ""
-
-# ============================================================================
 # PRUEBAS DE FORMULARIO DE CONTACTO
 # ============================================================================
 
@@ -291,4 +201,3 @@ echo "• Crear tests unitarios para esquemas"
 echo "• Documentar esquemas de validación"
 echo ""
 echo -e "${GREEN}🎉 ¡Validación completa de inputs completada!${NC}"
-

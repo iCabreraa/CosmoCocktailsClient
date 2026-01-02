@@ -17,7 +17,7 @@ async function testRateLimiting() {
   console.log("🧪 Iniciando tests de Rate Limiting...\n");
 
   const testIdentifier = "test-ip-192.168.1.1";
-  const testEndpoint = "/api/login";
+  const testEndpoint = "/api/auth/signup";
 
   try {
     // Test 1: Requests normales
@@ -55,8 +55,7 @@ async function testRateLimiting() {
 
     console.log("\n📋 Test 3: Diferentes endpoints");
     const endpoints = [
-      "/api/login",
-      "/api/signup",
+      "/api/auth/signup",
       "/api/create-payment-intent",
     ];
     for (const endpoint of endpoints) {
@@ -73,7 +72,7 @@ async function testRateLimiting() {
     console.log("\n📋 Test 4: Estadísticas");
     const stats = await rateLimitService.getRateLimitStats(
       testIdentifier,
-      "login_unauth"
+      "signup_unauth"
     );
     console.log(`  Requests actuales: ${stats.currentCount}`);
     console.log(`  Límite: ${stats.limit}`);
@@ -145,4 +144,3 @@ if (require.main === module) {
 }
 
 export { testRateLimiting, cleanupTestData, simulateHighLoad };
-

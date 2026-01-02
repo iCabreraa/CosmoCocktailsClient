@@ -17,8 +17,7 @@ import { RateLimitType } from "./types";
  * Configuración de endpoints que requieren rate limiting
  */
 const PROTECTED_ENDPOINTS = [
-  "/api/login",
-  "/api/signup",
+  "/api/auth/signup",
   "/api/create-payment-intent",
   "/api/create-order",
   "/api/favorites",
@@ -217,8 +216,7 @@ export async function authRateLimitMiddleware(
   const { pathname } = request.nextUrl;
 
   if (
-    !pathname.startsWith("/api/login") &&
-    !pathname.startsWith("/api/signup")
+    !pathname.startsWith("/api/auth/signup")
   ) {
     return null;
   }
@@ -276,4 +274,3 @@ export async function paymentRateLimitMiddleware(
 
   return response;
 }
-

@@ -69,14 +69,19 @@ function makeRequest(url, options = {}) {
 /**
  * Función para simular múltiples requests
  */
-async function simulateRequests(endpoint, count = 10, delay = 100) {
+async function simulateRequests(endpoint, count = 10, delay = 100, options = {}) {
   console.log(`\n🔄 Simulando ${count} requests a ${endpoint}...`);
 
   const results = [];
+  const { bodyFactory, ...requestOptions } = options;
 
   for (let i = 0; i < count; i++) {
     try {
-      const response = await makeRequest(`${BASE_URL}${endpoint}`);
+      const body = bodyFactory ? bodyFactory(i) : requestOptions.body;
+      const response = await makeRequest(`${BASE_URL}${endpoint}`, {
+        ...requestOptions,
+        body,
+      });
       results.push({
         request: i + 1,
         status: response.status,
@@ -115,13 +120,14 @@ async function testEndpoints() {
   const endpoints = [
     "/api/test-rate-limit",
     "/api/verify-kv-config",
-    "/api/login",
-    "/api/signup",
+    "/api/auth/signup",
     "/api/create-payment-intent",
     "/api/create-order",
     "/api/favorites",
     "/api/preferences",
   ];
+
+  let signupCounter = 0;
 
   for (const endpoint of endpoints) {
     console.log(`\n📡 Probando endpoint: ${endpoint}`);
@@ -129,7 +135,20 @@ async function testEndpoints() {
 
     try {
       // Test básico
-      const response = await makeRequest(`${BASE_URL}${endpoint}`);
+      const response =
+        endpoint === "/api/auth/signup"
+          ? await makeRequest(`${BASE_URL}${endpoint}`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                email: `rate-limit-${Date.now()}-${signupCounter++}@cosmococktails.com`,
+                password: "Password123",
+                full_name: "Rate Limit Test",
+              }),
+            })
+          : await makeRequest(`${BASE_URL}${endpoint}`);
       console.log(`✅ Endpoint accesible: Status ${response.status}`);
 
       if (response.data?.rateLimit) {
@@ -163,13 +182,20 @@ async function testRateLimits() {
   console.log("\n📊 Test 1: Múltiples requests a /api/test-rate-limit");
   await simulateRequests("/api/test-rate-limit", 15, 50);
 
-  // Test 2: Endpoint de login (debería tener límites más estrictos)
-  console.log("\n🔐 Test 2: Múltiples requests a /api/login");
-  await simulateRequests("/api/login", 8, 100);
-
-  // Test 3: Endpoint de signup
-  console.log("\n📝 Test 3: Múltiples requests a /api/signup");
-  await simulateRequests("/api/signup", 5, 100);
+  // Test 2: Endpoint de signup (Supabase Auth)
+  console.log("\n📝 Test 2: Múltiples requests a /api/auth/signup");
+  await simulateRequests("/api/auth/signup", 5, 100, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    bodyFactory: index =>
+      JSON.stringify({
+        email: `rate-limit-${Date.now()}-${index}@cosmococktails.com`,
+        password: "Password123",
+        full_name: "Rate Limit Test",
+      }),
+  });
 }
 
 /**
@@ -226,4 +252,3 @@ module.exports = {
   testRateLimits,
   showStats,
 };
-

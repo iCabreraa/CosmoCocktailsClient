@@ -74,10 +74,6 @@ function makePostRequest(url, data, options = {}) {
  * Datos de prueba para diferentes endpoints
  */
 const testData = {
-  login: {
-    email: "test@cosmococktails.com",
-    password: "testpassword123",
-  },
   signup: {
     email: "newuser@cosmococktails.com",
     password: "newpassword123",
@@ -135,57 +131,10 @@ const testData = {
 };
 
 /**
- * Función para probar endpoint de login
- */
-async function testLoginEndpoint() {
-  console.log("\n🔐 Probando endpoint de LOGIN...");
-  console.log("─".repeat(40));
-
-  const results = [];
-
-  for (let i = 1; i <= 8; i++) {
-    try {
-      const response = await makePostRequest(
-        `${BASE_URL}/api/login`,
-        testData.login
-      );
-      results.push({
-        request: i,
-        status: response.status,
-        allowed: response.data?.rateLimit?.allowed,
-        remaining: response.data?.rateLimit?.remaining,
-        message: response.data?.message || response.data?.error,
-      });
-
-      console.log(
-        `  Request ${i}: Status ${response.status}, Allowed: ${response.data?.rateLimit?.allowed}, Remaining: ${response.data?.rateLimit?.remaining}`
-      );
-
-      if (response.status === 429) {
-        console.log(
-          `    🚫 Rate limit exceeded! Message: ${response.data?.message}`
-        );
-        break;
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 200));
-    } catch (error) {
-      console.log(`  Request ${i}: Error - ${error.message}`);
-      results.push({
-        request: i,
-        error: error.message,
-      });
-    }
-  }
-
-  return results;
-}
-
-/**
- * Función para probar endpoint de signup
+ * Función para probar endpoint de auth signup
  */
 async function testSignupEndpoint() {
-  console.log("\n📝 Probando endpoint de SIGNUP...");
+  console.log("\n📝 Probando endpoint de AUTH SIGNUP...");
   console.log("─".repeat(40));
 
   const results = [];
@@ -199,7 +148,7 @@ async function testSignupEndpoint() {
       };
 
       const response = await makePostRequest(
-        `${BASE_URL}/api/signup`,
+        `${BASE_URL}/api/auth/signup`,
         signupData
       );
       results.push({
@@ -358,7 +307,6 @@ async function main() {
   const results = {};
 
   try {
-    results.login = await testLoginEndpoint();
     results.signup = await testSignupEndpoint();
     results.paymentIntent = await testPaymentIntentEndpoint();
     results.createOrder = await testCreateOrderEndpoint();
@@ -383,10 +331,8 @@ if (require.main === module) {
 
 module.exports = {
   makePostRequest,
-  testLoginEndpoint,
   testSignupEndpoint,
   testPaymentIntentEndpoint,
   testCreateOrderEndpoint,
   showSummary,
 };
-

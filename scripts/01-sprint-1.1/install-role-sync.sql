@@ -154,7 +154,7 @@ SELECT
 INSTRUCCIONES PARA EL DESARROLLADOR:
 
 1. ACTUALIZAR CÓDIGO:
-   - El endpoint /api/signup ya está actualizado para usar Supabase Auth
+   - El endpoint /api/auth/signup ya está actualizado para usar Supabase Auth
    - UserRepository.updateRole() ya incluye logging de auditoría
    - Los triggers se encargan de la sincronización automática
 

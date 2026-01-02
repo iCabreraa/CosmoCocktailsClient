@@ -32,17 +32,10 @@ Se ha implementado un sistema completo de validación de inputs usando Zod para 
 
 ### 3. Endpoints Protegidos
 
-#### Login (`/api/login`)
+#### Autenticación (Supabase Auth)
 
-- Validación de email y contraseña
-- Rate limiting integrado
-- Mensajes de error claros
-
-#### Registro (`/api/signup`)
-
-- Validación completa de datos de usuario
-- Validación de contraseña segura
-- Validación de nombre y teléfono
+- Login/registro gestionados por Supabase en el cliente.
+- Endpoints legacy `/api/login` y `/api/signup` retirados del flujo.
 
 #### Formulario de Contacto (`/api/contact`)
 
@@ -248,8 +241,6 @@ const contactFormSchema = z.object({
 
 ### Archivos Modificados
 
-- `src/app/api/login/route.ts` - Añadida validación Zod
-- `src/app/api/signup/route.ts` - Añadida validación Zod
 - `src/app/api/create-order/route.ts` - Añadida validación Zod
 - `package.json` - Añadida dependencia Zod
 
@@ -264,4 +255,3 @@ La validación completa de inputs ha sido implementada exitosamente, proporciona
 5. **Escalabilidad:** Fácil adición de nuevas validaciones
 
 El sistema está listo para producción y proporciona una base sólida para la validación de datos en toda la aplicación.
-

@@ -86,7 +86,7 @@ echo ""
 
 # Test 3: Test con endpoint específico
 print_status "Test 3: Testing con endpoint específico"
-response=$(curl -s "$BASE_URL/api/test-rate-limit?endpoint=/api/login&type=unauthenticated")
+response=$(curl -s "$BASE_URL/api/test-rate-limit?endpoint=/api/auth/signup&type=unauthenticated")
 if echo "$response" | grep -q "success.*true"; then
     print_success "✅ Test con endpoint específico exitoso"
 else
@@ -99,7 +99,7 @@ echo ""
 print_status "Test 4: Test POST con múltiples requests"
 response=$(curl -s -X POST "$BASE_URL/api/test-rate-limit" \
     -H "Content-Type: application/json" \
-    -d '{"endpoint": "/api/login", "type": "unauthenticated", "count": 5}')
+    -d '{"endpoint": "/api/auth/signup", "type": "unauthenticated", "count": 5}')
 if echo "$response" | grep -q "success.*true"; then
     print_success "✅ Test POST exitoso"
     echo "$response" | jq '.summary' 2>/dev/null || echo "Resumen: $(echo "$response" | grep -o '"summary":[^}]*')"
@@ -159,10 +159,9 @@ echo ""
 print_success "🎉 Sistema de Rate Limiting funcionando correctamente!"
 echo ""
 print_status "Próximos pasos:"
-echo "1. Prueba endpoints reales como /api/login, /api/signup"
+echo "1. Prueba endpoints reales como /api/auth/signup"
 echo "2. Monitorea los logs del servidor para verificar funcionamiento"
 echo "3. Ajusta límites en src/lib/rate-limiting/types.ts si es necesario"
 echo ""
 
 print_success "Rate Limiting completamente operativo! 🛡️"
-

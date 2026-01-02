@@ -62,13 +62,7 @@ export type RateLimitType =
  */
 export const RATE_LIMIT_CONFIGS: Record<string, EndpointRateLimit> = {
   // Autenticación
-  "/api/login": {
-    authenticated: { limit: 5, window: 900, key: "login_auth" }, // 5 intentos / 15 min
-    unauthenticated: { limit: 5, window: 900, key: "login_unauth" }, // 5 intentos / 15 min
-    global: { limit: 20, window: 900, key: "login_global" }, // 20 intentos / 15 min por IP
-  },
-
-  "/api/signup": {
+  "/api/auth/signup": {
     authenticated: { limit: 3, window: 3600, key: "signup_auth" }, // 3 intentos / hora
     unauthenticated: { limit: 3, window: 3600, key: "signup_unauth" }, // 3 intentos / hora
     global: { limit: 10, window: 3600, key: "signup_global" }, // 10 intentos / hora por IP
@@ -114,8 +108,6 @@ export const RATE_LIMIT_CONFIGS: Record<string, EndpointRateLimit> = {
 export const RATE_LIMIT_MESSAGES = {
   TOO_MANY_REQUESTS:
     "Demasiadas peticiones. Por favor, espera antes de intentar de nuevo.",
-  LOGIN_LIMIT_EXCEEDED:
-    "Demasiados intentos de inicio de sesión. Inténtalo de nuevo en 15 minutos.",
   SIGNUP_LIMIT_EXCEEDED:
     "Demasiados intentos de registro. Inténtalo de nuevo en una hora.",
   PAYMENT_LIMIT_EXCEEDED:
@@ -125,4 +117,3 @@ export const RATE_LIMIT_MESSAGES = {
   GLOBAL_LIMIT_EXCEEDED:
     "Límite global de peticiones excedido. Inténtalo de nuevo más tarde.",
 } as const;
-
