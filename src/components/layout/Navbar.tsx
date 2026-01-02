@@ -44,6 +44,7 @@ export default function Navbar() {
   const router = useRouter();
   const { notify } = useToast();
   const hasFavoritesAccess = Boolean(user);
+  const isAdminVisible = Boolean(user) && canAccessAdmin;
   const { favoritesQuery } = useFavorites<"ids">({
     enabled: hasFavoritesAccess && accountDropdownOpen,
     mode: "ids",
@@ -305,7 +306,7 @@ export default function Navbar() {
                     )}
 
                     {/* Admin Panel Button - Compact, aligned with other links */}
-                    {canAccessAdmin && (
+                    {isAdminVisible && (
                       <div className="mt-2 ml-6">
                         <Link
                           href="/admin"
@@ -498,18 +499,6 @@ export default function Navbar() {
                     )}
                   </Link>
 
-                  {/* Admin Panel Button - Only for admins */}
-                  {canAccessAdmin && (
-                    <Link
-                      href="/admin"
-                      className="hover:text-cosmic-gold transition-colors duration-200"
-                      aria-label="Admin Panel"
-                      title="Panel de Administración"
-                    >
-                      <HiOutlineCog6Tooth className="w-5 h-5" />
-                    </Link>
-                  )}
-
                   {/* User Account */}
                   {user ? (
                     <div className="relative" ref={dropdownRef}>
@@ -579,7 +568,7 @@ export default function Navbar() {
                                   </Link>
                                 );
                               })}
-                              {canAccessAdmin && (
+                              {isAdminVisible && (
                                 <Link
                                   href="/admin"
                                   onClick={() =>
