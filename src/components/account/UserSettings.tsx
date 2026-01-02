@@ -16,6 +16,8 @@ import { User } from "@/types/user-system";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/contexts/LanguageContext";
 import PrivacyModal from "@/components/privacy/PrivacyModal";
+import TermsModal from "@/components/legal/TermsModal";
+import CookiesModal from "@/components/legal/CookiesModal";
 
 interface UserSettingsProps {
   user: User;
@@ -48,6 +50,8 @@ export default function UserSettings({ user, onUpdate }: UserSettingsProps) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [originalSettings, setOriginalSettings] = useState<any>(null);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [isCookiesOpen, setIsCookiesOpen] = useState(false);
 
   useEffect(() => {
     // Cargar preferencias del usuario al montar el componente
@@ -383,18 +387,20 @@ export default function UserSettings({ user, onUpdate }: UserSettingsProps) {
           >
             {t("settings.legal.privacy")}
           </button>
-          <Link
-            href="/terms"
+          <button
+            type="button"
+            onClick={() => setIsTermsOpen(true)}
             className="px-4 py-2 rounded-lg border border-gray-600/60 text-sm text-gray-200 hover:border-cosmic-gold/60 hover:text-cosmic-gold transition-colors"
           >
             {t("settings.legal.terms")}
-          </Link>
-          <Link
-            href="/cookies"
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsCookiesOpen(true)}
             className="px-4 py-2 rounded-lg border border-gray-600/60 text-sm text-gray-200 hover:border-cosmic-gold/60 hover:text-cosmic-gold transition-colors"
           >
             {t("settings.legal.cookies")}
-          </Link>
+          </button>
           <Link
             href="/contact"
             className="px-4 py-2 rounded-lg border border-gray-600/60 text-sm text-gray-200 hover:border-cosmic-gold/60 hover:text-cosmic-gold transition-colors"
@@ -441,6 +447,14 @@ export default function UserSettings({ user, onUpdate }: UserSettingsProps) {
       <PrivacyModal
         isOpen={isPrivacyOpen}
         onClose={() => setIsPrivacyOpen(false)}
+      />
+      <TermsModal
+        isOpen={isTermsOpen}
+        onClose={() => setIsTermsOpen(false)}
+      />
+      <CookiesModal
+        isOpen={isCookiesOpen}
+        onClose={() => setIsCookiesOpen(false)}
       />
     </div>
   );
