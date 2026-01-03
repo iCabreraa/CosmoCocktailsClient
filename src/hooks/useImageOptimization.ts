@@ -198,51 +198,48 @@ export function useImageOptimization() {
   );
 
   // Lazy loading con Intersection Observer
-  const useLazyImage = useCallback(
-    (
-      src: string,
-      type:
-        | "cocktail"
-        | "background"
-        | "banner"
-        | "thumbnail"
-        | "hero" = "cocktail",
-      threshold = 0.1
-    ) => {
-      const [isVisible, setIsVisible] = useState(false);
-      const [ref, setRef] = useState<HTMLElement | null>(null);
+  const useLazyImage = (
+    src: string,
+    type:
+      | "cocktail"
+      | "background"
+      | "banner"
+      | "thumbnail"
+      | "hero" = "cocktail",
+    threshold = 0.1
+  ) => {
+    const [isVisible, setIsVisible] = useState(false);
+    const [ref, setRef] = useState<HTMLElement | null>(null);
 
-      const observer = useMemo(() => {
-        if (typeof window === "undefined") return null;
+    const observer = useMemo(() => {
+      if (typeof window === "undefined") return null;
 
-        return new IntersectionObserver(
-          ([entry]) => {
-            if (entry.isIntersecting) {
-              setIsVisible(true);
-              observer?.disconnect();
-            }
-          },
-          { threshold }
-        );
-      }, [threshold]);
-
-      const setElementRef = useCallback(
-        (element: HTMLElement | null) => {
-          if (ref) observer?.unobserve(ref);
-          if (element) observer?.observe(element);
-          setRef(element);
+      return new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer?.disconnect();
+          }
         },
-        [ref, observer]
+        { threshold }
       );
+    }, [threshold]);
 
-      return {
-        isVisible,
-        ref: setElementRef,
-        imageData: isVisible ? getOptimizedImageData(src, type) : null,
-      };
-    },
-    [getOptimizedImageData]
-  );
+    const setElementRef = useCallback(
+      (element: HTMLElement | null) => {
+        if (ref) observer?.unobserve(ref);
+        if (element) observer?.observe(element);
+        setRef(element);
+      },
+      [ref, observer]
+    );
+
+    return {
+      isVisible,
+      ref: setElementRef,
+      imageData: isVisible ? getOptimizedImageData(src, type) : null,
+    };
+  };
 
   return {
     getOptimizedImageData,

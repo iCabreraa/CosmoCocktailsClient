@@ -291,6 +291,34 @@ export default function ShopClient({
   const showFullLoader = loading && cocktails.length === 0;
   const showSoftLoader = (loading || softLoading) && cocktails.length > 0;
 
+  // Agrupar cócteles por categorías
+  const nonAlcoholicCocktails = useMemo(
+    () => cocktails.filter(c => c.alcohol_percentage === 0),
+    [cocktails]
+  );
+  const strongCocktails = useMemo(
+    () => cocktails.filter(c => c.alcohol_percentage >= 18),
+    [cocktails]
+  );
+  const lightCocktails = useMemo(
+    () =>
+      cocktails.filter(
+        c => c.alcohol_percentage > 0 && c.alcohol_percentage <= 14
+      ),
+    [cocktails]
+  );
+  const tropicalCocktails = useMemo(
+    () =>
+      cocktails.filter(
+        c =>
+          c.name.toLowerCase().includes("tropical") ||
+          c.name.toLowerCase().includes("tiki") ||
+          c.name.toLowerCase().includes("pina") ||
+          c.name.toLowerCase().includes("coconut")
+      ),
+    [cocktails]
+  );
+
   if (showFullLoader) {
     return (
       <motion.div
@@ -327,6 +355,9 @@ export default function ShopClient({
     );
   }
 
+  const totalPages =
+    totalCount > 0 ? Math.ceil(totalCount / PAGE_SIZE) : 1;
+
   if (cocktails.length === 0) {
     return (
       <motion.section
@@ -361,37 +392,6 @@ export default function ShopClient({
       </motion.section>
     );
   }
-
-  const totalPages =
-    totalCount > 0 ? Math.ceil(totalCount / PAGE_SIZE) : 1;
-
-  // Agrupar cócteles por categorías
-  const nonAlcoholicCocktails = useMemo(
-    () => cocktails.filter(c => c.alcohol_percentage === 0),
-    [cocktails]
-  );
-  const strongCocktails = useMemo(
-    () => cocktails.filter(c => c.alcohol_percentage >= 18),
-    [cocktails]
-  );
-  const lightCocktails = useMemo(
-    () =>
-      cocktails.filter(
-        c => c.alcohol_percentage > 0 && c.alcohol_percentage <= 14
-      ),
-    [cocktails]
-  );
-  const tropicalCocktails = useMemo(
-    () =>
-      cocktails.filter(
-        c =>
-          c.name.toLowerCase().includes("tropical") ||
-          c.name.toLowerCase().includes("tiki") ||
-          c.name.toLowerCase().includes("pina") ||
-          c.name.toLowerCase().includes("coconut")
-      ),
-    [cocktails]
-  );
 
   return (
     <motion.section

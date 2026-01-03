@@ -88,8 +88,6 @@ export default function CocktailRow({
     [pageCount]
   );
 
-  if (cocktails.length < 2) return null;
-
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
@@ -117,6 +115,8 @@ export default function CocktailRow({
       window.removeEventListener("resize", updateState);
     };
   }, [cocktails.length]);
+
+  if (cocktails.length < 2) return null;
 
   const scrollByPage = (direction: "left" | "right") => {
     const container = scrollRef.current;
