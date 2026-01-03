@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { envServer } from "@/lib/env-server";
-import { getAuthContext } from "@/lib/security/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -21,16 +20,10 @@ export async function GET(request: NextRequest) {
       error: authError,
     } = await supabaseAuth.auth.getUser();
 
-    let userId = user?.id ?? null;
-
-    if (!userId) {
-      const legacy = await getAuthContext();
-      userId = legacy?.userId ?? null;
-    }
-
-    if (!userId) {
+    if (authError || !user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const userId = user.id;
 
     const supabase = createAdminClient(
       envServer.NEXT_PUBLIC_SUPABASE_URL,

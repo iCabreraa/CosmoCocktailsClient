@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { envServer } from "@/lib/env-server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { createClient as createServerClient } from "@/lib/supabase/server";
+import { envServer } from "@/lib/env-server";
 import { getAuthContext } from "@/lib/security/auth";
 import { fromOrderItemRow, orderItemSelect } from "@/types/order-item-utils";
 
@@ -15,22 +14,11 @@ const supabase = createAdminClient(
 );
 
 export async function GET(request: NextRequest) {
-  const supabaseAuth = createServerClient();
-  const {
-    data: { user },
-  } = await supabaseAuth.auth.getUser();
-  let userId = user?.id ?? null;
-  let isAdmin = false;
-
-  if (!userId) {
-    const legacy = await getAuthContext();
-    userId = legacy?.userId ?? null;
-    isAdmin = legacy?.isAdmin ?? false;
-  }
-
-  if (!userId) {
+  const auth = await getAuthContext();
+  if (!auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const { userId, isAdmin } = auth;
 
   const { searchParams } = new URL(request.url);
   const orderId = searchParams.get("order_id");
