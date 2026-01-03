@@ -3,7 +3,6 @@ import { createClient } from "@supabase/supabase-js";
 import { envServer } from "@/lib/env-server";
 import { stripe } from "@/lib/stripe/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
-import { getAuthContext } from "@/lib/security/auth";
 import {
   normalizeOrderItems,
   toOrderItemInserts,
@@ -31,11 +30,6 @@ export async function POST(request: NextRequest) {
       data: { user },
     } = await supabaseAuth.auth.getUser();
     let resolvedUserId = user?.id ?? null;
-
-    if (!resolvedUserId) {
-      const legacy = await getAuthContext();
-      resolvedUserId = legacy?.userId ?? null;
-    }
 
     // Validaciones básicas
     if (!items || !Array.isArray(items) || items.length === 0) {

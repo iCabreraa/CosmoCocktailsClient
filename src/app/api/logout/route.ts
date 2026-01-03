@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST() {
-  cookies().delete({ name: "token", path: "/" });
+  const supabase = createClient();
+  await supabase.auth.signOut();
   return NextResponse.json({ message: "Logged out" });
 }

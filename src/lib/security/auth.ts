@@ -1,6 +1,5 @@
-import { cookies } from "next/headers";
-import { createClient } from "@supabase/supabase-js";
-import jwt from "jsonwebtoken";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 import { envServer } from "@/lib/env-server";
 
 type AuthContext = {
@@ -17,37 +16,31 @@ const adminRoles = new Set([
 ]);
 
 export async function getAuthContext(): Promise<AuthContext | null> {
-  const token = cookies().get("token")?.value;
-  if (!token) {
+  const supabaseAuth = createServerClient();
+  const {
+    data: { user: authUser },
+    error: authError,
+  } = await supabaseAuth.auth.getUser();
+
+  if (authError || !authUser) {
     return null;
   }
 
-  let decoded: { id: string } | null = null;
-  try {
-    decoded = jwt.verify(token, envServer.JWT_SECRET) as { id: string };
-  } catch {
-    return null;
-  }
-
-  const supabase = createClient(
+  const supabase = createAdminClient(
     envServer.NEXT_PUBLIC_SUPABASE_URL,
     envServer.SUPABASE_SERVICE_ROLE_KEY
   );
 
-  const { data: user, error } = await supabase
+  const { data: userRow } = await supabase
     .from("users")
     .select("id, role")
-    .eq("id", decoded.id)
+    .eq("id", authUser.id)
     .single();
 
-  if (error || !user) {
-    return null;
-  }
-
-  const role = user.role ?? "customer";
+  const role = userRow?.role ?? "customer";
 
   return {
-    userId: user.id,
+    userId: authUser.id,
     role,
     isAdmin: adminRoles.has(role),
   };
