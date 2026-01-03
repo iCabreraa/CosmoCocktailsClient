@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { envServer } from "@/lib/env-server";
 import { stripe } from "@/lib/stripe/server";
+import { createClient as createServerClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/security/auth";
 import {
   normalizeOrderItems,
   toOrderItemInserts,
@@ -19,11 +21,21 @@ export async function POST(request: NextRequest) {
     const {
       items,
       total,
-      user_id,
       shipping_address,
       payment_intent_id,
       contact_email,
     } = body;
+
+    const supabaseAuth = createServerClient();
+    const {
+      data: { user },
+    } = await supabaseAuth.auth.getUser();
+    let resolvedUserId = user?.id ?? null;
+
+    if (!resolvedUserId) {
+      const legacy = await getAuthContext();
+      resolvedUserId = legacy?.userId ?? null;
+    }
 
     // Validaciones básicas
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -123,7 +135,7 @@ export async function POST(request: NextRequest) {
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
-        user_id: user_id || null,
+        user_id: resolvedUserId,
         total_amount: total,
         status: "paid", // Pago confirmado directamente
         payment_intent_id: payment_intent_id || null,
