@@ -59,6 +59,8 @@ https://github.com/users/iCabreraa/projects/2
 - Each issue is prefixed to enforce a strict sequence per milestone:
   `M{Milestone}.{NN} [Category] - Title`
 - Example: `M1.03 [Checkout] - Fix payment intent validation`
+- If a new issue needs to be inserted between existing items, use a dot suffix:
+  `M{Milestone}.{NN}.{sub}` (example: `M2.00.1`)
 - Issues also include a `### Roadmap` block with the order and dependency.
 - GitHub issue numbers are immutable; ordering is done by title prefix and dependency.
 
