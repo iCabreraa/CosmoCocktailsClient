@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const {
       data: { user },
     } = await supabaseAuth.auth.getUser();
-    let resolvedUserId = user?.id ?? null;
+    const resolvedUserId = user?.id ?? null;
 
     // Validaciones básicas
     if (!items || !Array.isArray(items) || items.length === 0) {
