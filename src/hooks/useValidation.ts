@@ -10,6 +10,12 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { z } from "zod";
+import {
+  addressSchema,
+  contactFormSchema,
+  userLoginSchema,
+  userSignupSchema,
+} from "@/lib/validation";
 
 // ============================================================================
 // TIPOS
@@ -205,8 +211,6 @@ export function useValidation<T extends Record<string, any>>(
  * Hook para validación de login
  */
 export function useLoginValidation() {
-  const { userLoginSchema } = require("@/lib/validation");
-
   return useValidation(userLoginSchema, {
     email: "",
     password: "",
@@ -217,8 +221,6 @@ export function useLoginValidation() {
  * Hook para validación de registro
  */
 export function useSignupValidation() {
-  const { userSignupSchema } = require("@/lib/validation");
-
   return useValidation(userSignupSchema, {
     email: "",
     password: "",
@@ -231,8 +233,6 @@ export function useSignupValidation() {
  * Hook para validación de dirección
  */
 export function useAddressValidation() {
-  const { addressSchema } = require("@/lib/validation");
-
   return useValidation(addressSchema, {
     street: "",
     city: "",
@@ -246,8 +246,6 @@ export function useAddressValidation() {
  * Hook para validación de formulario de contacto
  */
 export function useContactFormValidation() {
-  const { contactFormSchema } = require("@/lib/validation");
-
   return useValidation(contactFormSchema, {
     name: "",
     email: "",

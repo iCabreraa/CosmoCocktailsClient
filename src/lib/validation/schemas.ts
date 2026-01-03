@@ -294,9 +294,11 @@ export const contactFormSchema = z.object({
     .min(10, "Mensaje debe tener al menos 10 caracteres")
     .max(2000, "Mensaje no puede exceder 2000 caracteres"),
   phone: phoneSchema.optional(),
-  privacy_consent: z.literal(true, {
-    message: "Debes aceptar la política de privacidad",
-  }),
+  privacy_consent: z
+    .boolean()
+    .refine(value => value, {
+      message: "Debes aceptar la política de privacidad",
+    }),
 });
 
 // ============================================================================

@@ -36,3 +36,9 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 # CosmoCocktailsClient
+
+## Project docs
+- Roadmap: docs/ROADMAP.md
+- Workflow: docs/WORKFLOW.md
+- Stripe live setup: docs/STRIPE_LIVE_SETUP_GUIDE.md
+- Supabase auth setup: docs/SUPABASE_AUTH_SETUP_GUIDE.md

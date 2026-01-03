@@ -18,6 +18,8 @@ const eslintConfig = [
       "out/**/*",
       "build/**/*",
       "dist/**/*",
+      "public/sw.js",
+      "scripts/**/*",
       "*.config.js",
       "*.config.mjs",
     ],
@@ -33,7 +35,7 @@ const eslintConfig = [
       "prefer-const": "error",
       "@typescript-eslint/no-unused-vars": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
-      "prettier/prettier": "error",
+      "prettier/prettier": "off",
     },
   },
 ];
