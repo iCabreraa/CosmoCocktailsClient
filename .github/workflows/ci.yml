@@ -4,45 +4,14 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - "cosmococktails-ecommerce/**"
-      - "cosmococktailsManagement/**"
-      - ".github/workflows/**"
-      - "package.json"
-      - "package-lock.json"
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  changes:
+  app:
     runs-on: ubuntu-latest
-    outputs:
-      ecommerce: ${{ steps.filter.outputs.ecommerce }}
-      management: ${{ steps.filter.outputs.management }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            ecommerce:
-              - "cosmococktails-ecommerce/**"
-              - "package.json"
-              - "package-lock.json"
-            management:
-              - "cosmococktailsManagement/**"
-              - "package.json"
-              - "package-lock.json"
-
-  ecommerce:
-    needs: changes
-    if: needs.changes.outputs.ecommerce == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: cosmococktails-ecommerce
     env:
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: anon_key
@@ -61,26 +30,8 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: cosmococktails-ecommerce/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm run build
-
-  management:
-    needs: changes
-    if: needs.changes.outputs.management == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: cosmococktailsManagement
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: cosmococktailsManagement/package-lock.json
-      - run: npm ci
-      - run: npm run lint
       - run: npm run build
