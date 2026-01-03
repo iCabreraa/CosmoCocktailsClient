@@ -154,8 +154,8 @@ export default function CheckoutSuccess() {
   }, [orderId, summary, user]);
 
   useEffect(() => {
+    if (!user) return;
     if (summary || summaryLoading) return;
-    if (user && orderId) return;
     if (!orderId && !paymentIntent) return;
 
     const controller = new AbortController();
