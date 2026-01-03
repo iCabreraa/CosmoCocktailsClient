@@ -1,0 +1,76 @@
+name: Issue Status Sync
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - closed
+    branches:
+      - main
+
+permissions:
+  issues: write
+  pull-requests: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync issue status label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || "";
+            const match = body.match(/(close|closes|closed|fix|fixes|fixed) #(\d+)/i);
+            if (!match) {
+              return;
+            }
+
+            const issueNumber = Number(match[2]);
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+            });
+
+            const statusLabels = [
+              "Status: Backlog",
+              "Status: Ready",
+              "Status: In Progress",
+              "Status: Blocked",
+              "Status: Done",
+            ];
+
+            const currentLabels = issue.labels.map(label => label.name);
+
+            const removeLabels = currentLabels.filter(label => statusLabels.includes(label));
+            const targetLabel = pr.merged
+              ? "Status: Done"
+              : "Status: In Progress";
+
+            for (const label of removeLabels) {
+              if (label !== targetLabel) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    name: label,
+                  });
+                } catch (error) {
+                  // Ignore label remove errors (label may not exist).
+                }
+              }
+            }
+
+            if (!currentLabels.includes(targetLabel)) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: [targetLabel],
+              });
+            }
