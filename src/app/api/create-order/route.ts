@@ -132,6 +132,7 @@ export async function POST(request: NextRequest) {
         user_id: resolvedUserId,
         total_amount: total,
         status: "paid", // Pago confirmado directamente
+        is_paid: true,
         payment_intent_id: payment_intent_id || null,
         shipping_address: JSON.stringify(shipping_address),
       })
