@@ -25,15 +25,19 @@ import { validateKVConfig } from "./config";
 export class RateLimitService {
   private static instance: RateLimitService;
   private readonly isProduction: boolean;
+  private readonly isConfigured: boolean;
 
   private constructor() {
     this.isProduction = process.env.NODE_ENV === "production";
 
     // Validar configuración de Vercel KV
-    if (!validateKVConfig()) {
+    this.isConfigured = validateKVConfig();
+    if (!this.isConfigured) {
       // const debug = getKVConfigDebug();
       // console.error("🚨 Vercel KV no configurado correctamente:", debug);
-      throw new Error("Vercel KV configuration is invalid");
+      if (!this.isProduction) {
+        console.warn("⚠️ Vercel KV no configurado: rate limiting desactivado.");
+      }
     }
   }
 
@@ -62,6 +66,15 @@ export class RateLimitService {
     type: RateLimitType,
     userId?: string
   ): Promise<RateLimitResult> {
+    if (!this.isConfigured) {
+      return {
+        allowed: true,
+        remaining: 0,
+        resetTime: Date.now() + 3600000,
+        message: "Rate limiting desactivado (KV no configurado)",
+      };
+    }
+
     try {
       // Obtener configuración para el endpoint
       const config = this.getConfigForEndpoint(endpoint, type, !!userId);
@@ -244,6 +257,7 @@ export class RateLimitService {
    * Limpia límites expirados (útil para mantenimiento)
    */
   public async cleanupExpiredLimits(): Promise<void> {
+    if (!this.isConfigured) return;
     try {
       const pattern = this.isProduction ? "rl:*" : "rl_dev:*";
       const keys = await kv.keys(pattern);
@@ -273,6 +287,15 @@ export class RateLimitService {
     resetTime: number;
     remaining: number;
   }> {
+    if (!this.isConfigured) {
+      return {
+        currentCount: 0,
+        limit: 0,
+        resetTime: 0,
+        remaining: 0,
+      };
+    }
+
     try {
       const key = this.generateKey(identifier, configKey);
       const now = Date.now();
