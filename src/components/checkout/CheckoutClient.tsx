@@ -56,6 +56,8 @@ export default function CheckoutClient() {
   const [inventoryValid, setInventoryValid] = useState(true);
   const [unavailableItems, setUnavailableItems] = useState<string[]>([]);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [draftOrderId, setDraftOrderId] = useState<string | null>(null);
+  const [draftOrderRef, setDraftOrderRef] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [showStepErrors, setShowStepErrors] = useState(false);
@@ -211,12 +213,34 @@ export default function CheckoutClient() {
       }
 
       const responseData = await response.json();
-    const { clientSecret } = responseData;
-    setClientSecret(clientSecret);
-  } catch (error) {
-    setPaymentError("Error al crear el pago. Inténtalo de nuevo.");
-  }
-};
+      const { clientSecret, orderId, orderRef } = responseData;
+      setClientSecret(clientSecret);
+      setDraftOrderId(orderId ?? null);
+      setDraftOrderRef(orderRef ?? null);
+
+      if (typeof window !== "undefined" && orderId) {
+        const successPayload = {
+          orderId,
+          orderRef,
+          orderDate: new Date().toISOString(),
+          storedAt: Date.now(),
+          items,
+          subtotal,
+          vat_amount,
+          shipping_cost,
+          total,
+          item_count,
+          shippingAddress: addressWithPhone,
+        };
+        sessionStorage.setItem(
+          "checkout-success",
+          JSON.stringify(successPayload)
+        );
+      }
+    } catch (error) {
+      setPaymentError("Error al crear el pago. Inténtalo de nuevo.");
+    }
+  };
 
   const handlePaymentSuccess = async (payload: {
     orderId: string;
@@ -681,11 +705,9 @@ export default function CheckoutClient() {
               {clientSecret && privacyAccepted ? (
                 <StripePaymentComplete
                   clientSecret={clientSecret}
-                  items={items}
                   total={total}
-                  user={authUser}
-                  shippingAddress={addressWithPhone}
-                  contactEmail={form.email}
+                  draftOrderId={draftOrderId}
+                  draftOrderRef={draftOrderRef}
                   paymentsEnabled={stripePaymentsEnabled}
                   onPaymentSuccess={handlePaymentSuccess}
                   onPaymentError={handlePaymentError}

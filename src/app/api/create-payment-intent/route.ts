@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createClient as createServerClient } from "@/lib/supabase/server";
+import { createHash } from "crypto";
 import {
   normalizeOrderItems,
   toOrderItemMetadata,
@@ -41,7 +43,7 @@ const aggregateInventoryItems = (
 export async function POST(request: NextRequest) {
   try {
     console.log("🔍 Creating payment intent...");
-    const { items, privacyAccepted } = await request.json();
+    const { items, privacyAccepted, address } = await request.json();
 
     if (!items || items.length === 0) {
       console.log("❌ No items provided");
@@ -51,6 +53,13 @@ export async function POST(request: NextRequest) {
     if (!privacyAccepted) {
       return NextResponse.json(
         { error: "Privacy consent required" },
+        { status: 400 }
+      );
+    }
+
+    if (!address) {
+      return NextResponse.json(
+        { error: "Shipping address is required" },
         { status: 400 }
       );
     }
@@ -162,7 +171,8 @@ export async function POST(request: NextRequest) {
     );
     const vat = subtotal * 0.21;
     const shipping = subtotal >= 50 ? 0 : 4.99;
-    const total = Math.round((subtotal + vat + shipping) * 100); // Convertir a céntimos
+    const totalAmount = subtotal + vat + shipping;
+    const total = Math.round(totalAmount * 100); // Convertir a céntimos
 
     if (!Number.isFinite(total) || total <= 0) {
       return NextResponse.json(
@@ -193,7 +203,37 @@ export async function POST(request: NextRequest) {
         ? itemsJson.slice(0, MAX_METADATA_VALUE - 20) + "...__truncated"
         : itemsJson;
 
-    const paymentIntent = await stripe.paymentIntents.create({
+    const supabaseAuth = createServerClient();
+    const {
+      data: { user },
+    } = await supabaseAuth.auth.getUser();
+    const resolvedUserId = user?.id ?? null;
+
+    const addressKey =
+      typeof address === "string" ? address : JSON.stringify(address ?? {});
+    const sortedItems = [...sanitizedItems].sort((a, b) => {
+      const keyA = `${a.cocktail_id}:${a.sizes_id}`;
+      const keyB = `${b.cocktail_id}:${b.sizes_id}`;
+      return keyA.localeCompare(keyB);
+    });
+    const idempotencyPayload = JSON.stringify({
+      items: sortedItems.map(item => ({
+        cocktail_id: item.cocktail_id,
+        size_id: item.sizes_id,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+      })),
+      total_amount: totalAmount,
+      user_id: resolvedUserId,
+      shipping_address: addressKey,
+    });
+    const idempotencyKey = createHash("sha256")
+      .update(idempotencyPayload)
+      .digest("hex")
+      .slice(0, 32);
+
+    const paymentIntent = await stripe.paymentIntents.create(
+      {
       amount: total,
       currency: "eur",
       payment_method_types: ["card", "ideal"],
@@ -204,12 +244,62 @@ export async function POST(request: NextRequest) {
         shipping: shipping.toString(),
         items: itemsMeta, // Compacto y truncado si excede límite
       },
-    });
+      },
+      { idempotencyKey }
+    );
+
+    let resolvedAddress = address;
+    if (typeof address === "string") {
+      try {
+        resolvedAddress = JSON.parse(address);
+      } catch (error) {
+        return NextResponse.json(
+          { error: "Invalid shipping address" },
+          { status: 400 }
+        );
+      }
+    }
+
+    const draftItems = sanitizedItems.map(item => ({
+      cocktail_id: item.cocktail_id,
+      size_id: item.sizes_id,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+    }));
+
+    const { data: draftRows, error: draftError } = await supabaseAdmin.rpc(
+      "create_order_draft",
+      {
+        p_payment_intent_id: paymentIntent.id,
+        p_total_amount: totalAmount,
+        p_user_id: resolvedUserId,
+        p_shipping_address: resolvedAddress,
+        p_items: draftItems,
+      }
+    );
+
+    if (draftError) {
+      console.error("❌ Error creating order draft:", draftError);
+      return NextResponse.json(
+        { error: "Failed to create order draft", details: draftError.message },
+        { status: 500 }
+      );
+    }
+
+    const draftRow = Array.isArray(draftRows) ? draftRows[0] : draftRows;
+    if (!draftRow?.order_id) {
+      return NextResponse.json(
+        { error: "Failed to create order draft" },
+        { status: 500 }
+      );
+    }
 
     console.log("✅ Payment intent created:", paymentIntent.id);
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
+      orderId: draftRow.order_id,
+      orderRef: draftRow.order_ref ?? null,
     });
   } catch (error) {
     console.error("❌ Error creating payment intent:", error);
