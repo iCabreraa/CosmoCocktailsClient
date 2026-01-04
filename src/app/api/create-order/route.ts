@@ -5,7 +5,6 @@ import { stripe } from "@/lib/stripe/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import {
   normalizeOrderItems,
-  toOrderItemInserts,
 } from "@/types/order-item-utils";
 
 const supabase = createClient(
@@ -62,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     const { data: existingOrder, error: existingError } = await supabase
       .from("orders")
-      .select("id, order_ref")
+      .select("id, order_ref, is_paid")
       .eq("payment_intent_id", payment_intent_id)
       .maybeSingle();
 
@@ -71,9 +70,41 @@ export async function POST(request: NextRequest) {
     }
 
     if (existingOrder) {
+      if (existingOrder.is_paid) {
+        return NextResponse.json({
+          id: existingOrder.id,
+          order_ref: existingOrder.order_ref,
+        });
+      }
+
+      const { data: finalizedRows, error: finalizeError } = await supabase.rpc(
+        "finalize_paid_order",
+        {
+          p_payment_intent_id: payment_intent_id,
+        }
+      );
+
+      if (finalizeError) {
+        console.error("❌ Error finalizing order (RPC):", finalizeError);
+        return NextResponse.json(
+          { error: "Failed to finalize order", details: finalizeError.message },
+          { status: 500 }
+        );
+      }
+
+      const finalizedRow = Array.isArray(finalizedRows)
+        ? finalizedRows[0]
+        : finalizedRows;
+      if (!finalizedRow?.order_id) {
+        return NextResponse.json(
+          { error: "Failed to finalize order" },
+          { status: 500 }
+        );
+      }
+
       return NextResponse.json({
-        id: existingOrder.id,
-        order_ref: existingOrder.order_ref,
+        id: finalizedRow.order_id,
+        order_ref: finalizedRow.order_ref,
       });
     }
 
@@ -125,86 +156,68 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Crear el pedido
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .insert({
-        user_id: resolvedUserId,
-        total_amount: total,
-        status: "paid", // Pago confirmado directamente
-        is_paid: true,
-        payment_intent_id: payment_intent_id || null,
-        shipping_address: JSON.stringify(shipping_address),
-      })
-      .select()
-      .single();
+    let resolvedShippingAddress = shipping_address;
+    if (typeof shipping_address === "string") {
+      try {
+        resolvedShippingAddress = JSON.parse(shipping_address);
+      } catch (error) {
+        return NextResponse.json(
+          { error: "Invalid shipping address" },
+          { status: 400 }
+        );
+      }
+    }
+
+    const rpcItems = normalizedItems.map(item => ({
+      cocktail_id: item.cocktail_id,
+      size_id: item.sizes_id,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+    }));
+
+    const { data: orderRows, error: orderError } = await supabase.rpc(
+      "decrement_stock_and_create_order",
+      {
+        p_payment_intent_id: payment_intent_id,
+        p_total_amount: total,
+        p_user_id: resolvedUserId,
+        p_shipping_address: resolvedShippingAddress ?? null,
+        p_items: rpcItems,
+      }
+    );
 
     if (orderError) {
-      console.error("❌ Error creating order:", orderError);
+      console.error("❌ Error creating order (RPC):", orderError);
+      const message = orderError.message || "Failed to create order";
+      const isStockError = message.toLowerCase().includes("stock");
       return NextResponse.json(
-        { error: "Failed to create order", details: orderError.message },
-        { status: 500 }
+        { error: message },
+        { status: isStockError ? 409 : 500 }
       );
     }
 
-    // Crear los items del pedido
-    const orderItems = toOrderItemInserts(normalizedItems, order.id);
-
-    const { error: itemsError } = await supabase
-      .from("order_items")
-      .insert(orderItems);
-
-    if (itemsError) {
-      console.error("❌ Error creating order items:", itemsError);
+    const orderRow = Array.isArray(orderRows) ? orderRows[0] : orderRows;
+    if (!orderRow?.order_id) {
       return NextResponse.json(
-        { error: "Failed to create order items", details: itemsError.message },
+        { error: "Failed to create order" },
         { status: 500 }
       );
-    }
-
-    // Actualizar stock - método correcto para Supabase
-    for (const item of normalizedItems) {
-      // Primero obtener el stock actual
-      const { data: currentStock, error: fetchError } = await supabase
-        .from("cocktail_sizes")
-        .select("stock_quantity")
-        .eq("cocktail_id", item.cocktail_id)
-        .eq("sizes_id", item.sizes_id)
-        .single();
-
-      if (fetchError) {
-        console.error("❌ Error fetching current stock:", fetchError);
-        continue;
-      }
-
-      const newStock = (currentStock.stock_quantity || 0) - item.quantity;
-      const isAvailable = newStock > 0;
-
-      const { error: stockError } = await supabase
-        .from("cocktail_sizes")
-        .update({
-          stock_quantity: newStock,
-          available: isAvailable,
-        })
-        .eq("cocktail_id", item.cocktail_id)
-        .eq("sizes_id", item.sizes_id);
-
-      if (stockError) {
-        console.error("❌ Error updating stock:", stockError);
-      }
     }
 
     if (contact_email) {
       await sendOrderConfirmation({
         email: contact_email,
-        orderId: order.id,
-        orderRef: order.order_ref,
+        orderId: orderRow.order_id,
+        orderRef: orderRow.order_ref,
         total,
         itemCount: normalizedItems.length,
       });
     }
 
-    return NextResponse.json({ id: order.id, order_ref: order.order_ref });
+    return NextResponse.json({
+      id: orderRow.order_id,
+      order_ref: orderRow.order_ref,
+    });
   } catch (error) {
     console.error("❌ Error creating order:", error);
     return NextResponse.json(

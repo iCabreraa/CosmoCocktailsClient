@@ -1,18 +1,21 @@
--- Create transactional RPC to create a paid order and decrement stock
+-- Create transactional RPC to create a paid order and decrement stock atomically
 -- Usage: paste in Supabase SQL editor and run
 
 create or replace function public.decrement_stock_and_create_order(
   p_payment_intent_id text,
   p_total_amount numeric,
-  p_items jsonb  -- array of objects: { cocktail_id: uuid, size_id: uuid, quantity: int, unit_price: numeric }
+  p_user_id uuid,
+  p_shipping_address jsonb,
+  p_items jsonb
 )
-returns void
+returns table(order_id uuid, order_ref text)
 language plpgsql
 security definer
 as $$
 declare
-  v_order_id bigint;
+  v_order_id uuid;
   v_order_ref text;
+  v_stock_blocked boolean;
 begin
   perform pg_advisory_xact_lock(hashtextextended(p_payment_intent_id, 0));
 
@@ -23,51 +26,316 @@ begin
     raise exception 'items vacíos';
   end if;
 
-  -- Ensure enough stock
-  if exists (
+  select o.id, o.order_ref
+    into v_order_id, v_order_ref
+  from public.orders o
+  where o.payment_intent_id = p_payment_intent_id
+  limit 1;
+
+  if v_order_id is not null then
+    order_id := v_order_id;
+    order_ref := v_order_ref;
+    return next;
+    return;
+  end if;
+
+  select exists(
     select 1
-    from jsonb_to_recordset(p_items)
-      as it(cocktail_id uuid, size_id uuid, quantity int)
-    join public.cocktail_sizes cs
-      on cs.cocktail_id = it.cocktail_id
-     and cs.sizes_id = it.size_id
-    where cs.stock_quantity < it.quantity
-  ) then
+    from (
+      select
+        it.cocktail_id,
+        it.size_id,
+        sum(it.quantity)::int as quantity
+      from jsonb_to_recordset(p_items)
+        as it(cocktail_id uuid, size_id uuid, quantity int)
+      group by it.cocktail_id, it.size_id
+    ) n
+    left join public.cocktail_sizes cs
+      on cs.cocktail_id = n.cocktail_id
+     and cs.sizes_id = n.size_id
+    where cs.id is null or coalesce(cs.stock_quantity, 0) < n.quantity
+  ) into v_stock_blocked;
+
+  if v_stock_blocked then
     raise exception 'Stock insuficiente para algún item';
   end if;
 
   -- Create human-friendly order_ref: CC-YYYYMMDD-<sequence>
-  select 'CC-' || to_char(now(),'YYYYMMDD') || '-' || lpad(nextval('order_ref_seq')::text, 6, '0') into v_order_ref;
+  select 'CC-' || to_char(now(),'YYYYMMDD') || '-' || lpad(nextval('order_ref_seq')::text, 6, '0')
+    into v_order_ref;
 
-  -- Create paid order (pago confirmado directamente)
-  insert into public.orders (total_amount, status, is_paid, payment_intent_id, order_ref)
-  values (p_total_amount, 'paid', true, p_payment_intent_id, v_order_ref)
+  insert into public.orders (
+    user_id,
+    total_amount,
+    status,
+    is_paid,
+    payment_intent_id,
+    shipping_address,
+    order_ref
+  )
+  values (
+    p_user_id,
+    p_total_amount,
+    'paid',
+    true,
+    p_payment_intent_id,
+    p_shipping_address,
+    v_order_ref
+  )
   returning id into v_order_id;
 
-  -- Insert items
-  insert into public.order_items (order_id, cocktail_id, size_id, quantity, unit_price, item_total)
+  with normalized as (
+    select
+      it.cocktail_id,
+      it.size_id,
+      sum(it.quantity)::int as quantity,
+      max(it.unit_price) as unit_price
+    from jsonb_to_recordset(p_items)
+      as it(cocktail_id uuid, size_id uuid, quantity int, unit_price numeric)
+    group by it.cocktail_id, it.size_id
+  )
+  insert into public.order_items (
+    order_id,
+    order_ref,
+    cocktail_id,
+    size_id,
+    quantity,
+    unit_price,
+    item_total
+  )
   select
     v_order_id,
-    it.cocktail_id,
-    it.size_id,
-    it.quantity,
-    coalesce(it.unit_price, 0),
-    coalesce(it.unit_price, 0) * it.quantity
-  from jsonb_to_recordset(p_items)
-    as it(cocktail_id uuid, size_id uuid, quantity int, unit_price numeric);
+    v_order_ref,
+    n.cocktail_id,
+    n.size_id,
+    n.quantity,
+    coalesce(n.unit_price, 0),
+    coalesce(n.unit_price, 0) * n.quantity
+  from normalized n;
 
-  -- Decrement stock
+  with normalized as (
+    select
+      it.cocktail_id,
+      it.size_id,
+      sum(it.quantity)::int as quantity
+    from jsonb_to_recordset(p_items)
+      as it(cocktail_id uuid, size_id uuid, quantity int)
+    group by it.cocktail_id, it.size_id
+  )
   update public.cocktail_sizes cs
-     set stock_quantity = cs.stock_quantity - it.quantity
-  from jsonb_to_recordset(p_items)
-    as it(cocktail_id uuid, size_id uuid, quantity int)
-  where cs.cocktail_id = it.cocktail_id
-    and cs.sizes_id = it.size_id;
+  set
+    stock_quantity = coalesce(cs.stock_quantity, 0) - n.quantity,
+    available = (coalesce(cs.stock_quantity, 0) - n.quantity) > 0
+  from normalized n
+  where cs.cocktail_id = n.cocktail_id
+    and cs.sizes_id = n.size_id;
 
+  order_id := v_order_id;
+  order_ref := v_order_ref;
+  return next;
 end;
 $$;
 
 -- Optional GRANTs depending on your RLS model (service role can always execute)
--- grant execute on function public.decrement_stock_and_create_order(text, numeric, jsonb) to authenticated;
+-- grant execute on function public.decrement_stock_and_create_order(text, numeric, uuid, jsonb, jsonb) to authenticated;
 
+-- Create draft order before payment confirmation (no stock decrement)
+create or replace function public.create_order_draft(
+  p_payment_intent_id text,
+  p_total_amount numeric,
+  p_user_id uuid,
+  p_shipping_address jsonb,
+  p_items jsonb
+)
+returns table(order_id uuid, order_ref text)
+language plpgsql
+security definer
+as $$
+declare
+  v_order_id uuid;
+  v_order_ref text;
+begin
+  if p_payment_intent_id is null or p_payment_intent_id = '' then
+    raise exception 'payment_intent_id requerido';
+  end if;
+  if p_items is null or jsonb_array_length(p_items) = 0 then
+    raise exception 'items vacíos';
+  end if;
 
+  select o.id, o.order_ref
+    into v_order_id, v_order_ref
+  from public.orders o
+  where o.payment_intent_id = p_payment_intent_id
+  limit 1;
+
+  if v_order_id is not null then
+    order_id := v_order_id;
+    order_ref := v_order_ref;
+    return next;
+    return;
+  end if;
+
+  select 'CC-' || to_char(now(),'YYYYMMDD') || '-' || lpad(nextval('order_ref_seq')::text, 6, '0')
+    into v_order_ref;
+
+  insert into public.orders (
+    user_id,
+    total_amount,
+    status,
+    is_paid,
+    payment_intent_id,
+    shipping_address,
+    order_ref
+  )
+  values (
+    p_user_id,
+    p_total_amount,
+    'pending',
+    false,
+    p_payment_intent_id,
+    p_shipping_address,
+    v_order_ref
+  )
+  returning id into v_order_id;
+
+  with normalized as (
+    select
+      it.cocktail_id,
+      it.size_id,
+      sum(it.quantity)::int as quantity,
+      max(it.unit_price) as unit_price
+    from jsonb_to_recordset(p_items)
+      as it(cocktail_id uuid, size_id uuid, quantity int, unit_price numeric)
+    group by it.cocktail_id, it.size_id
+  )
+  insert into public.order_items (
+    order_id,
+    order_ref,
+    cocktail_id,
+    size_id,
+    quantity,
+    unit_price,
+    item_total
+  )
+  select
+    v_order_id,
+    v_order_ref,
+    n.cocktail_id,
+    n.size_id,
+    n.quantity,
+    coalesce(n.unit_price, 0),
+    coalesce(n.unit_price, 0) * n.quantity
+  from normalized n;
+
+  order_id := v_order_id;
+  order_ref := v_order_ref;
+  return next;
+end;
+$$;
+
+-- Finalize paid order (decrement stock + mark paid)
+create or replace function public.finalize_paid_order(
+  p_payment_intent_id text
+)
+returns table(order_id uuid, order_ref text)
+language plpgsql
+security definer
+as $$
+declare
+  v_order_id uuid;
+  v_order_ref text;
+  v_is_paid boolean;
+  v_stock_blocked boolean;
+begin
+  perform pg_advisory_xact_lock(hashtextextended(p_payment_intent_id, 0));
+
+  select o.id, o.order_ref, o.is_paid
+    into v_order_id, v_order_ref, v_is_paid
+  from public.orders o
+  where o.payment_intent_id = p_payment_intent_id
+  limit 1;
+
+  if v_order_id is null then
+    raise exception 'order not found';
+  end if;
+
+  if v_is_paid then
+    order_id := v_order_id;
+    order_ref := v_order_ref;
+    return next;
+    return;
+  end if;
+
+  if not exists (
+    select 1
+    from public.order_items oi
+    where oi.order_id = v_order_id
+  ) then
+    raise exception 'order items missing';
+  end if;
+
+  select exists(
+    select 1
+    from (
+      select
+        oi.cocktail_id,
+        oi.size_id,
+        sum(oi.quantity)::int as quantity
+      from public.order_items oi
+      where oi.order_id = v_order_id
+      group by oi.cocktail_id, oi.size_id
+    ) n
+    left join public.cocktail_sizes cs
+      on cs.cocktail_id = n.cocktail_id
+     and cs.sizes_id = n.size_id
+    where cs.id is null or coalesce(cs.stock_quantity, 0) < n.quantity
+  ) into v_stock_blocked;
+
+  if v_stock_blocked then
+    raise exception 'Stock insuficiente para algún item';
+  end if;
+
+  with normalized as (
+    select
+      oi.cocktail_id,
+      oi.size_id,
+      sum(oi.quantity)::int as quantity
+    from public.order_items oi
+    where oi.order_id = v_order_id
+    group by oi.cocktail_id, oi.size_id
+  )
+  update public.cocktail_sizes cs
+  set
+    stock_quantity = coalesce(cs.stock_quantity, 0) - n.quantity,
+    available = (coalesce(cs.stock_quantity, 0) - n.quantity) > 0
+  from normalized n
+  where cs.cocktail_id = n.cocktail_id
+    and cs.sizes_id = n.size_id;
+
+  update public.orders
+  set status = 'paid', is_paid = true
+  where id = v_order_id;
+
+  order_id := v_order_id;
+  order_ref := v_order_ref;
+  return next;
+end;
+$$;
+
+-- Ensure order status constraint includes pending/paid for draft + finalize flows
+alter table public.orders
+drop constraint if exists orders_status_check;
+
+alter table public.orders
+add constraint orders_status_check
+check (
+  status in (
+    'pending',
+    'paid',
+    'ordered',
+    'preparing',
+    'on_the_way',
+    'completed',
+    'cancelled'
+  )
+);

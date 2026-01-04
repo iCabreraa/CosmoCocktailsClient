@@ -11,7 +11,6 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { CreditCard, Lock, AlertTriangle, CheckCircle } from "lucide-react";
-import { CartItem } from "@/types/shared";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { PaymentRequest } from "@stripe/stripe-js";
 
@@ -19,11 +18,9 @@ const stripePromise = loadStripe(envClient.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 interface StripePaymentCompleteProps {
   clientSecret: string;
-  items: CartItem[];
   total: number;
-  user?: any;
-  shippingAddress?: any;
-  contactEmail?: string;
+  draftOrderId?: string | null;
+  draftOrderRef?: string | null;
   paymentsEnabled?: boolean;
   onPaymentSuccess: (payload: {
     orderId: string;
@@ -35,11 +32,9 @@ interface StripePaymentCompleteProps {
 
 function PaymentForm({
   clientSecret,
-  items,
   total,
-  user,
-  shippingAddress,
-  contactEmail,
+  draftOrderId,
+  draftOrderRef,
   paymentsEnabled = true,
   onPaymentSuccess,
   onPaymentError,
@@ -49,7 +44,6 @@ function PaymentForm({
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [paymentRequest, setPaymentRequest] =
     useState<PaymentRequest | null>(null);
   const [canUsePaymentRequest, setCanUsePaymentRequest] = useState(false);
@@ -127,16 +121,15 @@ function PaymentForm({
         }
 
         if (paymentIntent.status === "succeeded") {
-          const orderResult = await createOrder(paymentIntent);
-          if (orderResult?.id) {
-            onPaymentSuccess({
-              orderId: orderResult.id,
-              orderRef: orderResult.order_ref,
-              paymentIntentId: paymentIntent.id,
-            });
-          } else {
+          if (!draftOrderId) {
             onPaymentError(t("checkout.failed_create_order"));
+            return;
           }
+          onPaymentSuccess({
+            orderId: draftOrderId,
+            orderRef: draftOrderRef ?? undefined,
+            paymentIntentId: paymentIntent.id,
+          });
         }
       } catch (err) {
         const errorMessage =
@@ -151,7 +144,16 @@ function PaymentForm({
     return () => {
       isMounted = false;
     };
-  }, [stripe, clientSecret, total, t, onPaymentError, onPaymentSuccess]);
+  }, [
+    stripe,
+    clientSecret,
+    total,
+    draftOrderId,
+    draftOrderRef,
+    t,
+    onPaymentError,
+    onPaymentSuccess,
+  ]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -172,7 +174,7 @@ function PaymentForm({
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/checkout/success`,
+          return_url: buildReturnUrl(),
         },
         redirect: "if_required",
       });
@@ -185,17 +187,15 @@ function PaymentForm({
         setError(errorMessage);
         onPaymentError(errorMessage);
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
-        // Crear pedido después del pago exitoso
-        const orderResult = await createOrder(paymentIntent);
-        if (orderResult?.id) {
-          onPaymentSuccess({
-            orderId: orderResult.id,
-            orderRef: orderResult.order_ref,
-            paymentIntentId: paymentIntent.id,
-          });
-        } else {
+        if (!draftOrderId) {
           onPaymentError(t("checkout.failed_create_order"));
+          return;
         }
+        onPaymentSuccess({
+          orderId: draftOrderId,
+          orderRef: draftOrderRef ?? undefined,
+          paymentIntentId: paymentIntent.id,
+        });
       }
     } catch (err) {
       const errorMessage =
@@ -207,38 +207,18 @@ function PaymentForm({
     }
   };
 
-  const createOrder = async (paymentIntent: any) => {
-    setIsCreatingOrder(true);
-
-    try {
-      const orderData = {
-        items: items,
-        total: total,
-        user_id: user?.id || null,
-        shipping_address: shippingAddress,
-        payment_intent_id: paymentIntent.id,
-        contact_email: contactEmail || user?.email || null,
-      };
-
-      const response = await fetch("/api/create-order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      if (!response.ok) {
-        throw new Error(t("checkout.failed_create_order"));
-      }
-
-      const orderResult = await response.json();
-      return orderResult;
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsCreatingOrder(false);
+  const buildReturnUrl = () => {
+    const params = new URLSearchParams();
+    if (draftOrderId) {
+      params.set("order_id", draftOrderId);
     }
+    if (draftOrderRef) {
+      params.set("order_ref", draftOrderRef);
+    }
+    const query = params.toString();
+    return `${window.location.origin}/checkout/success${
+      query ? `?${query}` : ""
+    }`;
   };
 
   return (
@@ -305,15 +285,10 @@ function PaymentForm({
 
         <button
           type="submit"
-          disabled={!stripe || isLoading || isCreatingOrder || !paymentsEnabled}
+          disabled={!stripe || isLoading || !paymentsEnabled}
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isCreatingOrder ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              {t("checkout.creating_order")}
-            </>
-          ) : isLoading ? (
+          {isLoading ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
               {t("checkout.processing_payment")}
@@ -337,11 +312,9 @@ function PaymentForm({
 
 export default function StripePaymentComplete({
   clientSecret,
-  items,
   total,
-  user,
-  shippingAddress,
-  contactEmail,
+  draftOrderId,
+  draftOrderRef,
   paymentsEnabled,
   onPaymentSuccess,
   onPaymentError,
@@ -369,11 +342,9 @@ export default function StripePaymentComplete({
     >
       <PaymentForm
         clientSecret={clientSecret}
-        items={items}
         total={total}
-        user={user}
-        shippingAddress={shippingAddress}
-        contactEmail={contactEmail}
+        draftOrderId={draftOrderId}
+        draftOrderRef={draftOrderRef}
         paymentsEnabled={paymentsEnabled}
         onPaymentSuccess={onPaymentSuccess}
         onPaymentError={onPaymentError}

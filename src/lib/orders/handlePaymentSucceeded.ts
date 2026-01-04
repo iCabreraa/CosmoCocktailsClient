@@ -22,47 +22,32 @@ export async function handlePaymentSucceeded({
     return;
   }
 
-  const { data: order, error: orderError } = await (supabase as any)
-    .from("orders")
-    .select("id, status, is_paid")
-    .eq("payment_intent_id", paymentIntentId)
-    .maybeSingle();
-
-  if (orderError) {
-    await (supabase as any).from("security_events").insert({
-      type: "payment_intent_succeeded_order_check_error",
-      payload: { payment_intent_id: paymentIntentId, error: orderError.message },
-    });
-    return;
-  }
-
-  if (!order) {
-    await (supabase as any).from("security_events").insert({
-      type: "payment_intent_succeeded_missing_order",
-      payload: { payment_intent_id: paymentIntentId, amount: amountReceived, metadata },
-    });
-    return;
-  }
-
-  const updates: Record<string, unknown> = {};
-  if (order.is_paid !== true) {
-    updates.is_paid = true;
-  }
-  if (order.status !== "paid") {
-    updates.status = "paid";
-  }
-
-  if (Object.keys(updates).length > 0) {
-    const { error: updateError } = await (supabase as any)
-      .from("orders")
-      .update(updates)
-      .eq("id", order.id);
-
-    if (updateError) {
-      await (supabase as any).from("security_events").insert({
-        type: "payment_intent_succeeded_order_update_error",
-        payload: { payment_intent_id: paymentIntentId, error: updateError.message },
-      });
+  const { data: finalized, error: finalizeError } = await (supabase as any).rpc(
+    "finalize_paid_order",
+    {
+      p_payment_intent_id: paymentIntentId,
     }
+  );
+
+  if (finalizeError) {
+    console.error("❌ Error finalizing order:", finalizeError);
+    await (supabase as any).from("security_events").insert({
+      event_type: "payment_intent_finalize_error",
+      details: {
+        payment_intent_id: paymentIntentId,
+        amount: amountReceived,
+        metadata,
+        error: finalizeError.message,
+      },
+    });
+    return;
+  }
+
+  const finalizedRow = Array.isArray(finalized) ? finalized[0] : finalized;
+  if (!finalizedRow?.order_id) {
+    await (supabase as any).from("security_events").insert({
+      event_type: "payment_intent_finalize_missing_order",
+      details: { payment_intent_id: paymentIntentId, amount: amountReceived, metadata },
+    });
   }
 }
