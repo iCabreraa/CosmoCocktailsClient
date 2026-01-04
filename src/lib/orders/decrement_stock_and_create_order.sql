@@ -130,6 +130,24 @@
 -- end;
 -- $$;
 --
+-- create or replace function public.cancel_stale_pending_orders(
+--   p_max_age_minutes int default 60
+-- ) returns int language plpgsql security definer as $$
+-- declare
+--   v_count int;
+-- begin
+--   update public.orders
+--   set status = 'cancelled',
+--       is_paid = false
+--   where status = 'pending'
+--     and is_paid is not true
+--     and coalesce(order_date, now()) < now() - make_interval(mins => p_max_age_minutes);
+--
+--   get diagnostics v_count = row_count;
+--   return v_count;
+-- end;
+-- $$;
+--
 -- create or replace function public.create_order_draft(
 --   p_payment_intent_id text,
 --   p_total_amount numeric,

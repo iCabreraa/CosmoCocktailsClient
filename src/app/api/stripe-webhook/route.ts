@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { envServer } from "@/lib/env-server";
 import { handlePaymentSucceeded } from "@/lib/orders/handlePaymentSucceeded";
+import {
+  handlePaymentCanceled,
+  handlePaymentFailed,
+} from "@/lib/orders/handlePaymentFailure";
 
 export const runtime = "nodejs";
 
@@ -38,7 +42,23 @@ export async function POST(req: NextRequest) {
         break;
       }
       case "payment_intent.payment_failed": {
-        // Optionally record failed payment events
+        const pi = event.data.object as Stripe.PaymentIntent;
+        await handlePaymentFailed({
+          paymentIntentId: pi.id,
+          amount: pi.amount ?? 0,
+          metadata: (pi.metadata ?? {}) as Record<string, string>,
+          reason: pi.last_payment_error?.message ?? null,
+        });
+        break;
+      }
+      case "payment_intent.canceled": {
+        const pi = event.data.object as Stripe.PaymentIntent;
+        await handlePaymentCanceled({
+          paymentIntentId: pi.id,
+          amount: pi.amount ?? 0,
+          metadata: (pi.metadata ?? {}) as Record<string, string>,
+          reason: pi.cancellation_reason ?? null,
+        });
         break;
       }
       default:
