@@ -44,13 +44,17 @@ export async function migrateUsersToSupabaseAuth() {
           });
 
         if (authError) {
-          console.error(`❌ Error creando usuario ${user.email}:`, authError);
+          console.error("❌ Error creando usuario:", {
+            userId: user.id,
+            authError,
+          });
           continue;
         }
 
-        console.log(
-          `✅ Usuario migrado: ${user.email} (ID: ${authUser.user?.id})`
-        );
+        console.log("✅ Usuario migrado:", {
+          userId: user.id,
+          authId: authUser.user?.id,
+        });
 
         // 3. Actualizar referencias en tablas relacionadas
         if (authUser.user?.id) {
@@ -64,7 +68,10 @@ export async function migrateUsersToSupabaseAuth() {
           // (añadir más tablas según sea necesario)
         }
       } catch (error) {
-        console.error(`❌ Error procesando usuario ${user.email}:`, error);
+        console.error("❌ Error procesando usuario:", {
+          userId: user.id,
+          error,
+        });
       }
     }
 
@@ -94,7 +101,7 @@ export async function createDefaultAdmin() {
     if (error) {
       console.error("❌ Error creando admin:", error);
     } else {
-      console.log("✅ Admin creado:", data.user?.email);
+      console.log("✅ Admin creado:", data.user?.id);
     }
   } catch (error) {
     console.error("❌ Error creando admin:", error);

@@ -159,18 +159,6 @@ async function performSecurityChecks(data: {
 /**
  * Envía el mensaje de contacto
  */
-const maskEmail = (email: string) => {
-  const [name, domain] = email.split("@");
-  if (!domain) return "***";
-  return `${name.slice(0, 1)}***@${domain}`;
-};
-
-const maskPhone = (phone: string) => {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length <= 2) return "***";
-  return `${"*".repeat(digits.length - 2)}${digits.slice(-2)}`;
-};
-
 const maskIp = (ip: string) => {
   if (!ip) return "***";
   if (ip.includes(".")) {
@@ -209,8 +197,6 @@ async function sendContactMessage(data: {
       );
       console.log("📧 Contact message received:", {
         messageId,
-        email: maskEmail(data.email),
-        phone: data.phone ? maskPhone(data.phone) : null,
         subjectLength: data.subject.length,
         messageLength: data.message.length,
         ip: maskIp(data.ip),

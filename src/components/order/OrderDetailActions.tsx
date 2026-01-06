@@ -78,7 +78,11 @@ export default function OrderDetailActions({
     if (!message.trim()) return;
 
     // Aquí podrías enviar el mensaje a un sistema de soporte
-    console.log("Mensaje enviado:", { orderId, orderRef, message });
+    console.log("Mensaje enviado:", {
+      orderId,
+      orderRef,
+      messageLength: message.length,
+    });
 
     // Simular envío
     notify({

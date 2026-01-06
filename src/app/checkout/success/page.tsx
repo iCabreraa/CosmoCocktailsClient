@@ -52,6 +52,7 @@ export default function CheckoutSuccess() {
     const orderIdFromUrl = urlParams.get("order_id");
     const orderRefFromUrl = urlParams.get("order_ref");
     const paymentIntentFromUrl = urlParams.get("payment_intent");
+    const clientSecretFromUrl = urlParams.get("payment_intent_client_secret");
 
     if (orderIdFromUrl) {
       setOrderId(orderIdFromUrl);
@@ -61,6 +62,15 @@ export default function CheckoutSuccess() {
     }
     if (paymentIntentFromUrl) {
       setPaymentIntent(paymentIntentFromUrl);
+    }
+
+    if (clientSecretFromUrl) {
+      urlParams.delete("payment_intent_client_secret");
+      const query = urlParams.toString();
+      const cleanUrl = query
+        ? `${window.location.pathname}?${query}`
+        : window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
     }
 
     try {

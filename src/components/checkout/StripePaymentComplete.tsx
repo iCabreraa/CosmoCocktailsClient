@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { envClient } from "@/lib/env-client";
 import {
@@ -15,6 +15,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import type { PaymentRequest } from "@stripe/stripe-js";
 
 const stripePromise = loadStripe(envClient.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+const isAlreadySucceeded = (error: unknown) => {
+  const intent = (error as { payment_intent?: { status?: string; id?: string } })
+    ?.payment_intent;
+  return intent?.status === "succeeded" ? intent : null;
+};
 
 interface StripePaymentCompleteProps {
   clientSecret: string;
@@ -47,6 +52,7 @@ function PaymentForm({
   const [paymentRequest, setPaymentRequest] =
     useState<PaymentRequest | null>(null);
   const [canUsePaymentRequest, setCanUsePaymentRequest] = useState(false);
+  const confirmingRef = useRef(false);
 
   useEffect(() => {
     if (!stripe || !clientSecret) return;
@@ -80,6 +86,11 @@ function PaymentForm({
 
     pr.on("paymentmethod", async event => {
       if (!stripe) return;
+      if (confirmingRef.current) {
+        event.complete("fail");
+        return;
+      }
+      confirmingRef.current = true;
       setIsLoading(true);
       setError(null);
 
@@ -92,12 +103,27 @@ function PaymentForm({
           );
 
         if (confirmError || !paymentIntent) {
+          const succeededIntent = isAlreadySucceeded(confirmError);
+          if (succeededIntent) {
+            event.complete("success");
+            if (!draftOrderId) {
+              onPaymentError(t("checkout.failed_create_order"));
+              return;
+            }
+            onPaymentSuccess({
+              orderId: draftOrderId,
+              orderRef: draftOrderRef ?? undefined,
+              paymentIntentId: succeededIntent.id,
+            });
+            return;
+          }
           event.complete("fail");
           const errorMessage =
             confirmError?.message ?? t("checkout.unexpected_error");
           setError(errorMessage);
           onPaymentError(errorMessage);
           setIsLoading(false);
+          confirmingRef.current = false;
           return;
         }
 
@@ -136,6 +162,7 @@ function PaymentForm({
           err instanceof Error ? err.message : t("checkout.unexpected_error");
         setError(errorMessage);
         onPaymentError(errorMessage);
+        confirmingRef.current = false;
       } finally {
         setIsLoading(false);
       }
@@ -166,6 +193,10 @@ function PaymentForm({
     if (!stripe || !elements) {
       return;
     }
+    if (confirmingRef.current) {
+      return;
+    }
+    confirmingRef.current = true;
 
     setIsLoading(true);
     setError(null);
@@ -180,12 +211,26 @@ function PaymentForm({
       });
 
       if (error) {
+        const succeededIntent = isAlreadySucceeded(error);
+        if (succeededIntent) {
+          if (!draftOrderId) {
+            onPaymentError(t("checkout.failed_create_order"));
+            return;
+          }
+          onPaymentSuccess({
+            orderId: draftOrderId,
+            orderRef: draftOrderRef ?? undefined,
+            paymentIntentId: succeededIntent.id,
+          });
+          return;
+        }
         const errorMessage =
           error instanceof Error
             ? error.message
             : t("checkout.unexpected_error");
         setError(errorMessage);
         onPaymentError(errorMessage);
+        confirmingRef.current = false;
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
         if (!draftOrderId) {
           onPaymentError(t("checkout.failed_create_order"));
@@ -202,6 +247,7 @@ function PaymentForm({
         err instanceof Error ? err.message : t("checkout.unexpected_error");
       setError(errorMessage);
       onPaymentError(errorMessage);
+      confirmingRef.current = false;
     } finally {
       setIsLoading(false);
     }
