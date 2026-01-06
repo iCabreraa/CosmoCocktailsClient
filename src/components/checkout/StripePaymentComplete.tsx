@@ -18,7 +18,10 @@ const stripePromise = loadStripe(envClient.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 const isAlreadySucceeded = (error: unknown) => {
   const intent = (error as { payment_intent?: { status?: string; id?: string } })
     ?.payment_intent;
-  return intent?.status === "succeeded" ? intent : null;
+  if (intent?.status === "succeeded" && typeof intent.id === "string") {
+    return intent;
+  }
+  return null;
 };
 
 interface StripePaymentCompleteProps {
