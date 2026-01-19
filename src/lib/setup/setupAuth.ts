@@ -38,7 +38,7 @@ export async function setupInitialAuth() {
       return;
     }
 
-    console.log("✅ Admin creado:", data.user?.email);
+    console.log("✅ Admin creado:", data.user?.id);
 
     // 3. Crear usuario de prueba
     const { data: testUser, error: testError } =
@@ -57,12 +57,10 @@ export async function setupInitialAuth() {
     if (testError) {
       console.error("❌ Error creando usuario de prueba:", testError);
     } else {
-      console.log("✅ Usuario de prueba creado:", testUser.user?.email);
+      console.log("✅ Usuario de prueba creado:", testUser.user?.id);
     }
 
     console.log("🎉 Configuración inicial completada");
-    console.log("📧 Admin: admin@cosmococktails.com / admin123456");
-    console.log("📧 Cliente: test@cosmococktails.com / test123456");
   } catch (error) {
     console.error("❌ Error en configuración:", error);
   }
@@ -89,4 +87,3 @@ export async function checkRLSStatus() {
     console.error("❌ Error verificando RLS:", error);
   }
 }
-

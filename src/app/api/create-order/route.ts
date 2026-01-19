@@ -230,12 +230,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function maskEmail(email: string) {
-  const [name, domain] = email.split("@");
-  if (!domain) return "***";
-  return `${name.slice(0, 2)}***@${domain}`;
-}
-
 async function sendOrderConfirmation(data: {
   email: string;
   orderId: string;
@@ -246,7 +240,6 @@ async function sendOrderConfirmation(data: {
   try {
     // Placeholder for real email delivery (Resend/SendGrid/etc.).
     console.log("📧 Order confirmation queued:", {
-      email: maskEmail(data.email),
       orderId: data.orderId,
       orderRef: data.orderRef,
       total: data.total,

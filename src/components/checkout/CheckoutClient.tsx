@@ -1,7 +1,7 @@
 "use client";
 
 import { useCart } from "@/store/cart";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   CreditCard,
   MapPin,
@@ -18,6 +18,13 @@ import { useClientData } from "@/hooks/useClientData";
 import { useAuthUnified } from "@/hooks/useAuthUnified";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { envClient } from "@/lib/env-client";
+
+const createCheckoutAttemptId = () => {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return `attempt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+};
 
 export default function CheckoutClient() {
   const { t } = useLanguage();
@@ -59,6 +66,7 @@ export default function CheckoutClient() {
   const [draftOrderId, setDraftOrderId] = useState<string | null>(null);
   const [draftOrderRef, setDraftOrderRef] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const checkoutAttemptIdRef = useRef<string | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [showStepErrors, setShowStepErrors] = useState(false);
   const [touchedFields, setTouchedFields] = useState({
@@ -173,20 +181,24 @@ export default function CheckoutClient() {
 
   const createPaymentIntent = async () => {
     try {
-    const response = await fetch("/api/create-payment-intent", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      if (!checkoutAttemptIdRef.current) {
+        checkoutAttemptIdRef.current = createCheckoutAttemptId();
+      }
+      const response = await fetch("/api/create-payment-intent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           items: items,
           address: addressWithPhone,
           privacyAccepted,
+          checkoutAttemptId: checkoutAttemptIdRef.current,
         }),
       });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
 
         if (errorData.error === "Privacy consent required") {
           setPaymentError(t("checkout.privacy_consent_required"));
@@ -230,7 +242,6 @@ export default function CheckoutClient() {
           shipping_cost,
           total,
           item_count,
-          shippingAddress: addressWithPhone,
         };
         sessionStorage.setItem(
           "checkout-success",
@@ -274,7 +285,6 @@ export default function CheckoutClient() {
         shipping_cost,
         total,
         item_count,
-        shippingAddress: addressWithPhone,
       };
       sessionStorage.setItem(
         "checkout-success",

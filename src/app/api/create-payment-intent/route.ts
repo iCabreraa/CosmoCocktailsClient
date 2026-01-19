@@ -43,7 +43,8 @@ const aggregateInventoryItems = (
 export async function POST(request: NextRequest) {
   try {
     console.log("🔍 Creating payment intent...");
-    const { items, privacyAccepted, address } = await request.json();
+    const { items, privacyAccepted, address, checkoutAttemptId } =
+      await request.json();
 
     if (!items || items.length === 0) {
       console.log("❌ No items provided");
@@ -216,7 +217,12 @@ export async function POST(request: NextRequest) {
       const keyB = `${b.cocktail_id}:${b.sizes_id}`;
       return keyA.localeCompare(keyB);
     });
+    const normalizedAttemptId =
+      typeof checkoutAttemptId === "string"
+        ? checkoutAttemptId.trim()
+        : "";
     const idempotencyPayload = JSON.stringify({
+      attempt_id: normalizedAttemptId || undefined,
       items: sortedItems.map(item => ({
         cocktail_id: item.cocktail_id,
         size_id: item.sizes_id,

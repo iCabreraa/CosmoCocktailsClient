@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { envClient } from "@/lib/env-client";
 import {
@@ -15,6 +15,14 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import type { PaymentRequest } from "@stripe/stripe-js";
 
 const stripePromise = loadStripe(envClient.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+const getSucceededIntentId = (error: unknown): string | null => {
+  const intent = (error as { payment_intent?: { status?: string; id?: string } })
+    ?.payment_intent;
+  if (intent?.status === "succeeded" && typeof intent.id === "string") {
+    return intent.id;
+  }
+  return null;
+};
 
 interface StripePaymentCompleteProps {
   clientSecret: string;
@@ -47,6 +55,7 @@ function PaymentForm({
   const [paymentRequest, setPaymentRequest] =
     useState<PaymentRequest | null>(null);
   const [canUsePaymentRequest, setCanUsePaymentRequest] = useState(false);
+  const confirmingRef = useRef(false);
 
   useEffect(() => {
     if (!stripe || !clientSecret) return;
@@ -80,6 +89,11 @@ function PaymentForm({
 
     pr.on("paymentmethod", async event => {
       if (!stripe) return;
+      if (confirmingRef.current) {
+        event.complete("fail");
+        return;
+      }
+      confirmingRef.current = true;
       setIsLoading(true);
       setError(null);
 
@@ -92,12 +106,27 @@ function PaymentForm({
           );
 
         if (confirmError || !paymentIntent) {
+          const succeededIntentId = getSucceededIntentId(confirmError);
+          if (succeededIntentId) {
+            event.complete("success");
+            if (!draftOrderId) {
+              onPaymentError(t("checkout.failed_create_order"));
+              return;
+            }
+            onPaymentSuccess({
+              orderId: draftOrderId,
+              orderRef: draftOrderRef ?? undefined,
+              paymentIntentId: succeededIntentId,
+            });
+            return;
+          }
           event.complete("fail");
           const errorMessage =
             confirmError?.message ?? t("checkout.unexpected_error");
           setError(errorMessage);
           onPaymentError(errorMessage);
           setIsLoading(false);
+          confirmingRef.current = false;
           return;
         }
 
@@ -136,6 +165,7 @@ function PaymentForm({
           err instanceof Error ? err.message : t("checkout.unexpected_error");
         setError(errorMessage);
         onPaymentError(errorMessage);
+        confirmingRef.current = false;
       } finally {
         setIsLoading(false);
       }
@@ -166,6 +196,10 @@ function PaymentForm({
     if (!stripe || !elements) {
       return;
     }
+    if (confirmingRef.current) {
+      return;
+    }
+    confirmingRef.current = true;
 
     setIsLoading(true);
     setError(null);
@@ -180,12 +214,26 @@ function PaymentForm({
       });
 
       if (error) {
+        const succeededIntentId = getSucceededIntentId(error);
+        if (succeededIntentId) {
+          if (!draftOrderId) {
+            onPaymentError(t("checkout.failed_create_order"));
+            return;
+          }
+          onPaymentSuccess({
+            orderId: draftOrderId,
+            orderRef: draftOrderRef ?? undefined,
+            paymentIntentId: succeededIntentId,
+          });
+          return;
+        }
         const errorMessage =
           error instanceof Error
             ? error.message
             : t("checkout.unexpected_error");
         setError(errorMessage);
         onPaymentError(errorMessage);
+        confirmingRef.current = false;
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
         if (!draftOrderId) {
           onPaymentError(t("checkout.failed_create_order"));
@@ -202,6 +250,7 @@ function PaymentForm({
         err instanceof Error ? err.message : t("checkout.unexpected_error");
       setError(errorMessage);
       onPaymentError(errorMessage);
+      confirmingRef.current = false;
     } finally {
       setIsLoading(false);
     }

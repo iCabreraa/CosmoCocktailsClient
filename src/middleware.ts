@@ -4,6 +4,16 @@ import { rateLimitMiddleware } from "@/lib/rate-limiting";
 
 // Secure middleware with minimal, Stripe/Supabase-compatible CSP and security headers
 export async function middleware(request: NextRequest) {
+  const url = request.nextUrl.clone();
+
+  if (
+    url.pathname === "/checkout/success" &&
+    url.searchParams.has("payment_intent_client_secret")
+  ) {
+    url.searchParams.delete("payment_intent_client_secret");
+    return NextResponse.redirect(url);
+  }
+
   // Apply rate limiting first for API routes
   if (request.nextUrl.pathname.startsWith("/api/")) {
     const rateLimitResponse = await rateLimitMiddleware(request);
