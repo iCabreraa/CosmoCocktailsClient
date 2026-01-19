@@ -15,11 +15,11 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import type { PaymentRequest } from "@stripe/stripe-js";
 
 const stripePromise = loadStripe(envClient.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
-const isAlreadySucceeded = (error: unknown) => {
+const getSucceededIntentId = (error: unknown): string | null => {
   const intent = (error as { payment_intent?: { status?: string; id?: string } })
     ?.payment_intent;
   if (intent?.status === "succeeded" && typeof intent.id === "string") {
-    return intent;
+    return intent.id;
   }
   return null;
 };
@@ -106,8 +106,8 @@ function PaymentForm({
           );
 
         if (confirmError || !paymentIntent) {
-          const succeededIntent = isAlreadySucceeded(confirmError);
-          if (succeededIntent) {
+          const succeededIntentId = getSucceededIntentId(confirmError);
+          if (succeededIntentId) {
             event.complete("success");
             if (!draftOrderId) {
               onPaymentError(t("checkout.failed_create_order"));
@@ -116,7 +116,7 @@ function PaymentForm({
             onPaymentSuccess({
               orderId: draftOrderId,
               orderRef: draftOrderRef ?? undefined,
-              paymentIntentId: succeededIntent.id,
+              paymentIntentId: succeededIntentId,
             });
             return;
           }
@@ -214,8 +214,8 @@ function PaymentForm({
       });
 
       if (error) {
-        const succeededIntent = isAlreadySucceeded(error);
-        if (succeededIntent) {
+        const succeededIntentId = getSucceededIntentId(error);
+        if (succeededIntentId) {
           if (!draftOrderId) {
             onPaymentError(t("checkout.failed_create_order"));
             return;
@@ -223,7 +223,7 @@ function PaymentForm({
           onPaymentSuccess({
             orderId: draftOrderId,
             orderRef: draftOrderRef ?? undefined,
-            paymentIntentId: succeededIntent.id,
+            paymentIntentId: succeededIntentId,
           });
           return;
         }
