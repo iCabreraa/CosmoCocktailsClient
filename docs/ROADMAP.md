@@ -67,3 +67,9 @@ https://github.com/users/iCabreraa/projects/2
 ## Reporting
 - Use milestone progress as the primary roadmap signal.
 - Use labels for slicing by area or type.
+
+## Milestone 0 - Current order
+Open issues (in strict sequence):
+1) M0.00 [Roadmap] - Roadmap Index (#309)
+2) M0.07.1 [Checkout] - Stripe (new account) test->live migration checklist (#321)
+3) M0.08 [CSP] - Harden CSP and remove unsafe-inline (#307)
