@@ -24,12 +24,15 @@ export async function middleware(request: NextRequest) {
 
   const response = NextResponse.next();
 
-  // Build a minimal CSP compatible with Stripe and Supabase
-  // Use a simple nonce for now (will be improved later)
-  const nonce = "nextjs-nonce";
+  // Build a CSP compatible with Stripe/Supabase, using a per-request nonce
+  const nonce = crypto.randomUUID();
+  const nonceDirective = `'nonce-${nonce}'`;
 
   const stripeJs = "https://js.stripe.com";
   const stripeApi = "https://api.stripe.com";
+  const stripeNetwork = "https://m.stripe.network";
+  const stripeTelemetry = "https://r.stripe.com";
+  const stripeFrames = "https://hooks.stripe.com";
   const vercelInsightsScript = "https://va.vercel-scripts.com";
   const vercelInsightsConnect = "https://vitals.vercel-insights.com";
   const supabaseProjectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -37,6 +40,8 @@ export async function middleware(request: NextRequest) {
   const connectSrc = [
     "'self'",
     stripeApi,
+    stripeNetwork,
+    stripeTelemetry,
     vercelInsightsConnect,
     supabaseProjectUrl,
   ]
@@ -45,31 +50,32 @@ export async function middleware(request: NextRequest) {
 
   const isDev = process.env.NODE_ENV === "development";
 
-  // SOLUCIÓN TEMPORAL: Permitir scripts inline en producción para Next.js
-  const scriptSrcParts = [
-    "'self'",
-    "'unsafe-inline'", // Temporal: permitir scripts inline
-    stripeJs,
-    vercelInsightsScript,
-  ];
+  const scriptSrcParts = ["'self'", nonceDirective, stripeJs, vercelInsightsScript];
 
   // Next.js dev server uses eval for source maps; permit only in development
   if (isDev) {
     scriptSrcParts.push("'unsafe-eval'");
+    scriptSrcParts.push("'unsafe-inline'");
   }
 
   const scriptSrc = scriptSrcParts.join(" ");
 
   const imgSrc = "'self' data: https: blob:";
+  const styleSrcParts = ["'self'", nonceDirective];
+  if (isDev) {
+    styleSrcParts.push("'unsafe-inline'");
+  }
+  const styleSrc = styleSrcParts.join(" ");
 
   const csp = [
     "default-src 'self'",
     `script-src ${scriptSrc}`,
-    "style-src 'self' 'unsafe-inline'",
+    `style-src ${styleSrc}`,
+    "style-src-attr 'unsafe-inline'",
     `connect-src ${connectSrc}`,
     "img-src " + imgSrc,
     "font-src 'self' data:",
-    `frame-src ${stripeJs}`,
+    `frame-src 'self' ${stripeJs} ${stripeFrames}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -89,9 +95,6 @@ export async function middleware(request: NextRequest) {
     "Strict-Transport-Security",
     "max-age=15552000; includeSubDomains; preload"
   );
-
-  // Pass nonce to the response for use in layout
-  response.headers.set("X-Nonce", nonce);
 
   return response;
 }
