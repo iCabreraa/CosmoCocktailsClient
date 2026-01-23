@@ -4,6 +4,9 @@
 -- user_addresses
 ALTER TABLE public.user_addresses ENABLE ROW LEVEL SECURITY;
 
+-- Remove legacy permissive policies if present
+DROP POLICY IF EXISTS "addresses_allow_all" ON public.user_addresses;
+
 DROP POLICY IF EXISTS "Users can view own addresses" ON public.user_addresses;
 DROP POLICY IF EXISTS "Users can insert own addresses" ON public.user_addresses;
 DROP POLICY IF EXISTS "Users can update own addresses" ON public.user_addresses;
@@ -23,6 +26,11 @@ CREATE POLICY "Users can delete own addresses" ON public.user_addresses
 
 -- clients
 ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
+
+-- Remove legacy permissive policies if present
+DROP POLICY IF EXISTS "clients_insert" ON public.clients;
+DROP POLICY IF EXISTS "clients_select_own" ON public.clients;
+DROP POLICY IF EXISTS "clients_update" ON public.clients;
 
 DROP POLICY IF EXISTS "Users can view own client profile" ON public.clients;
 DROP POLICY IF EXISTS "Users can insert own client profile" ON public.clients;
@@ -56,3 +64,9 @@ CREATE POLICY "Users can delete own client profile" ON public.clients
     auth.uid() = user_id
     OR ((auth.jwt() ->> 'user_metadata')::json ->> 'role') = 'admin'
   );
+
+-- user_preferences
+ALTER TABLE public.user_preferences ENABLE ROW LEVEL SECURITY;
+
+-- Remove legacy permissive policies if present
+DROP POLICY IF EXISTS "preferences_allow_all" ON public.user_preferences;
