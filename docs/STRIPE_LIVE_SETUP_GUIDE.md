@@ -45,7 +45,52 @@ Ruta: **Dashboard -> Activate account**
 3) Revisa el estado: debe quedar "Live payments enabled".
 
 ---
-## 4) Activar metodos de pago
+## 4) Configurar modo TEST (sandbox) primero
+Antes de tocar Live, valida TODO en modo Test con la cuenta nueva.
+
+### 4.1 Activar metodos de pago (Test)
+Ruta: **Settings -> Payment methods** (modo Test)
+
+Activar:
+- Card
+- iDEAL (para NL)
+
+Opcional:
+- Apple Pay / Google Pay (requiere verificacion de dominio)
+
+### 4.2 Crear webhook TEST
+Ruta: **Developers -> Webhooks -> Add endpoint** (modo Test)
+
+Endpoint URL (test/preview):
+```
+https://<preview-domain>/api/stripe-webhook
+```
+
+Eventos recomendados:
+- payment_intent.succeeded
+- payment_intent.payment_failed
+- charge.refunded (opcional)
+
+Guarda el **Signing secret test** (whsec_...).
+
+### 4.3 Variables de entorno en Vercel (Preview)
+Ruta: **Vercel -> Project -> Settings -> Environment Variables**
+
+Agregar en **Preview**:
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` = pk_test_...
+- `STRIPE_SECRET_KEY` = sk_test_...
+- `STRIPE_WEBHOOK_SECRET` = whsec_... (del webhook test)
+- `NEXT_PUBLIC_STRIPE_ALLOW_TEST_PAYMENTS` = true
+- `NEXT_PUBLIC_APP_URL` = https://<preview-domain>
+
+### 4.4 Validacion end-to-end (Test)
+1) Checkout completo en Preview.
+2) Stripe -> Payments (Test) debe mostrar el PaymentIntent.
+3) Webhook test debe entregar `payment_intent.succeeded`.
+4) La orden se crea en la BD y el stock se descuenta.
+
+---
+## 5) Activar metodos de pago (Live)
 Ruta: **Settings -> Payment methods**
 
 Activar:
@@ -59,7 +104,7 @@ Recomendado:
 - Dejar "Automatic payment methods" activado si Stripe lo permite.
 
 ---
-## 5) Crear webhook (Live y Test)
+## 6) Crear webhook (Live y Test)
 Ruta: **Developers -> Webhooks -> Add endpoint**
 
 Endpoint URL (produccion):
@@ -79,7 +124,7 @@ Importante:
 Guarda el **Signing secret** (whsec_...) porque va en Vercel.
 
 ---
-## 6) Obtener API keys (Live)
+## 7) Obtener API keys (Live)
 Ruta: **Developers -> API keys**
 
 En modo **Live** copia:
@@ -89,7 +134,7 @@ En modo **Live** copia:
 No mezclar Test/Live en produccion.
 
 ---
-## 7) Variables de entorno en Vercel
+## 8) Variables de entorno en Vercel
 Ruta: **Vercel -> Project -> Settings -> Environment Variables**
 
 Agregar en **Production**:
@@ -104,13 +149,13 @@ Si quieres permitir pagos de test en produccion (solo temporal):
 Despues de guardar, hacer **Redeploy**.
 
 ---
-## 8) Validacion final en produccion
+## 9) Validacion final en produccion
 1) Entra en la web y completa un checkout real.
 2) En Stripe -> Payments, debe aparecer el PaymentIntent en Live.
 3) En Vercel -> Functions logs, no debe haber errores 500.
 
 ---
-## 9) Diagnostico rapido de errores comunes
+## 10) Diagnostico rapido de errores comunes
 **Error 400 en webhook (firma invalida)**
 - Usa el Signing secret correcto (Test vs Live).
 - Asegura que el endpoint es exactamente `/api/stripe-webhook`.
@@ -126,7 +171,7 @@ Despues de guardar, hacer **Redeploy**.
 - Revisar logs de Vercel -> Functions -> create-payment-intent.
 
 ---
-## 10) Checklist final (live ready)
+## 11) Checklist final (live ready)
 - [ ] Cuenta Stripe activada (Live enabled)
 - [ ] Metodos de pago activos (Card + iDEAL)
 - [ ] Webhook live creado y secret en Vercel
