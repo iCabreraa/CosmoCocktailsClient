@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { env } from "../env";
+import { envClient } from "../env-client";
 import { getSecureCookieOptions } from "@/lib/security/cookies";
 
 export async function updateSession(request: NextRequest) {
@@ -9,8 +9,8 @@ export async function updateSession(request: NextRequest) {
   });
 
   const supabase = createServerClient(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    envClient.NEXT_PUBLIC_SUPABASE_URL,
+    envClient.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll() {

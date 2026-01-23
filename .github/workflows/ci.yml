@@ -15,15 +15,15 @@ jobs:
     env:
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: anon_key
-      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_ci_dummy_1234567890
       NEXT_PUBLIC_STRIPE_ALLOW_TEST_PAYMENTS: "true"
       NEXT_PUBLIC_APP_URL: http://localhost:3000
       NEXT_PUBLIC_MANAGEMENT_URL: http://localhost:3001
-      SUPABASE_SERVICE_ROLE_KEY: service_role_placeholder
-      STRIPE_SECRET_KEY: sk_test_placeholder
-      STRIPE_WEBHOOK_SECRET: whsec_placeholder
-      JWT_SECRET: test_jwt_secret
-      JWT_REFRESH_SECRET: test_jwt_refresh_secret
+      SUPABASE_SERVICE_ROLE_KEY: service_role_ci_dummy_1234567890
+      STRIPE_SECRET_KEY: sk_test_ci_dummy_1234567890
+      STRIPE_WEBHOOK_SECRET: whsec_ci_dummy_1234567890
+      JWT_SECRET: test_jwt_secret_32_chars_minimum_dummy_value
+      JWT_REFRESH_SECRET: test_jwt_refresh_secret_32_chars_dummy_value
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
