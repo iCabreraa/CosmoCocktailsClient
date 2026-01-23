@@ -10,11 +10,15 @@ interface QueryProviderProps {
 }
 
 export default function QueryProvider({ children }: QueryProviderProps) {
+  const devtoolsEnabled =
+    process.env.NODE_ENV === "development" &&
+    process.env.NEXT_PUBLIC_ENABLE_QUERY_DEVTOOLS === "true";
+
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      {/* DevTools solo en desarrollo */}
-      {process.env.NODE_ENV === "development" && (
+      {/* DevTools solo si se habilita explícitamente */}
+      {devtoolsEnabled && (
         <ReactQueryDevtools initialIsOpen={false} />
       )}
     </QueryClientProvider>
