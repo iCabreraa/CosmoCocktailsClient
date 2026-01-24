@@ -231,22 +231,6 @@ export default function FeaturedBanner() {
         </div>
       )}
 
-      <style jsx global>{`
-        .featured-swiper .swiper-pagination-bullet {
-          width: 10px;
-          height: 10px;
-          opacity: 1;
-          background: rgba(209, 184, 127, 0.35);
-          border: 1px solid rgba(209, 184, 127, 0.6);
-          transition: transform 0.2s ease, background 0.2s ease;
-        }
-
-        .featured-swiper .swiper-pagination-bullet-active {
-          background: rgba(209, 184, 127, 0.95);
-          transform: scale(1.1);
-          box-shadow: 0 0 8px rgba(209, 184, 127, 0.6);
-        }
-      `}</style>
     </>
   );
 }
