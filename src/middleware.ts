@@ -4,16 +4,6 @@ import { rateLimitMiddleware } from "@/lib/rate-limiting";
 
 // Secure middleware with minimal, Stripe/Supabase-compatible CSP and security headers
 export async function middleware(request: NextRequest) {
-  const url = request.nextUrl.clone();
-
-  if (
-    url.pathname === "/checkout/success" &&
-    url.searchParams.has("payment_intent_client_secret")
-  ) {
-    url.searchParams.delete("payment_intent_client_secret");
-    return NextResponse.redirect(url);
-  }
-
   // Apply rate limiting first for API routes
   if (request.nextUrl.pathname.startsWith("/api/")) {
     const rateLimitResponse = await rateLimitMiddleware(request);
@@ -22,11 +12,17 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  const response = NextResponse.next();
-
   // Build a CSP compatible with Stripe/Supabase, using a per-request nonce
   const nonce = crypto.randomUUID();
   const nonceDirective = `'nonce-${nonce}'`;
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 
   const stripeJs = "https://js.stripe.com";
   const stripeApi = "https://api.stripe.com";
