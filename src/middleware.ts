@@ -18,12 +18,6 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
 
-  const response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
-
   const stripeJs = "https://js.stripe.com";
   const stripeApi = "https://api.stripe.com";
   const stripeNetwork = "https://m.stripe.network";
@@ -77,6 +71,16 @@ export async function middleware(request: NextRequest) {
     "form-action 'self'",
     "frame-ancestors 'none'",
   ].join("; ");
+
+  // Pass CSP to Next.js via the incoming request so it can attach the nonce to
+  // inline scripts/styles during the render (required for App Router).
+  requestHeaders.set("content-security-policy", csp);
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 
   // Security headers
   response.headers.set("Content-Security-Policy", csp);
