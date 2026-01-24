@@ -24,7 +24,8 @@ type RawCocktail = {
 };
 
 export function mapCocktailsWithPrices(
-  rows: RawCocktail[]
+  rows: RawCocktail[],
+  tagsByCocktail: Record<string, string[]> = {}
 ): CocktailWithPrice[] {
   return rows.map(cocktail => {
     const sizes =
@@ -62,6 +63,7 @@ export function mapCocktailsWithPrices(
         cocktail.has_non_alcoholic_version
       ),
       sizes,
+      tags: tagsByCocktail[cocktail.id] ?? [],
     };
   });
 }

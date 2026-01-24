@@ -42,7 +42,33 @@ async function getInitialShopData() {
     return { cocktails: [], totalCount: 0, hasMore: false };
   }
 
-  const cocktails = mapCocktailsWithPrices((data ?? []) as any[]);
+  const ids = (data ?? []).map(row => row.id);
+  const tagsByCocktail: Record<string, string[]> = {};
+
+  if (ids.length > 0) {
+    const { data: tagRows, error: tagError } = await supabase
+      .from("cocktail_tags")
+      .select("cocktail_id, tags(name)")
+      .in("cocktail_id", ids);
+
+    if (tagError) {
+      console.warn("Error loading cocktail tags:", tagError);
+    } else {
+      (tagRows ?? []).forEach((row: any) => {
+        const name = row?.tags?.name;
+        if (!name) return;
+        if (!tagsByCocktail[row.cocktail_id]) {
+          tagsByCocktail[row.cocktail_id] = [];
+        }
+        tagsByCocktail[row.cocktail_id].push(name);
+      });
+    }
+  }
+
+  const cocktails = mapCocktailsWithPrices(
+    (data ?? []) as any[],
+    tagsByCocktail
+  );
   const totalCount = typeof count === "number" ? count : cocktails.length;
   const hasMore =
     typeof count === "number"

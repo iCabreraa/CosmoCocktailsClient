@@ -42,6 +42,7 @@ const nl = {
     "clear_search": "Zoekopdracht wissen",
     "filter_category": "Categorie",
     "filter_type": "Type",
+    "filter_all": "Alle",
     "filter_classic": "Kosmische klassiekers",
     "filter_tropical": "Tropische lekkernijen",
     "filter_non_alcoholic": "Alcoholvrij",

@@ -58,6 +58,10 @@ export default function ShopClient({
   const [currentPage, setCurrentPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] =
+    useState<"all" | "non_alcoholic">("all");
+  const [typeFilter, setTypeFilter] =
+    useState<"all" | "classic" | "tropical">("all");
   const [viewMode, setViewMode] = useState<"lazy" | "pagination">(
     "pagination"
   );
@@ -68,6 +72,48 @@ export default function ShopClient({
   const showFavorites = Boolean(user);
 
   const PAGE_SIZE = 12;
+  const hasActiveFilters =
+    categoryFilter !== "all" || typeFilter !== "all";
+
+  const categoryOptions = [
+    { value: "all", label: t("shop.filter_all") },
+    { value: "non_alcoholic", label: t("shop.filter_non_alcoholic") },
+  ] as const;
+
+  const typeOptions = [
+    { value: "all", label: t("shop.filter_all") },
+    { value: "classic", label: t("shop.filter_classic") },
+    { value: "tropical", label: t("shop.filter_tropical") },
+  ] as const;
+
+  const fetchTagsForCocktails = async (ids: string[]) => {
+    const tagsByCocktail: Record<string, string[]> = {};
+
+    if (ids.length === 0) {
+      return tagsByCocktail;
+    }
+
+    const { data: tagRows, error: tagError } = await supabase
+      .from("cocktail_tags")
+      .select("cocktail_id, tags(name)")
+      .in("cocktail_id", ids);
+
+    if (tagError) {
+      console.warn("Error loading cocktail tags:", tagError);
+      return tagsByCocktail;
+    }
+
+    (tagRows ?? []).forEach((row: any) => {
+      const name = row?.tags?.name;
+      if (!name) return;
+      if (!tagsByCocktail[row.cocktail_id]) {
+        tagsByCocktail[row.cocktail_id] = [];
+      }
+      tagsByCocktail[row.cocktail_id].push(name);
+    });
+
+    return tagsByCocktail;
+  };
 
   async function fetchCocktailsPage(
     page: number,
@@ -126,6 +172,32 @@ export default function ShopClient({
         queryBuilder = queryBuilder.ilike("name", `%${trimmedQuery}%`);
       }
 
+      if (categoryFilter === "non_alcoholic") {
+        queryBuilder = queryBuilder.eq("alcohol_percentage", 0);
+      }
+
+      if (typeFilter !== "all") {
+        const tagName = typeFilter === "classic" ? "classic" : "tropical";
+        const { data: tagRows, error: tagError } = await supabase
+          .from("cocktail_tags")
+          .select("cocktail_id, tags!inner(name)")
+          .eq("tags.name", tagName);
+
+        if (tagError) {
+          console.warn("Error filtering by tags:", tagError);
+        } else {
+          const filteredIds =
+            (tagRows ?? []).map((row: any) => row.cocktail_id) ?? [];
+          if (filteredIds.length === 0) {
+            setCocktails([]);
+            setTotalCount(0);
+            setHasMore(false);
+            return;
+          }
+          queryBuilder = queryBuilder.in("id", filteredIds);
+        }
+      }
+
       const { data: cocktailRows, error, count } = await queryBuilder
         .eq("is_available", true)
         .order("name", { ascending: true })
@@ -160,6 +232,10 @@ export default function ShopClient({
         }> | null;
       }>;
 
+      const tagsByCocktail = await fetchTagsForCocktails(
+        typedCocktails.map(item => item.id)
+      );
+
       if (typedCocktails.length === 0) {
         if (!append) {
           setCocktails([]);
@@ -167,7 +243,10 @@ export default function ShopClient({
         setHasMore(false);
         return;
       }
-      const cocktailsWithPrices = mapCocktailsWithPrices(typedCocktails);
+      const cocktailsWithPrices = mapCocktailsWithPrices(
+        typedCocktails,
+        tagsByCocktail
+      );
 
       if (append) {
         let nextLength = 0;
@@ -240,6 +319,17 @@ export default function ShopClient({
     });
   }, [searchQuery]);
 
+  useEffect(() => {
+    if (!hasMountedRef.current) return;
+    setCurrentPage(1);
+    setTotalCount(0);
+    fetchCocktailsPage(1, false, searchQuery, {
+      silent: true,
+      withCount: true,
+      reason: "search",
+    });
+  }, [categoryFilter, typeFilter]);
+
   const handleRetry = () => {
     setCurrentPage(1);
     setCocktails([]);
@@ -275,6 +365,11 @@ export default function ShopClient({
     setSearchQuery("");
   };
 
+  const handleClearFilters = () => {
+    setCategoryFilter("all");
+    setTypeFilter("all");
+  };
+
   const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -288,35 +383,77 @@ export default function ShopClient({
 
   const normalizedSearch = searchQuery.trim();
   const hasSearch = normalizedSearch.length > 0;
+  const matchesTypeFilter = (
+    cocktail: CocktailWithPrice,
+    value: "classic" | "tropical"
+  ) => {
+    const tags = (cocktail.tags ?? []).map(tag => tag.toLowerCase());
+    if (tags.includes(value)) return true;
+    const name = cocktail.name.toLowerCase();
+    const description = cocktail.description?.toLowerCase() ?? "";
+
+    if (value === "tropical") {
+      return (
+        name.includes("tropical") ||
+        name.includes("tiki") ||
+        name.includes("pina") ||
+        name.includes("coconut") ||
+        description.includes("tropical") ||
+        description.includes("tiki")
+      );
+    }
+
+    return (
+      name.includes("classic") ||
+      description.includes("classic") ||
+      tags.includes("classic")
+    );
+  };
+
+  const filteredCocktails = useMemo(() => {
+    let list = cocktails;
+
+    if (categoryFilter === "non_alcoholic") {
+      list = list.filter(cocktail => cocktail.alcohol_percentage === 0);
+    }
+
+    if (typeFilter !== "all") {
+      list = list.filter(cocktail => matchesTypeFilter(cocktail, typeFilter));
+    }
+
+    return list;
+  }, [cocktails, categoryFilter, typeFilter]);
+
+  const visibleCocktails = filteredCocktails;
   const showFullLoader = loading && cocktails.length === 0;
   const showSoftLoader = (loading || softLoading) && cocktails.length > 0;
 
   // Agrupar cócteles por categorías
   const nonAlcoholicCocktails = useMemo(
-    () => cocktails.filter(c => c.alcohol_percentage === 0),
-    [cocktails]
+    () => visibleCocktails.filter(c => c.alcohol_percentage === 0),
+    [visibleCocktails]
   );
   const strongCocktails = useMemo(
-    () => cocktails.filter(c => c.alcohol_percentage >= 18),
-    [cocktails]
+    () => visibleCocktails.filter(c => c.alcohol_percentage >= 18),
+    [visibleCocktails]
   );
   const lightCocktails = useMemo(
     () =>
-      cocktails.filter(
+      visibleCocktails.filter(
         c => c.alcohol_percentage > 0 && c.alcohol_percentage <= 14
       ),
-    [cocktails]
+    [visibleCocktails]
   );
   const tropicalCocktails = useMemo(
     () =>
-      cocktails.filter(
+      visibleCocktails.filter(
         c =>
           c.name.toLowerCase().includes("tropical") ||
           c.name.toLowerCase().includes("tiki") ||
           c.name.toLowerCase().includes("pina") ||
           c.name.toLowerCase().includes("coconut")
       ),
-    [cocktails]
+    [visibleCocktails]
   );
 
   if (showFullLoader) {
@@ -358,7 +495,7 @@ export default function ShopClient({
   const totalPages =
     totalCount > 0 ? Math.ceil(totalCount / PAGE_SIZE) : 1;
 
-  if (cocktails.length === 0) {
+  if (visibleCocktails.length === 0) {
     return (
       <motion.section
         className="min-h-[60vh] flex items-center justify-center px-6 py-24 text-center"
@@ -368,10 +505,16 @@ export default function ShopClient({
       >
         <div className="max-w-xl space-y-4">
           <h1 className="text-3xl font-[--font-unica] text-[#D8DAE3]">
-            {hasSearch ? t("shop.search_empty_title") : t("shop.empty_title")}
+            {hasActiveFilters
+              ? t("shop.filter_empty_title")
+              : hasSearch
+              ? t("shop.search_empty_title")
+              : t("shop.empty_title")}
           </h1>
           <p className="text-cosmic-silver">
-            {hasSearch
+            {hasActiveFilters
+              ? t("shop.filter_empty_description")
+              : hasSearch
               ? t("shop.search_empty_description", {
                   query: normalizedSearch,
                 })
@@ -383,10 +526,20 @@ export default function ShopClient({
             </p>
           )}
           <button
-            onClick={hasSearch ? handleSearchClear : handleRetry}
+            onClick={
+              hasActiveFilters
+                ? handleClearFilters
+                : hasSearch
+                ? handleSearchClear
+                : handleRetry
+            }
             className="inline-flex items-center justify-center px-5 py-2 rounded-full border border-cosmic-gold text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors"
           >
-            {hasSearch ? t("shop.clear_search") : t("common.retry")}
+            {hasActiveFilters
+              ? t("shop.clear_filters")
+              : hasSearch
+              ? t("shop.clear_search")
+              : t("common.retry")}
           </button>
         </div>
       </motion.section>
@@ -470,6 +623,54 @@ export default function ShopClient({
                 <span className="sr-only">{t("shop.view_mode_lazy")}</span>
               </button>
             </div>
+
+            <div className="flex w-full flex-wrap items-center justify-center gap-3 text-xs uppercase tracking-[0.2em] text-cosmic-silver">
+              <span className="text-[11px] text-cosmic-silver/80">
+                {t("shop.filter_category")}
+              </span>
+              {categoryOptions.map(option => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setCategoryFilter(option.value)}
+                  className={`rounded-full px-3 py-1 text-[11px] transition ${
+                    categoryFilter === option.value
+                      ? "bg-cosmic-gold text-black"
+                      : "border border-cosmic-gold/20 text-cosmic-silver hover:text-white hover:border-cosmic-gold/60"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+
+              <span className="text-[11px] text-cosmic-silver/80">
+                {t("shop.filter_type")}
+              </span>
+              {typeOptions.map(option => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setTypeFilter(option.value)}
+                  className={`rounded-full px-3 py-1 text-[11px] transition ${
+                    typeFilter === option.value
+                      ? "bg-cosmic-gold text-black"
+                      : "border border-cosmic-gold/20 text-cosmic-silver hover:text-white hover:border-cosmic-gold/60"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="rounded-full px-3 py-1 text-[11px] text-cosmic-gold transition hover:text-white"
+                >
+                  {t("shop.clear_filters")}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -491,7 +692,10 @@ export default function ShopClient({
               transition={{ duration: 0.3 }}
               layout
             >
-              <CocktailGrid cocktails={cocktails} showFavorites={showFavorites} />
+              <CocktailGrid
+                cocktails={visibleCocktails}
+                showFavorites={showFavorites}
+              />
 
               {totalPages > 1 && (
                 <div className="flex flex-wrap items-center justify-center gap-6">
@@ -534,8 +738,11 @@ export default function ShopClient({
               transition={{ duration: 0.3 }}
               layout
             >
-              {hasSearch ? (
-                <CocktailGrid cocktails={cocktails} showFavorites={showFavorites} />
+              {hasSearch || hasActiveFilters ? (
+                <CocktailGrid
+                  cocktails={visibleCocktails}
+                  showFavorites={showFavorites}
+                />
               ) : (
                 <>
                   {/* Sección Principal - Todos los Cócteles */}
