@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 import { ReactNode } from "react";
+import { headers } from "next/headers";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -46,6 +47,7 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const nonce = headers().get("x-nonce") ?? undefined;
   // Dev-only diagnostics
   if (typeof window !== "undefined") {
     warnIfStripeEnvInvalid();
@@ -56,6 +58,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   );
   return (
     <html lang="en">
+      <head>{nonce ? <noscript data-n-css={nonce} /> : null}</head>
       <body className={`${unica.variable} ${josefin.variable} font-sans`}>
         <ErrorBoundary>
           <LanguageProvider>
