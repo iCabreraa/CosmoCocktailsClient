@@ -42,6 +42,9 @@ export const metadata = {
   description: "Premium bottled cocktails in the Netherlands",
 };
 
+// Force dynamic rendering so Next can inject CSP nonces into inline scripts.
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   // Dev-only diagnostics
   if (typeof window !== "undefined") {
