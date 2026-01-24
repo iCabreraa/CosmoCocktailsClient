@@ -9,7 +9,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import CosmicBackground from "@/components/ui/CosmicBackground";
 import Image from "next/image";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
 import { ToastProvider } from "@/components/feedback/ToastProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   if (typeof window !== "undefined") {
     warnIfStripeEnvInvalid();
   }
-  const ServiceWorkerRegister = dynamic(
+  const ServiceWorkerRegister = dynamicImport(
     () => import("@/components/performance/ServiceWorkerRegister"),
     { ssr: false }
   );
