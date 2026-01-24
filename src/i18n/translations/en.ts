@@ -42,6 +42,7 @@ const en = {
     "clear_search": "Clear search",
     "filter_category": "Category",
     "filter_type": "Type",
+    "filter_all": "All",
     "filter_classic": "Cosmic classics",
     "filter_tropical": "Tropical delights",
     "filter_non_alcoholic": "Non-alcoholic",
