@@ -2,6 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Featured banner pagination styles (moved from inline styles for CSP) */
+.featured-swiper .swiper-pagination-bullet {
+  width: 10px;
+  height: 10px;
+  opacity: 1;
+  background: rgba(209, 184, 127, 0.35);
+  border: 1px solid rgba(209, 184, 127, 0.6);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.featured-swiper .swiper-pagination-bullet-active {
+  background: rgba(209, 184, 127, 0.95);
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(209, 184, 127, 0.6);
+}
+
+/* Printable order receipt styles (moved from inline styles for CSP) */
+@media print {
+  body {
+    background: white;
+    color: #111;
+  }
+
+  .receipt {
+    width: 700px;
+    margin: 0 auto;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+
+  .receipt h1 {
+    font-size: 18px;
+    margin: 0 0 8px;
+  }
+
+  .receipt .muted {
+    color: #666;
+  }
+
+  .receipt .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .receipt .row:last-child {
+    border-bottom: none;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
 body {
   @apply bg-cosmic-bg text-cosmic-text font-sans;
 }

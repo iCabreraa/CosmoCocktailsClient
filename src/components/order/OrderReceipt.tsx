@@ -21,17 +21,6 @@ export default function OrderReceipt({ order, items }: Props) {
   const print = () => window.print();
   return (
     <>
-      <style>{`
-      @media print {
-        body { background: white; color: #111; }
-        .receipt { width: 700px; margin: 0 auto; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-        .receipt h1 { font-size: 18px; margin: 0 0 8px; }
-        .receipt .muted { color: #666; }
-        .receipt .row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee; }
-        .receipt .row:last-child { border-bottom: none; }
-        .no-print { display: none !important; }
-      }
-      `}</style>
       <button
         onClick={print}
         className="text-cosmic-silver hover:text-cosmic-gold underline-offset-4 hover:underline text-sm"
