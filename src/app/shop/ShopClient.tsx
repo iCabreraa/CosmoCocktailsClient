@@ -123,7 +123,12 @@ export default function ShopClient({
       );
 
       if (trimmedQuery) {
-        queryBuilder = queryBuilder.ilike("name", `%${trimmedQuery}%`);
+        const safeQuery = trimmedQuery
+          .replace(/[%_]/g, "\\$&")
+          .replace(/,/g, " ");
+        queryBuilder = queryBuilder.or(
+          `name.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%`
+        );
       }
 
       const { data: cocktailRows, error, count } = await queryBuilder
