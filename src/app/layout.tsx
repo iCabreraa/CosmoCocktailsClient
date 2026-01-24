@@ -9,7 +9,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import CosmicBackground from "@/components/ui/CosmicBackground";
 import Image from "next/image";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
 import { ToastProvider } from "@/components/feedback/ToastProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
@@ -42,12 +42,15 @@ export const metadata = {
   description: "Premium bottled cocktails in the Netherlands",
 };
 
+// Force dynamic rendering so Next can inject CSP nonces into inline scripts.
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   // Dev-only diagnostics
   if (typeof window !== "undefined") {
     warnIfStripeEnvInvalid();
   }
-  const ServiceWorkerRegister = dynamic(
+  const ServiceWorkerRegister = dynamicImport(
     () => import("@/components/performance/ServiceWorkerRegister"),
     { ssr: false }
   );
